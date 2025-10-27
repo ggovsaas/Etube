@@ -9,12 +9,12 @@ interface User {
   role: string;
   createdAt: string;
   profile?: {
-    id: string;
-    name: string;
-    age: number;
-    city: string;
-    isVerified: boolean;
-    isOnline: boolean;
+  id: string;
+  name: string;
+  age: number;
+  city: string;
+  isVerified: boolean;
+  isOnline: boolean;
     rating: number;
   };
 }
@@ -30,7 +30,7 @@ export default function AdminProfilesPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/profiles');
+      const response = await fetch('/api/admin/users');
       if (!response.ok) {
         throw new Error('Failed to fetch users');
       }
@@ -76,7 +76,7 @@ export default function AdminProfilesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">All Users & Profiles</h1>
-        <Link 
+        <Link
           href="/admin" 
           className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
         >
@@ -93,20 +93,20 @@ export default function AdminProfilesPage() {
                   <div className="flex-shrink-0">
                     <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
                       <span className="text-sm font-medium text-gray-700">
-                        {user.email.charAt(0).toUpperCase()}
+                        {user.email ? user.email.charAt(0).toUpperCase() : '?'}
                       </span>
                     </div>
                   </div>
                   <div className="ml-4">
                     <div className="text-sm font-medium text-gray-900">
-                      {user.email}
+                      {user.email || 'No email'}
                     </div>
                     <div className="text-sm text-gray-500">
                       Joined: {new Date(user.createdAt).toLocaleDateString()}
                     </div>
                     {user.profile && (
                       <div className="text-sm text-gray-500">
-                        Profile: {user.profile.name} ({user.profile.age} years, {user.profile.city})
+                        Profile: {user.profile.name || 'No name'} ({user.profile.age || 0} years, {user.profile.city || 'No city'})
                       </div>
                     )}
                   </div>
@@ -126,7 +126,7 @@ export default function AdminProfilesPage() {
                         </span>
                       )}
                       <span className="text-sm text-gray-500">
-                        ⭐ {user.profile.rating.toFixed(1)}
+                        ⭐ {(user.profile.rating || 0).toFixed(1)}
                       </span>
                     </>
                   )}

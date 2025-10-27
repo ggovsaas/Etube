@@ -1,54 +1,59 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
     const profile = await prisma.profile.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         media: {
           orderBy: {
-            createdAt: 'desc',
-          },
+            createdAt: 'desc'
+          }
         },
         reviews: {
           orderBy: {
-            createdAt: 'desc',
-          },
-        },
-        questions: {
-          orderBy: {
-            createdAt: 'desc',
-          },
+            createdAt: 'desc'
+          }
         },
         _count: {
           select: {
-            reviews: true,
-            questions: true,
-          },
+            reviews: true
+          }
         },
-      },
+        user: true
+      }
     });
 
     if (!profile) {
-      return new NextResponse('Profile not found', { status: 404 });
+      return NextResponse.json(
+        { error: 'Profile not found' },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json(profile);
+
   } catch (error) {
     console.error('Error fetching profile:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const {
       name,
@@ -56,21 +61,19 @@ export async function PUT(
       city,
       height,
       weight,
-      price,
       description,
       isVerified,
       isOnline,
     } = body;
 
     const profile = await prisma.profile.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         age,
         city,
         height,
         weight,
-        price,
         description,
         isVerified,
         isOnline,
@@ -86,11 +89,12 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await prisma.profile.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return new NextResponse(null, { status: 204 });

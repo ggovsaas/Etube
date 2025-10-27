@@ -1,47 +1,54 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { verify } from 'jsonwebtoken';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Get token from cookies
+    const token = request.cookies.get('auth-token')?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    // Verify token
+    const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+    
+    if (!decoded || decoded.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    // Get stats
     const [
-      totalProfiles,
-      totalReviews,
-      totalMedia,
-      totalQuestions,
-      verifiedProfiles,
-      onlineProfiles,
-      profilesByCity,
-      averageRating,
+      totalUsers,
+      totalListings,
+      activeListings,
+      pendingListings
     ] = await Promise.all([
-      prisma.profile.count(),
-      prisma.review.count(),
-      prisma.media.count(),
-      prisma.question.count(),
-      prisma.profile.count({ where: { isVerified: true } }),
-      prisma.profile.count({ where: { isOnline: true } }),
-      prisma.profile.groupBy({
-        by: ['city'],
-        _count: true,
-      }),
-      prisma.profile.aggregate({
-        _avg: {
-          rating: true,
-        },
-      }),
+      prisma.user.count(),
+      prisma.listing.count(),
+      prisma.listing.count({ where: { status: 'ACTIVE' } }),
+      prisma.listing.count({ where: { status: 'PENDING' } })
     ]);
 
     return NextResponse.json({
-      totalProfiles,
-      totalReviews,
-      totalMedia,
-      totalQuestions,
-      verifiedProfiles,
-      onlineProfiles,
-      profilesByCity,
-      averageRating: averageRating._avg.rating || 0,
+      totalUsers,
+      totalListings,
+      activeListings,
+      pendingListings
     });
+
   } catch (error) {
-    console.error('Error fetching admin statistics:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    console.error('Error fetching admin stats:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 } 

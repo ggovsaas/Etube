@@ -136,8 +136,8 @@ export default function PricingPage() {
                 Sem estatísticas
               </li>
             </ul>
-          </div>
-        </div>
+              </div>
+              </div>
 
         {/* TURBO Features */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
@@ -148,7 +148,7 @@ export default function PricingPage() {
               <p className="text-gray-600 mb-4">Boost para o topo dos resultados</p>
               <div className="text-3xl font-bold text-purple-600 mb-4">8€</div>
               <p className="text-sm text-gray-500 mb-4">(vs 10€ da concorrência - 20% desconto)</p>
-            </div>
+              </div>
             <ul className="space-y-3 mb-6">
               <li className="flex items-center">
                 <span className="text-purple-500 mr-2">✓</span>

@@ -24,19 +24,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch all profiles
-    const profiles = await prisma.profile.findMany({
+    // Fetch pending listings
+    const pendingListings = await prisma.listing.findMany({
+      where: {
+        status: 'PENDING'
+      },
       include: {
-        user: true,
-        media: {
-          take: 1,
-          orderBy: {
-            createdAt: 'desc'
-          }
-        },
-        _count: {
-          select: {
-            reviews: true
+        user: {
+          include: {
+            profile: true
           }
         }
       },
@@ -45,10 +41,10 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(profiles);
+    return NextResponse.json(pendingListings);
 
   } catch (error) {
-    console.error('Error fetching profiles:', error);
+    console.error('Error fetching pending listings:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

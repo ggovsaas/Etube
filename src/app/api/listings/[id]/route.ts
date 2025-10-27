@@ -1,18 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verify } from 'jsonwebtoken';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
     const listing = await prisma.listing.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         user: {
           include: {
             profile: true
+          }
+        },
+        media: {
+          orderBy: {
+            createdAt: 'desc'
           }
         }
       }
@@ -21,14 +27,6 @@ export async function GET(
     if (!listing) {
       return NextResponse.json(
         { error: 'Listing not found' },
-        { status: 404 }
-      );
-    }
-
-    // Only return active listings to the public
-    if (listing.status !== 'ACTIVE') {
-      return NextResponse.json(
-        { error: 'Listing not available' },
         { status: 404 }
       );
     }
@@ -46,9 +44,12 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    const body = await request.json();
+
     // Get token from cookies
     const token = request.cookies.get('auth-token')?.value;
 
@@ -60,6 +61,7 @@ export async function PUT(
     }
 
     // Verify token
+    const { verify } = await import('jsonwebtoken');
     const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
     
     if (!decoded || !decoded.userId) {
@@ -69,30 +71,21 @@ export async function PUT(
       );
     }
 
-    const body = await request.json();
-
-    // Check if listing exists and user owns it
+    // Check if user owns this listing
     const existingListing = await prisma.listing.findUnique({
-      where: { id: params.id }
+      where: { id },
+      select: { userId: true }
     });
 
-    if (!existingListing) {
+    if (!existingListing || existingListing.userId !== decoded.userId) {
       return NextResponse.json(
-        { error: 'Listing not found' },
-        { status: 404 }
-      );
-    }
-
-    if (existingListing.userId !== decoded.userId) {
-      return NextResponse.json(
-        { error: 'You do not have permission to edit this listing' },
+        { error: 'Not authorized to edit this listing' },
         { status: 403 }
       );
     }
 
-    // Update listing
     const updatedListing = await prisma.listing.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         title: body.title,
         description: body.description,
@@ -100,25 +93,13 @@ export async function PUT(
         age: body.age,
         phone: body.phone,
         services: body.services,
+        status: body.status,
+        isPremium: body.isPremium,
+        price: body.price,
       }
     });
 
-    // Update profile if provided
-    if (body.user?.profile) {
-      await prisma.profile.update({
-        where: { userId: decoded.userId },
-        data: {
-          name: body.user.profile.name,
-          description: body.user.profile.description,
-          // Add other profile fields as needed
-        }
-      });
-    }
-
-    return NextResponse.json({
-      success: true,
-      listing: updatedListing
-    });
+    return NextResponse.json(updatedListing);
 
   } catch (error) {
     console.error('Error updating listing:', error);

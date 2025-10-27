@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const token = request.cookies.get('auth-token')?.value;
 
     if (!token) {
+      console.log('No auth token found');
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -17,25 +18,29 @@ export async function GET(request: NextRequest) {
     // Verify token
     const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
     
+    console.log('Token decoded:', { userId: decoded?.userId, role: decoded?.role });
+    
     if (!decoded || decoded.role !== 'ADMIN') {
+      console.log('User is not admin:', decoded?.role);
       return NextResponse.json(
         { error: 'Admin access required' },
         { status: 403 }
       );
     }
 
-    // Fetch all profiles
-    const profiles = await prisma.profile.findMany({
+    // Fetch all users with their profiles
+    const users = await prisma.user.findMany({
       include: {
-        user: true,
-        media: {
-          take: 1,
+        profile: true,
+        listings: {
+          take: 5,
           orderBy: {
             createdAt: 'desc'
           }
         },
         _count: {
           select: {
+            listings: true,
             reviews: true
           }
         }
@@ -45,10 +50,10 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(profiles);
+    return NextResponse.json(users);
 
   } catch (error) {
-    console.error('Error fetching profiles:', error);
+    console.error('Error fetching users:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verify } from 'jsonwebtoken';
 
-export async function GET(
+export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -22,43 +22,28 @@ export async function GET(
     // Verify token
     const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
     
-    if (!decoded || !decoded.userId) {
+    if (!decoded || decoded.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      );
-    }
-
-    const listing = await prisma.listing.findUnique({
-      where: { id },
-      include: {
-        user: {
-          include: {
-            profile: true
-          }
-        }
-      }
-    });
-
-    if (!listing) {
-      return NextResponse.json(
-        { error: 'Listing not found' },
-        { status: 404 }
-      );
-    }
-
-    // Check if user owns this listing or is admin
-    if (listing.userId !== decoded.userId && decoded.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Not authorized to edit this listing' },
+        { error: 'Admin access required' },
         { status: 403 }
       );
     }
 
-    return NextResponse.json(listing);
+    // Update listing status to ACTIVE
+    const updatedListing = await prisma.listing.update({
+      where: { id },
+      data: {
+        status: 'ACTIVE'
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      listing: updatedListing
+    });
 
   } catch (error) {
-    console.error('Error fetching listing for edit:', error);
+    console.error('Error approving listing:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

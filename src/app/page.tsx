@@ -1,6 +1,64 @@
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+
+interface Profile {
+  id: string;
+  name: string;
+  age: number;
+  city: string;
+  height: number;
+  weight: number;
+  price: number;
+  pricePerHour: number;
+  rating: number;
+  reviews: number;
+  isOnline: boolean;
+  isVerified: boolean;
+  imageUrl: string;
+  description: string;
+  createdAt: string;
+}
 
 export default function Home() {
+  const [topProfiles, setTopProfiles] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchCity, setSearchCity] = useState('');
+  const [searchCategory, setSearchCategory] = useState('');
+
+  // Fetch top profiles
+  useEffect(() => {
+    const fetchTopProfiles = async () => {
+      try {
+        const response = await fetch('/api/profiles?limit=8');
+        if (response.ok) {
+          const data = await response.json();
+          setTopProfiles(data.profiles || []);
+        }
+      } catch (error) {
+        console.error('Error fetching top profiles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTopProfiles();
+  }, []);
+
+  // Handle search form submission
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchCity || searchCategory) {
+      const params = new URLSearchParams();
+      if (searchCity) params.set('cidade', searchCity);
+      if (searchCategory) params.set('categoria', searchCategory);
+      window.location.href = `/perfis?${params.toString()}`;
+    } else {
+      window.location.href = '/perfis';
+    }
+  };
+
   const categories = [
     { name: 'Feminino', image: 'photo-1494790108755-2616c19a1d3e' },
     { name: 'MILF', image: 'photo-1506863530036-1efeddceb993' },
@@ -52,39 +110,53 @@ export default function Home() {
               <div className="flex justify-end space-x-8 mb-8">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-pink-300">1000+</div>
-                  <div className="text-sm">Perfis Ativos</div>
+                  <div className="text-sm text-white font-medium">Perfis Ativos</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-pink-300">50+</div>
-                  <div className="text-sm">Cidades</div>
+                  <div className="text-sm text-white font-medium">Cidades</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-pink-300">24/7</div>
-                  <div className="text-sm">Disponível</div>
+                  <div className="text-sm text-white font-medium">Disponível</div>
                 </div>
               </div>
               
               {/* Search Bar */}
-              <div className="bg-white bg-opacity-90 rounded-lg p-4 backdrop-blur-sm">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <select className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                    <option>Selecione a cidade</option>
-                    <option>Lisboa</option>
-                    <option>Porto</option>
-                    <option>Coimbra</option>
-                    <option>Braga</option>
+              <div className="bg-white bg-opacity-95 rounded-lg p-4 backdrop-blur-sm shadow-lg">
+                <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <select 
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
+                    value={searchCity}
+                    onChange={(e) => setSearchCity(e.target.value)}
+                  >
+                    <option value="" disabled>Selecione a cidade</option>
+                    <option value="lisboa">Lisboa</option>
+                    <option value="porto">Porto</option>
+                    <option value="coimbra">Coimbra</option>
+                    <option value="braga">Braga</option>
+                    <option value="aveiro">Aveiro</option>
+                    <option value="faro">Faro</option>
                   </select>
-                  <select className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                    <option>Categoria</option>
-                    <option>Feminino</option>
-                    <option>Masculino</option>
-                    <option>Trans</option>
-                    <option>MILF</option>
+                  <select 
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
+                    value={searchCategory}
+                    onChange={(e) => setSearchCategory(e.target.value)}
+                  >
+                    <option value="" disabled>Categoria</option>
+                    <option value="feminino">Feminino</option>
+                    <option value="masculino">Masculino</option>
+                    <option value="trans">Trans</option>
+                    <option value="milf">MILF</option>
+                    <option value="vip">VIP</option>
                   </select>
-                  <button className="w-full bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition font-medium">
+                  <button 
+                    type="submit"
+                    className="w-full bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition font-medium shadow-lg"
+                  >
                     <i className="fas fa-search mr-2"></i>Pesquisar
                   </button>
-                </div>
+                </form>
               </div>
             </div>
           </div>
@@ -100,34 +172,42 @@ export default function Home() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
-                <div className="aspect-w-3 aspect-h-4">
-                  <img 
-                    src={`https://images.unsplash.com/photo-151950102${5260 + i}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80`}
-                    alt={`Profile ${i + 1}`}
-                    className="w-full h-80 object-cover"
-                  />
-                </div>
-                
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                    <h3 className="text-xl font-bold mb-2">Sofia {i + 1}</h3>
-                    <div className="flex justify-between items-center text-sm">
-                      <span>Altura: 170cm</span>
-                      <span>Peso: 55kg</span>
+            {loading ? (
+              <p>Carregando perfis...</p>
+            ) : topProfiles.length === 0 ? (
+              <p>Nenhum perfil encontrado.</p>
+            ) : (
+              topProfiles.map((profile, index) => (
+                <Link href={`/perfis/${profile.id}`} key={profile.id}>
+                  <div className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                    <div className="aspect-w-3 aspect-h-4">
+                      <img 
+                        src={profile.imageUrl || 'https://via.placeholder.com/400x600'}
+                        alt={profile.name}
+                        className="w-full h-80 object-cover"
+                      />
                     </div>
-                    <div className="mt-2 text-pink-300 font-bold text-lg">€150/hora</div>
+                    
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                        <h3 className="text-xl font-bold mb-2">{profile.name}</h3>
+                        <div className="flex justify-between items-center text-sm">
+                          <span>Idade: {profile.age} anos</span>
+                          <span>Cidade: {profile.city}</span>
+                        </div>
+                        <div className="mt-2 text-pink-300 font-bold text-lg">€{profile.pricePerHour || profile.price || '0'}/hora</div>
+                      </div>
+                    </div>
+                    
+                    {/* Always visible name */}
+                    <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      {profile.name}
+                    </div>
                   </div>
-                </div>
-                
-                {/* Always visible name */}
-                <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm font-medium">
-                  Sofia {i + 1}
-                </div>
-              </div>
-            ))}
+                </Link>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -249,15 +329,15 @@ export default function Home() {
       <section className="py-16 bg-gradient-to-r from-red-600 to-pink-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">Pronto para Começar?</h2>
-          <p className="text-xl text-red-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-white mb-8 max-w-2xl mx-auto">
             Crie o seu perfil hoje e comece a conectar-se com milhares de utilizadores em Portugal
           </p>
-          <a 
-            href="#" 
+          <Link 
+            href="/criar-perfil"
             className="inline-block bg-white text-red-600 px-8 py-4 rounded-lg text-lg font-bold hover:bg-gray-100 transition-colors duration-300 shadow-lg"
           >
             Cadastrar Perfil Agora
-          </a>
+          </Link>
         </div>
       </section>
     </main>

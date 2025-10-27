@@ -5,12 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 interface FormData {
+  username: string;
   email: string;
   password: string;
-  profileName: string;
-  age: string;
-  city: string;
-  description: string;
+  confirmPassword: string;
 }
 
 export default function CriarPerfilPage() {
@@ -19,15 +17,13 @@ export default function CriarPerfilPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState<FormData>({
+    username: '',
     email: '',
     password: '',
-    profileName: '',
-    age: '',
-    city: '',
-    description: '',
+    confirmPassword: '',
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -40,6 +36,20 @@ export default function CriarPerfilPage() {
     setIsLoading(true);
     setError('');
 
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate password length
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -48,7 +58,9 @@ export default function CriarPerfilPage() {
         },
         body: JSON.stringify({
           accountType,
-          ...formData,
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
         }),
       });
 
@@ -100,7 +112,20 @@ export default function CriarPerfilPage() {
             </div>
           </div>
 
-          {/* Account Info */}
+          {/* Username */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Nome de Utilizador</label>
+            <input 
+              name="username"
+              type="text" 
+              value={formData.username}
+              onChange={handleInputChange}
+              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-gray-900" 
+              required 
+            />
+          </div>
+
+          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Email</label>
             <input 
@@ -112,6 +137,8 @@ export default function CriarPerfilPage() {
               required 
             />
           </div>
+
+          {/* Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Senha</label>
             <input 
@@ -124,65 +151,18 @@ export default function CriarPerfilPage() {
             />
           </div>
 
-          {/* Escort Profile Info */}
-          {accountType === 'escort' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Nome de Perfil</label>
-                <input 
-                  name="profileName"
-                  type="text" 
-                  value={formData.profileName}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-gray-900" 
-                  required 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Idade</label>
-                <input 
-                  name="age"
-                  type="number" 
-                  min="18" 
-                  value={formData.age}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-gray-900" 
-                  required 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Cidade</label>
-                <input 
-                  name="city"
-                  type="text" 
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-gray-900" 
-                  required 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Descrição</label>
-                <textarea 
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-gray-900" 
-                  rows={3} 
-                  required 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Foto de Perfil</label>
-                <input 
-                  name="profilePhoto"
-                  type="file" 
-                  accept="image/*" 
-                  className="mt-1 w-full" 
-                />
-              </div>
-            </>
-          )}
+          {/* Confirm Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Confirmar Senha</label>
+            <input 
+              name="confirmPassword"
+              type="password" 
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-gray-900" 
+              required 
+            />
+          </div>
 
           <button 
             type="submit" 

@@ -6,26 +6,95 @@ import { useRouter } from 'next/navigation';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
-    totalProfiles: 0,
-    totalReviews: 0,
-    totalMedia: 0,
-    totalQuestions: 0,
+    totalUsers: 0,
+    totalListings: 0,
+    activeListings: 0,
+    pendingListings: 0
   });
+  const [users, setUsers] = useState([]);
+  const [pendingListings, setPendingListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminSetupMessage, setAdminSetupMessage] = useState('');
   const router = useRouter();
 
-  useEffect(() => {
-    // Fetch stats from API
-    const fetchStats = async () => {
-      try {
-        const response = await fetch('/api/admin/stats');
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/admin/stats');
+      if (response.ok) {
         const data = await response.json();
         setStats(data);
-      } catch (error) {
-        console.error('Error fetching stats:', error);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
 
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/admin/users');
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      } else {
+        console.error('Failed to fetch users:', response.status, response.statusText);
+        // Check if it's an auth error
+        if (response.status === 403) {
+          console.error('Admin access denied - user is not admin');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  const fetchPendingListings = async () => {
+    try {
+      const response = await fetch('/api/admin/pending-listings');
+      if (response.ok) {
+        const data = await response.json();
+        setPendingListings(data);
+      }
+    } catch (error) {
+      console.error('Error fetching pending listings:', error);
+    }
+  };
+
+  const handleApproveListing = async (listingId: string) => {
+    try {
+      const response = await fetch(`/api/admin/approve-listing/${listingId}`, {
+        method: 'POST'
+      });
+      if (response.ok) {
+        // Refresh the pending listings
+        fetchPendingListings();
+        fetchStats();
+      }
+    } catch (error) {
+      console.error('Error approving listing:', error);
+    }
+  };
+
+  const handleRejectListing = async (listingId: string) => {
+    try {
+      const response = await fetch(`/api/admin/reject-listing/${listingId}`, {
+        method: 'POST'
+      });
+      if (response.ok) {
+        // Refresh the pending listings
+        fetchPendingListings();
+        fetchStats();
+      }
+    } catch (error) {
+      console.error('Error rejecting listing:', error);
+    }
+  };
+
+  useEffect(() => {
     fetchStats();
+    fetchUsers();
+    fetchPendingListings();
+    setLoading(false);
   }, []);
 
   const handleLogout = async () => {
@@ -43,6 +112,37 @@ export default function AdminDashboard() {
       router.push('/');
     }
   };
+
+  const makeUserAdmin = async () => {
+    if (!adminEmail) return;
+    
+    try {
+      const response = await fetch('/api/admin/make-admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: adminEmail }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setAdminSetupMessage(`Success: ${data.message}`);
+        setAdminEmail('');
+        // Refresh the page to get new permissions
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        setAdminSetupMessage(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      setAdminSetupMessage('Error making user admin');
+    }
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -64,112 +164,124 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Admin Setup Section */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        <h3 className="text-lg font-medium text-yellow-800 mb-2">Admin Setup</h3>
+        <p className="text-sm text-yellow-700 mb-3">
+          If you're getting "Failed to fetch users" errors, you need to make your user an admin first.
+        </p>
+        <div className="flex space-x-3">
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={adminEmail}
+            onChange={(e) => setAdminEmail(e.target.value)}
+            className="flex-1 px-3 py-2 border border-yellow-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500"
+          />
+          <button
+            onClick={makeUserAdmin}
+            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg"
+          >
+            Make Admin
+          </button>
+        </div>
+        {adminSetupMessage && (
+          <p className="mt-2 text-sm text-yellow-800">{adminSetupMessage}</p>
+        )}
+      </div>
+
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-pink-100 text-pink-600">
-              <svg
-                className="h-8 w-8"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
               </svg>
             </div>
             <div className="ml-4">
-              <h2 className="text-gray-600 text-sm">Total Profiles</h2>
-              <p className="text-2xl font-semibold text-gray-900">
-                {stats.totalProfiles}
-              </p>
+              <p className="text-sm font-medium text-gray-600">Total Users</p>
+              <p className="text-2xl font-semibold text-gray-900">{stats.totalUsers}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-              <svg
-                className="h-8 w-8"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                />
+            <div className="p-2 bg-green-100 rounded-lg">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <div className="ml-4">
-              <h2 className="text-gray-600 text-sm">Total Reviews</h2>
-              <p className="text-2xl font-semibold text-gray-900">
-                {stats.totalReviews}
-              </p>
+              <p className="text-sm font-medium text-gray-600">Total Listings</p>
+              <p className="text-2xl font-semibold text-gray-900">{stats.totalListings}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-green-100 text-green-600">
-              <svg
-                className="h-8 w-8"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div className="ml-4">
-              <h2 className="text-gray-600 text-sm">Total Media</h2>
-              <p className="text-2xl font-semibold text-gray-900">
-                {stats.totalMedia}
-              </p>
+              <p className="text-sm font-medium text-gray-600">Pending Approval</p>
+              <p className="text-2xl font-semibold text-gray-900">{stats.pendingListings}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-purple-100 text-purple-600">
-              <svg
-                className="h-8 w-8"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                />
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <div className="ml-4">
-              <h2 className="text-gray-600 text-sm">Total Questions</h2>
-              <p className="text-2xl font-semibold text-gray-900">
-                {stats.totalQuestions}
-              </p>
+              <p className="text-sm font-medium text-gray-600">Active Listings</p>
+              <p className="text-2xl font-semibold text-gray-900">{stats.activeListings}</p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Pending Listings Section */}
+      {stats.pendingListings > 0 && (
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Pending Listings for Approval</h2>
+          <div className="space-y-4">
+            {pendingListings.map((listing: any) => (
+              <div key={listing.id} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-gray-900">{listing.title}</h3>
+                    <p className="text-sm text-gray-600">by {listing.user?.profile?.name || 'Unknown'}</p>
+                    <p className="text-sm text-gray-500">Created: {new Date(listing.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleApproveListing(listing.id)}
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleRejectListing(listing.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recent Activity */}
       <div className="bg-white rounded-lg shadow">

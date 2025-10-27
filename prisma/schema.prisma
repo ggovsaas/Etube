@@ -71,6 +71,7 @@ model Profile {
   piercings   String?
   smoker      String?
   languages   String?
+  hair        String?   // NEW: Hair color/style
   bodyType    String?   // NEW: Body type
   hairColor   String?   // NEW: Hair color
   breastSize  String?   // NEW: Breast size

@@ -44,7 +44,6 @@ export async function GET(request: Request) {
           _count: {
             select: {
               reviews: true,
-              questions: true,
             },
           },
         },
@@ -52,8 +51,27 @@ export async function GET(request: Request) {
       prisma.profile.count({ where }),
     ]);
 
+    // Transform profiles to match expected structure
+    const transformedProfiles = profiles.map(profile => ({
+      id: profile.id,
+      name: profile.name,
+      age: profile.age,
+      city: profile.city,
+      height: profile.height,
+      weight: profile.weight,
+      price: 0, // Profile model doesn't have price, use 0 as default
+      pricePerHour: 0, // Profile model doesn't have price, use 0 as default
+      rating: profile.rating,
+      reviews: profile._count?.reviews || 0,
+      isOnline: profile.isOnline,
+      isVerified: profile.isVerified,
+      imageUrl: profile.media?.[0]?.url || '/placeholder-profile.jpg',
+      description: profile.description,
+      createdAt: profile.createdAt
+    }));
+
     return NextResponse.json({
-      profiles,
+      profiles: transformedProfiles,
       total,
       pages: Math.ceil(total / limit),
       currentPage: page,
@@ -74,7 +92,6 @@ export async function POST(request: Request) {
       city,
       height,
       weight,
-      price,
       description,
       isVerified,
       isOnline,
@@ -83,12 +100,12 @@ export async function POST(request: Request) {
 
     const profile = await prisma.profile.create({
       data: {
+        userId: body.userId, // Add required userId
         name,
         age,
         city,
         height,
         weight,
-        price,
         description,
         isVerified,
         isOnline,

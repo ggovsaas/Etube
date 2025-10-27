@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { email, password, accountType, ...profileData } = data;
+    const { email, password, accountType, username } = data;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -20,6 +20,18 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if username already exists
+    const existingUsername = await prisma.user.findFirst({
+      where: { name: username },
+    });
+
+    if (existingUsername) {
+      return NextResponse.json(
+        { error: 'Username already taken' },
+        { status: 400 }
+      );
+    }
+
     // Hash password
     const hashedPassword = await hash(password, 12);
 
@@ -29,21 +41,21 @@ export async function POST(request: Request) {
       const user = await tx.user.create({
         data: {
           email,
+          name: username,
           password: hashedPassword,
           role: accountType === 'escort' ? 'ESCORT' : 'USER',
         },
       });
 
-      // If escort, create profile
+      // If escort, create basic profile
       if (accountType === 'escort') {
         const profile = await tx.profile.create({
           data: {
             userId: user.id,
-            name: profileData.profileName,
-            age: parseInt(profileData.age),
-            city: profileData.city,
-            description: profileData.description,
-            // Handle profile photo upload separately
+            name: username,
+            age: 0, // Will be updated later
+            city: '', // Will be updated later
+            description: '', // Will be updated later
           },
         });
         return { user, profile };

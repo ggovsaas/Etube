@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -90,6 +90,8 @@ interface FormData {
 export default function CriarAnuncioPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [manualSubmitClicked, setManualSubmitClicked] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: '',
     age: '',
@@ -227,6 +229,25 @@ export default function CriarAnuncioPage() {
     }
   }, []);
 
+  // Monitor step changes to prevent automatic form submission
+  useEffect(() => {
+    console.log('Step changed to:', currentStep);
+    setManualSubmitClicked(false); // Reset manual submit flag on step change
+    if (currentStep === 5) {
+      console.log('Step 5 reached - preventing any automatic form submission');
+      // Disable form submission until user explicitly clicks submit
+      if (formRef.current) {
+        formRef.current.addEventListener('submit', (e) => {
+          if (!e.isTrusted) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Automatic form submission blocked');
+          }
+        }, { capture: true });
+      }
+    }
+  }, [currentStep]);
+
   const steps = [
     { number: 1, title: 'Informações Básicas' },
     { number: 2, title: 'Detalhes Físicos' },
@@ -359,17 +380,31 @@ export default function CriarAnuncioPage() {
   const handleFileUploadClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('File upload clicked - preventing form submission');
+    // The actual file selection is handled by the onChange event on the input
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     console.log('Form submission triggered manually');
     console.log('Current step:', currentStep, 'Total steps:', steps.length);
+    console.log('Manual submit clicked:', manualSubmitClicked);
     
     // Only proceed if we're on the last step and user clicked the submit button
     if (currentStep !== steps.length) {
       console.log('Form submission blocked - not on last step');
+      return;
+    }
+    
+    // Only proceed if manual submit was clicked
+    if (!manualSubmitClicked) {
+      console.log('Form submission blocked - manual submit not clicked');
+      return;
+    }
+    
+    // Additional check to ensure this is a manual submission
+    if (!e.isTrusted) {
+      console.log('Form submission blocked - not a trusted event');
       return;
     }
     
@@ -437,6 +472,7 @@ export default function CriarAnuncioPage() {
       setError(error instanceof Error ? error.message : 'Failed to create listing');
     } finally {
       setLoading(false);
+      setManualSubmitClicked(false); // Reset the flag
     }
   };
 
@@ -1699,7 +1735,18 @@ export default function CriarAnuncioPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form 
+            ref={formRef}
+            onSubmit={handleSubmit} 
+            className="space-y-6"
+            onKeyDown={(e) => {
+              // Prevent form submission on Enter key
+              if (e.key === 'Enter' && currentStep !== steps.length) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            }}
+          >
             {renderStepContent()}
 
             <div className="flex items-center justify-between pt-6">
@@ -1732,6 +1779,17 @@ export default function CriarAnuncioPage() {
                   <button
                     type="submit"
                     disabled={loading}
+                    onClick={(e) => {
+                      console.log('Submit button clicked manually');
+                      setManualSubmitClicked(true);
+                      // Only allow submission if this is a manual click
+                      if (!e.isTrusted) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Submit blocked - not a trusted event');
+                        return;
+                      }
+                    }}
                     className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200 disabled:opacity-50"
                   >
                     {loading ? 'Criando...' : 'Criar Anúncio'}

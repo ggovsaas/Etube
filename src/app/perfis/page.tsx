@@ -16,23 +16,52 @@ export default function ProfilesPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('recent');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Mock profiles array - MUST be defined first
-  const allProfiles: Profile[] = Array.from({ length: 18 }, (_, i) => ({
-    id: i + 1,
-    name: `Sofia ${i + 1}`,
-    age: 20 + (i % 15),
-    city: ['Lisboa', 'Porto', 'Coimbra', 'Braga'][i % 4],
-    height: 155 + (i % 20),
-    weight: 45 + (i % 20),
-    price: 100 + (i * 25),
-    rating: 5,
-    reviews: 10 + (i % 50),
-    isOnline: i % 3 === 0,
-    isVerified: i % 4 === 0,
-    image: `https://images.unsplash.com/photo-151950102${5260 + i}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80`,
-    description: 'Olá, sou a Sofia! Uma acompanhante elegante e sofisticada, pronta para proporcionar momentos únicos e inesquecíveis. Discreta e carinhosa.'
-  }));
+  // Real profiles state
+  const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
+
+  // Fetch profiles from API
+  const fetchProfiles = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/profiles');
+      if (!response.ok) {
+        throw new Error('Failed to fetch profiles');
+      }
+      const data = await response.json();
+      
+      // Transform API data to match Profile interface
+      const transformedProfiles: Profile[] = data.profiles.map((profile: any) => ({
+        id: profile.id,
+        name: profile.name || 'Unknown',
+        age: profile.age || 0,
+        city: profile.city || 'Unknown',
+        height: profile.height || 0,
+        weight: profile.weight || 0,
+        price: profile.price || 0,
+        rating: profile.rating || 0,
+        reviews: profile.reviews || 0,
+        isOnline: profile.isOnline || false,
+        isVerified: profile.isVerified || false,
+        image: profile.imageUrl || '/placeholder-profile.jpg',
+        description: profile.description || 'No description available'
+      }));
+      
+      setAllProfiles(transformedProfiles);
+    } catch (err) {
+      console.error('Error fetching profiles:', err);
+      setError('Failed to load profiles');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch profiles on component mount
+  useEffect(() => {
+    fetchProfiles();
+  }, []);
 
   // Calculate filter counts dynamically
   const calculateFilterCounts = (): { name: string; count: number; checked: boolean }[] => {
@@ -353,7 +382,15 @@ export default function ProfilesPage() {
 
           {/* Main Content */}
           <div className="flex-1">
-            {viewMode === 'grid' ? <ProfileGrid profiles={paginatedProfiles} /> : <ProfileList profiles={paginatedProfiles} />}
+            {loading ? (
+              <div className="text-center py-12">
+                <p>Loading profiles...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12 text-red-600">
+                {error}
+              </div>
+            ) : viewMode === 'grid' ? <ProfileGrid profiles={paginatedProfiles} /> : <ProfileList profiles={paginatedProfiles} />}
 
             {/* Horizontal Banner below grid/list, above pagination */}
             <div className="mt-8 mb-6 relative rounded-xl overflow-hidden border border-gray-200 max-w-4xl mx-auto">
