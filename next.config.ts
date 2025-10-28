@@ -10,11 +10,9 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   output: 'standalone',
-  trailingSlash: true,
-  skipTrailingSlashRedirect: true,
+  // Disable static generation to avoid useSearchParams issues
   experimental: {
-    // Disable static optimization
-    staticPageGenerationTimeout: 1000,
+    missingSuspenseWithCSRBailout: false,
   },
 };
 
