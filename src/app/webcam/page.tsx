@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { Heart, Eye, Star, Filter, Grid, List, Search, Users, MapPin, Clock } from 'lucide-react';
 

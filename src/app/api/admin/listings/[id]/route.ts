@@ -1,27 +1,27 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import Listing from '@/models/Listing';
+import { prisma } from '@/lib/prisma';
 
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    await dbConnect();
     const data = await request.json();
     
-    const listing = await Listing.findByIdAndUpdate(
-      params.id,
-      { $set: data },
-      { new: true, runValidators: true }
-    );
-    
-    if (!listing) {
-      return NextResponse.json(
-        { error: 'Listing not found' },
-        { status: 404 }
-      );
-    }
+    const listing = await prisma.listing.update({
+      where: { id: params.id },
+      data: {
+        title: data.title,
+        description: data.description,
+        price: data.price,
+        location: data.location,
+        city: data.city,
+        age: data.age,
+        phone: data.phone,
+        services: data.services,
+        status: data.status,
+      },
+    });
     
     return NextResponse.json(listing);
   } catch (error) {
@@ -37,15 +37,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await dbConnect();
-    const listing = await Listing.findByIdAndDelete(params.id);
-    
-    if (!listing) {
-      return NextResponse.json(
-        { error: 'Listing not found' },
-        { status: 404 }
-      );
-    }
+    await prisma.listing.delete({
+      where: { id: params.id },
+    });
     
     return NextResponse.json({ message: 'Listing deleted successfully' });
   } catch (error) {

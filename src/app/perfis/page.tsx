@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, ChangeEvent } from 'react';
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
 import ProfileGrid from '@/components/ProfileGrid';
