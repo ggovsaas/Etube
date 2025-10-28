@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
-});
+// Only initialize Stripe if the secret key is available
+const stripe = process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-05-28.basil',
+    })
+  : null;
 
 const TURBO_PRICES = {
   'turbo_1_day': 'price_turbo_1_day', // You'll need to create these in Stripe
@@ -16,6 +19,13 @@ const TURBO_PRICES = {
 
 export async function POST(req: Request) {
   try {
+    // Check if Stripe is configured
+    if (!stripe) {
+      return NextResponse.json({ 
+        error: 'Payment system not configured. Please contact support.' 
+      }, { status: 503 });
+    }
+
     const { type, email } = await req.json();
     
     if (!type || !email) {
