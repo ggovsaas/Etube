@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { Suspense, useState, useEffect, ChangeEvent } from 'react';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -12,7 +12,7 @@ import FilterSidebar from '@/components/FilterSidebar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { Profile } from '@/components/ProfileGrid';
 
-export default function ProfilesPage() {
+function PerfisContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -446,4 +446,12 @@ export default function ProfilesPage() {
       </div>
     </div>
   );
-} 
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div />}> 
+      <PerfisContent />
+    </Suspense>
+  );
+}
