@@ -62,7 +62,7 @@ export default function RootLayout({
               {/* Logo and description */}
               <div className="col-span-1 md:col-span-2">
                 <div className="text-2xl font-bold text-red-600 mb-4">
-                  Portal<span className="text-white">Escorts</span>
+                  acompanhantes<span className="text-white">.life</span>
                 </div>
                 <p className="text-gray-300 mb-4">
                   A plataforma líder em Portugal para entretenimento adulto, conectando pessoas de forma segura e discreta.
@@ -84,28 +84,26 @@ export default function RootLayout({
               <div>
                 <h3 className="text-lg font-semibold mb-4">Legal</h3>
                 <ul className="space-y-2">
-                  <li><a href="#" className="text-gray-300 hover:text-red-600 transition">Termos de Uso</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-red-600 transition">Política de Privacidade</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-red-600 transition">RGPD</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-red-600 transition">Aviso Legal</a></li>
+                  <li><a href="/termos" className="text-gray-300 hover:text-red-600 transition">Termos & Condições</a></li>
+                  <li><a href="/privacidade" className="text-gray-300 hover:text-red-600 transition">Política de Privacidade</a></li>
+                  <li><a href="/cookies" className="text-gray-300 hover:text-red-600 transition">Cookies</a></li>
                 </ul>
               </div>
               
               {/* Support Links */}
               <div>
-                <h3 className="text-lg font-semibold mb-4">Suporte</h3>
+                <h3 className="text-lg font-semibold mb-4">Informações</h3>
                 <ul className="space-y-2">
-                  <li><a href="#" className="text-gray-300 hover:text-red-600 transition">Ajuda</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-red-600 transition">Contacto</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-red-600 transition">FAQ</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-red-600 transition">Segurança</a></li>
+                  <li><a href="/parceiros" className="text-gray-300 hover:text-red-600 transition">Parceiros</a></li>
+                  <li><a href="/publicidade" className="text-gray-300 hover:text-red-600 transition">Publicidade</a></li>
+                  <li><a href="/contactos" className="text-gray-300 hover:text-red-600 transition">Contactos</a></li>
                 </ul>
               </div>
             </div>
             
             <div className="border-t border-gray-800 mt-8 pt-8 text-center">
               <p className="text-gray-400">
-                © {new Date().getFullYear()} PortalEscorts. Todos os direitos reservados. | Conteúdo destinado exclusivamente a maiores de 18 anos.
+                © {new Date().getFullYear()} acompanhantes.life. Todos os direitos reservados. | Conteúdo destinado exclusivamente a maiores de 18 anos.
               </p>
             </div>
           </div>

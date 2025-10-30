@@ -326,15 +326,15 @@ export default function Home() {
       </section>
 
       {/* Call to Action Section */}
-      <section className="py-16 bg-gradient-to-r from-red-600 to-pink-600">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">Pronto para Começar?</h2>
-          <p className="text-xl text-white mb-8 max-w-2xl mx-auto">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">Pronto para Começar?</h2>
+          <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
             Crie o seu perfil hoje e comece a conectar-se com milhares de utilizadores em Portugal
           </p>
           <Link 
             href="/criar-perfil"
-            className="inline-block bg-white text-red-600 px-8 py-4 rounded-lg text-lg font-bold hover:bg-gray-100 transition-colors duration-300 shadow-lg"
+            className="inline-block bg-red-600 text-white px-8 py-4 rounded-lg text-lg font-bold hover:bg-red-700 transition-colors duration-300 shadow-lg"
           >
             Cadastrar Perfil Agora
           </Link>
