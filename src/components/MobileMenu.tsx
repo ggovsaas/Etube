@@ -1,9 +1,11 @@
 'use client';
 
-import Link from 'next/link';
+import LocaleLink from '@/components/LocaleLink';
+import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
 
 export default function MobileMenu() {
+  const { t, locale } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -18,11 +20,10 @@ export default function MobileMenu() {
       {/* Mobile menu */}
       {isOpen && (
         <div className="absolute top-16 right-4 bg-white rounded-lg shadow-lg py-2 w-48 z-50">
-        <Link href="/" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Home</Link>
-        <Link href="/perfis" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Perfis</Link>
-        <Link href="/cidades" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Cidades</Link>
-        <Link href="/criar-perfil" className="block px-4 py-2 text-red-600 font-medium">Criar Perfil</Link>
-        <Link href="/login" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Login</Link>
+        <LocaleLink href="/" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">{t.home}</LocaleLink>
+        <LocaleLink href={locale === 'es' ? '/perfiles' : '/perfis'} className="block px-4 py-2 text-gray-700 hover:bg-gray-100">{t.profiles}</LocaleLink>
+        <LocaleLink href="/criar-perfil" className="block px-4 py-2 text-red-600 font-medium">{t.createProfile}</LocaleLink>
+        <LocaleLink href="/login" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">{t.login}</LocaleLink>
       </div>
       )}
     </div>

@@ -54,6 +54,17 @@ export async function GET(request: Request) {
           { createdAt: 'desc' },
         ],
         include: {
+          user: {
+            include: {
+              listings: {
+                where: { status: 'ACTIVE' },
+                take: 1,
+                orderBy: {
+                  createdAt: 'desc'
+                }
+              }
+            }
+          },
           media: {
             take: 1,
             orderBy: {
@@ -71,8 +82,14 @@ export async function GET(request: Request) {
       prisma.profile.count({ where }),
     ]);
 
+    // Transform profiles to include listingId
+    const transformedProfiles = profiles.map(profile => ({
+      ...profile,
+      listingId: profile.user?.listings?.[0]?.id || null
+    }));
+
     return NextResponse.json({
-      profiles,
+      profiles: transformedProfiles,
       total,
       pages: Math.ceil(total / limit),
       currentPage: page,

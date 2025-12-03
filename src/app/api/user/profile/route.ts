@@ -15,22 +15,35 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify token
-    const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+    let decoded: any;
+    try {
+      decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      );
+    }
     
     if (!decoded || !decoded.userId) {
+      console.error('Token missing userId:', decoded);
       return NextResponse.json(
-        { error: 'Invalid token' },
+        { error: 'Invalid token - missing user ID' },
         { status: 401 }
       );
     }
 
-    // Get user with profile and listings
+    console.log('Fetching profile for userId:', decoded.userId, 'email:', decoded.email);
+
+    // Get user with profile and listings (including PENDING status)
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       include: {
         profile: true,
         listings: {
-          orderBy: { createdAt: 'desc' }
+          orderBy: { createdAt: 'desc' },
+          // Include all listings regardless of status for user's own dashboard
         }
       }
     });

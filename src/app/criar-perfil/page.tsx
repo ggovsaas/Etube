@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -22,6 +22,40 @@ export default function CriarPerfilPage() {
     password: '',
     confirmPassword: '',
   });
+
+  // Detect and store locale on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const referrer = document.referrer;
+      let detectedLocale = 'pt'; // default
+      
+      if (referrer) {
+        try {
+          const referrerUrl = new URL(referrer);
+          const pathname = referrerUrl.pathname;
+          if (pathname.startsWith('/es/')) {
+            detectedLocale = 'es';
+          } else if (pathname.startsWith('/pt/')) {
+            detectedLocale = 'pt';
+          } else {
+            // Check browser language
+            const browserLang = navigator.language || navigator.languages?.[0] || 'pt';
+            detectedLocale = browserLang.startsWith('es') ? 'es' : 'pt';
+          }
+        } catch (e) {
+          // If referrer parsing fails, try browser language
+          const browserLang = navigator.language || navigator.languages?.[0] || 'pt';
+          detectedLocale = browserLang.startsWith('es') ? 'es' : 'pt';
+        }
+      } else {
+        // No referrer, check browser language
+        const browserLang = navigator.language || navigator.languages?.[0] || 'pt';
+        detectedLocale = browserLang.startsWith('es') ? 'es' : 'pt';
+      }
+      
+      sessionStorage.setItem('userLocale', detectedLocale);
+    }
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -71,8 +105,10 @@ export default function CriarPerfilPage() {
 
       const result = await response.json();
       
-      // Redirect to main dashboard (user will be automatically logged in)
-      router.push('/dashboard');
+      // Redirect to main dashboard with locale (user will be automatically logged in)
+      const { getUserLocale } = await import('@/lib/localeHelper');
+      const locale = getUserLocale();
+      router.push(`/${locale}/dashboard`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create account. Please try again.');
       console.error('Registration error:', err);

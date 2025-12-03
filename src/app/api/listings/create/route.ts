@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verify } from 'jsonwebtoken';
+import { writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,7 +65,14 @@ export async function POST(request: NextRequest) {
     const tattoos = formData.get('tattoos') as string;
     const piercings = formData.get('piercings') as string;
     const smoker = formData.get('smoker') as string;
-    const languages = formData.get('languages') as string;
+    let languages: string[] = [];
+    try {
+      const languagesStr = formData.get('languages') as string;
+      languages = languagesStr ? JSON.parse(languagesStr) : [];
+    } catch (e) {
+      console.error('Error parsing languages:', e);
+      languages = [];
+    }
     
     // NEW: Additional physical attributes
     const bodyType = formData.get('bodyType') as string;
@@ -73,22 +82,35 @@ export async function POST(request: NextRequest) {
     const personalityTags = JSON.parse(formData.get('personalityTags') as string || '[]');
     
     // Services and additional details
-    const services = JSON.parse(formData.get('services') as string || '[]');
-    const minDuration = formData.get('minDuration') as string;
-    const advanceNotice = formData.get('advanceNotice') as string;
-    const acceptsCard = formData.get('acceptsCard') as string;
-    const regularDiscount = formData.get('regularDiscount') as string;
+    let services: string[] = [];
+    try {
+      const servicesStr = formData.get('services') as string;
+      services = servicesStr ? JSON.parse(servicesStr) : [];
+    } catch (e) {
+      console.error('Error parsing services:', e);
+      services = [];
+    }
+    
+    const minDuration = formData.get('minDuration') as string || '';
+    const advanceNotice = formData.get('advanceNotice') as string || '';
+    const acceptsCard = formData.get('acceptsCard') as string || '';
+    const regularDiscount = formData.get('regularDiscount') as string || '';
     
     // Pricing (optional)
-    const pricing = JSON.parse(formData.get('pricing') as string || '{}');
+    let pricing: any = {};
+    try {
+      const pricingStr = formData.get('pricing') as string;
+      pricing = pricingStr ? JSON.parse(pricingStr) : {};
+    } catch (e) {
+      console.error('Error parsing pricing:', e);
+      pricing = {};
+    }
     const showPricing = formData.get('showPricing') === 'true';
     
-    // Photos
-    const photos = formData.getAll('photos') as File[];
-
-    // Handle media files properly
-    const galleryMedia = formData.getAll('galleryMedia') as File[];
-    const comparisonMedia = formData.getAll('comparisonMedia') as File[];
+    // Photos - handle empty arrays
+    const photos = (formData.getAll('photos') || []) as File[];
+    const galleryMedia = (formData.getAll('galleryMedia') || []) as File[];
+    const comparisonMedia = (formData.getAll('comparisonMedia') || []) as File[];
     
     console.log('Files received:', {
       photos: photos.length,
@@ -141,7 +163,7 @@ export async function POST(request: NextRequest) {
           tattoos,
           piercings,
           smoker,
-          languages: languages ? JSON.parse(languages) : [],
+          languages: languages.length > 0 ? JSON.stringify(languages) : null,
           bodyType,
           hairColor,
           breastSize,
@@ -189,7 +211,7 @@ export async function POST(request: NextRequest) {
           tattoos,
           piercings,
           smoker,
-          languages: languages ? JSON.parse(languages) : [],
+          languages: languages.length > 0 ? JSON.stringify(languages) : null,
           bodyType,
           hairColor,
           breastSize,
@@ -230,6 +252,10 @@ export async function POST(request: NextRequest) {
         isPremium: false,
         userId: user.id,
         price: pricing.local?.oneHour ? parseFloat(pricing.local.oneHour) : 0,
+        minDuration: minDuration || null,
+        advanceNotice: advanceNotice || null,
+        acceptsCard: acceptsCard === 'true' || acceptsCard === 'Sim',
+        regularDiscount: regularDiscount || null,
       }
     });
 
@@ -258,20 +284,46 @@ export async function POST(request: NextRequest) {
           const isVideo = file.type.startsWith('video/');
           const mediaType = isVideo ? 'VIDEO' : 'IMAGE';
           
-          // In a real app, you'd upload to S3, Cloudinary, etc.
-          // For now, we'll just store the filename and create media records
-          const extension = isVideo ? '.mp4' : '.jpg';
+          // Get file extension from original filename or default
+          const originalExtension = file.name.split('.').pop()?.toLowerCase() || (isVideo ? 'mp4' : 'jpg');
+          const extension = originalExtension.startsWith('.') ? originalExtension : `.${originalExtension}`;
           const filename = `profile-${profile.id}-${type}-${index}-${Date.now()}${extension}`;
           
+          console.log(`Saving file: ${filename}`);
+          
+          // Ensure uploads directory exists
+          const uploadsDir = join(process.cwd(), 'public', 'uploads');
+          try {
+            await mkdir(uploadsDir, { recursive: true });
+          } catch (error) {
+            // Directory might already exist, that's fine
+            console.log('Uploads directory check:', error);
+          }
+          
+          // Convert File to Buffer and save to disk
+          const bytes = await file.arrayBuffer();
+          const buffer = Buffer.from(bytes);
+          const filePath = join(uploadsDir, filename);
+          await writeFile(filePath, buffer);
+          
+          console.log(`File saved to: ${filePath}`);
           console.log(`Creating media record for: ${filename}`);
           
-          // Create media record for the profile
+          // Create media record for both profile and listing
           const mediaRecord = await prisma.media.create({
             data: {
               url: `/uploads/${filename}`,
               type: mediaType,
               profileId: profile.id,
-              listingId: null // This is for profile gallery
+              listingId: listing.id // Link to listing so it shows up
+            }
+          });
+          
+          // Also create Image record for listing.images
+          await prisma.image.create({
+            data: {
+              url: `/uploads/${filename}`,
+              listingId: listing.id
             }
           });
           

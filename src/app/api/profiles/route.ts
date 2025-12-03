@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { isAdmin } from '@/lib/adminCheck';
 
 // GET /api/profiles - Get all profiles
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -11,56 +12,138 @@ export async function GET(request: Request) {
     const category = searchParams.get('category');
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
+    const locale = searchParams.get('locale') || 'pt'; // Get locale for filtering
+    
+    // Check if user is admin (from cookie)
+    let userIsAdmin = false;
+    try {
+      const token = request.cookies.get('auth-token')?.value;
+      if (token) {
+        const { verify } = await import('jsonwebtoken');
+        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        userIsAdmin = isAdmin(decoded);
+      }
+    } catch (e) {
+      // Not authenticated or not admin, continue with public filter
+    }
 
-    const where = {
-      ...(city && { city }),
-      ...(category && { category }),
-      ...(minPrice && maxPrice && {
-        price: {
-          gte: parseInt(minPrice),
-          lte: parseInt(maxPrice),
-        },
-      }),
+    // Define cities for each locale
+    const localeCities: Record<string, string[]> = {
+      pt: ['Lisboa', 'Porto', 'Coimbra', 'Braga', 'Aveiro', 'Faro'],
+      es: ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao', 'Málaga'],
     };
 
-    const [profiles, total] = await Promise.all([
-      prisma.profile.findMany({
-        where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: [
-          { isOnline: 'desc' },
-          { isVerified: 'desc' },
-          { rating: 'desc' },
-          { createdAt: 'desc' },
-        ],
-        include: {
-          media: {
-            take: 1,
-            orderBy: {
-              createdAt: 'desc',
-            },
-          },
-          _count: {
-            select: {
-              reviews: true,
-            },
+    // Build base where clause
+    const where: any = {
+      ...(category && { category }),
+    };
+
+    // Filter by locale (country) based on cities
+    if (locale && localeCities[locale]) {
+      if (city) {
+        // If city is specified, verify it belongs to the locale
+        if (localeCities[locale].includes(city)) {
+          where.city = city;
+        } else {
+          // City doesn't belong to locale, return empty results
+          return NextResponse.json({
+            profiles: [],
+            total: 0,
+            pages: 0,
+            currentPage: 1,
+          });
+        }
+      } else {
+        // No city specified, filter by all cities in the locale
+        where.city = {
+          in: localeCities[locale],
+        };
+      }
+    } else if (city) {
+      // Locale not specified but city is, use city filter
+      where.city = city;
+    }
+    
+    // Only apply basic filters for non-admin users
+    if (!userIsAdmin) {
+      where.age = {
+        gt: 0
+      };
+      if (!where.city) {
+        where.city = {
+          not: ''
+        };
+      }
+    }
+
+    // For non-admin users, we need to fetch more profiles to filter, then paginate
+    // For admin, we can fetch directly with pagination
+    const fetchLimit = userIsAdmin ? limit : limit * 3; // Fetch more for filtering
+    
+    // Fetch profiles with user and listings
+    const profiles = await prisma.profile.findMany({
+      where,
+      skip: userIsAdmin ? (page - 1) * limit : 0,
+      take: fetchLimit,
+      orderBy: [
+        { isOnline: 'desc' },
+        { isVerified: 'desc' },
+        { rating: 'desc' },
+        { createdAt: 'desc' },
+      ],
+      include: {
+        user: {
+          include: {
+            listings: {
+              where: userIsAdmin ? {} : { status: 'ACTIVE' },
+              take: 1,
+              orderBy: {
+                createdAt: 'desc'
+              }
+            }
+          }
+        },
+        media: {
+          take: 1,
+          orderBy: {
+            createdAt: 'desc',
           },
         },
-      }),
-      prisma.profile.count({ where }),
-    ]);
+        _count: {
+          select: {
+            reviews: true,
+          },
+        },
+      },
+    });
+
+    // Filter profiles: non-admin only sees profiles with active listings
+    const filteredProfiles = userIsAdmin 
+      ? profiles 
+      : profiles.filter(profile => profile.user.listings && profile.user.listings.length > 0);
+
+    // Apply pagination to filtered results for non-admin
+    const paginatedProfiles = userIsAdmin 
+      ? filteredProfiles 
+      : filteredProfiles.slice((page - 1) * limit, page * limit);
+
+    // For total count: admin gets accurate count, non-admin gets approximate
+    // (For accurate non-admin count, we'd need to fetch all profiles which is expensive)
+    const total = userIsAdmin 
+      ? await prisma.profile.count({ where })
+      : filteredProfiles.length;
 
     // Transform profiles to match expected structure
-    const transformedProfiles = profiles.map(profile => ({
+    const transformedProfiles = paginatedProfiles.map(profile => ({
       id: profile.id,
+      listingId: profile.user.listings?.[0]?.id || null, // Include listing ID for navigation
       name: profile.name,
       age: profile.age,
       city: profile.city,
-      height: profile.height,
-      weight: profile.weight,
-      price: 0, // Profile model doesn't have price, use 0 as default
-      pricePerHour: 0, // Profile model doesn't have price, use 0 as default
+      height: profile.height ? parseInt(profile.height) : 0,
+      weight: profile.weight ? parseInt(profile.weight) : 0,
+      price: profile.user.listings?.[0]?.price || 0,
+      pricePerHour: profile.user.listings?.[0]?.price || 0,
       rating: profile.rating,
       reviews: profile._count?.reviews || 0,
       isOnline: profile.isOnline,
@@ -70,15 +153,23 @@ export async function GET(request: Request) {
       createdAt: profile.createdAt
     }));
 
+    // Always return a valid response, even if empty
     return NextResponse.json({
-      profiles: transformedProfiles,
-      total,
-      pages: Math.ceil(total / limit),
+      profiles: transformedProfiles || [],
+      total: transformedProfiles.length,
+      pages: Math.ceil((transformedProfiles.length || 0) / limit),
       currentPage: page,
     });
   } catch (error) {
     console.error('Error fetching profiles:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    // Return empty array instead of error to prevent frontend crashes
+    return NextResponse.json({
+      profiles: [],
+      total: 0,
+      pages: 0,
+      currentPage: 1,
+      error: error instanceof Error ? error.message : 'Failed to fetch profiles'
+    }, { status: 500 });
   }
 }
 

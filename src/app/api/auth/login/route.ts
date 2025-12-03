@@ -37,25 +37,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create JWT token
+    // Check if user email is in admin list from environment variables
+    const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
+    const adminEmails = adminEmailsEnv
+      .split(',')
+      .map(email => email.trim().toLowerCase())
+      .filter(email => email.length > 0);
+    
+    const isEmailAdmin = adminEmails.includes(user.email.toLowerCase());
+    const finalRole = (user.role === 'ADMIN' || isEmailAdmin) ? 'ADMIN' : user.role;
+
+    // Create JWT token with long expiration (7 days)
     const token = sign(
       { 
         userId: user.id, 
-        email: user.email, 
-        role: user.role 
+        email: user.email.toLowerCase(), 
+        role: finalRole 
       },
       process.env.NEXTAUTH_SECRET || 'fallback-secret',
       { expiresIn: '7d' }
     );
 
-    // Set cookie
+    // Set cookie with proper settings for persistence
     const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: finalRole,
         profile: user.profile
       }
     });
@@ -64,7 +74,8 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 // 7 days
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/' // Ensure cookie is available site-wide
     });
 
     return response;

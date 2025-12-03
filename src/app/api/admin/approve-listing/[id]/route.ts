@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verify } from 'jsonwebtoken';
+import { verifyAdmin } from '@/lib/adminCheck';
 
 export async function POST(
   request: NextRequest,
@@ -12,20 +12,12 @@ export async function POST(
     // Get token from cookies
     const token = request.cookies.get('auth-token')?.value;
 
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
+    const { isAdmin, error } = verifyAdmin(token);
 
-    // Verify token
-    const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
-    
-    if (!decoded || decoded.role !== 'ADMIN') {
+    if (!isAdmin) {
       return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
+        { error: error || 'Admin access required' },
+        { status: error === 'Authentication required' ? 401 : 403 }
       );
     }
 

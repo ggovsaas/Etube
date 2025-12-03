@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { getLocale } from '@/middleware';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -10,6 +11,39 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+
+  // Get redirect URL from query params and detect locale
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect');
+      if (redirect) {
+        // Store redirect in sessionStorage for after login
+        sessionStorage.setItem('loginRedirect', redirect);
+      }
+      
+      // Detect locale from referrer or browser language
+      const referrer = document.referrer;
+      let detectedLocale = 'pt'; // default
+      
+      if (referrer) {
+        try {
+          const referrerUrl = new URL(referrer);
+          detectedLocale = getLocale(referrerUrl.pathname);
+        } catch (e) {
+          // If referrer parsing fails, try browser language
+          const browserLang = navigator.language || navigator.languages?.[0] || 'pt';
+          detectedLocale = browserLang.startsWith('es') ? 'es' : 'pt';
+        }
+      } else {
+        // No referrer, check browser language
+        const browserLang = navigator.language || navigator.languages?.[0] || 'pt';
+        detectedLocale = browserLang.startsWith('es') ? 'es' : 'pt';
+      }
+      
+      sessionStorage.setItem('userLocale', detectedLocale);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,11 +65,27 @@ export default function LoginPage() {
         throw new Error(data.error || 'Login failed');
       }
 
-      // Redirect based on user role
-      if (data.user.role === 'ADMIN') {
+      // Check for redirect URL
+      const redirectUrl = typeof window !== 'undefined' ? sessionStorage.getItem('loginRedirect') : null;
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('loginRedirect');
+      }
+
+      // Get detected locale
+      const userLocale = typeof window !== 'undefined' ? sessionStorage.getItem('userLocale') || 'pt' : 'pt';
+      
+      // Redirect based on user role or redirect URL
+      if (redirectUrl) {
+        // If redirect URL doesn't have locale, add it
+        if (!redirectUrl.startsWith('/pt/') && !redirectUrl.startsWith('/es/') && !redirectUrl.startsWith('/admin')) {
+          router.push(`/${userLocale}${redirectUrl}`);
+        } else {
+          router.push(redirectUrl);
+        }
+      } else if (data.user.role === 'ADMIN') {
         router.push('/admin');
       } else {
-        router.push('/dashboard');
+        router.push(`/${userLocale}/dashboard`);
       }
 
     } catch (error) {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { getUserLocale } from '@/lib/localeHelper';
 
 interface User {
   id: string;
@@ -25,7 +26,7 @@ interface Listing {
   id: string;
   title: string;
   city: string;
-  status: 'ACTIVE' | 'INACTIVE' | 'FINISHED';
+  status: 'ACTIVE' | 'INACTIVE' | 'FINISHED' | 'PENDING';
   isPremium: boolean;
   createdAt: string;
 }
@@ -146,12 +147,45 @@ export default function DashboardPage() {
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-gray-900">Minhas Listagens</h2>
                 <Link 
-                  href="/criar-anuncio" 
+                  href={`/${getUserLocale()}/criar-anuncio`} 
                   className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
                 >
                   Criar Anúncio Grátis
                 </Link>
               </div>
+            </div>
+
+            {/* Pending Listings */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Listagens Pendentes</h3>
+              {listings.filter(l => l.status === 'PENDING').length > 0 ? (
+                <div className="space-y-4">
+                  {listings.filter(l => l.status === 'PENDING').map((listing) => (
+                    <div key={listing.id} className="border border-yellow-300 rounded-lg p-4 bg-yellow-50">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="text-lg font-medium text-pink-600">{listing.title}</h4>
+                          <p className="text-gray-600">{listing.city}</p>
+                          <p className="text-sm text-gray-500">Criado em {new Date(listing.createdAt).toLocaleDateString('pt-BR')}</p>
+                          <p className="text-xs text-yellow-700 mt-2">⏳ Aguardando aprovação do administrador</p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            Pendente
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex space-x-2">
+                        <Link href={`/editar-anuncio/${listing.id}`} className="text-gray-600 hover:text-gray-500 text-sm">
+                          Editar
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">Nenhuma listagem pendente.</p>
+              )}
             </div>
 
             {/* Active Listings */}
@@ -191,41 +225,6 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <p className="text-gray-500">Nenhuma listagem ativa.</p>
-              )}
-            </div>
-
-            {/* Finished Listings */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Listagens Finalizadas</h3>
-              {listings.filter(l => l.status === 'FINISHED').length > 0 ? (
-                <div className="space-y-4">
-                  {listings.filter(l => l.status === 'FINISHED').map((listing) => (
-                    <div key={listing.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="text-lg font-medium text-pink-600">{listing.title}</h4>
-                          <p className="text-gray-600">{listing.city}</p>
-                          <p className="text-sm text-gray-500">Criado em {new Date(listing.createdAt).toLocaleDateString('pt-BR')}</p>
-                        </div>
-                        <div className="flex space-x-2">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            Finalizado
-                          </span>
-                        </div>
-                      </div>
-                      <div className="mt-3 flex space-x-2">
-                        <Link href={`/anuncio/${listing.id}`} className="text-indigo-600 hover:text-indigo-500 text-sm">
-                          Ver
-                        </Link>
-                        <Link href={`/editar-anuncio/${listing.id}`} className="text-gray-600 hover:text-gray-500 text-sm">
-                          Editar
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500">Nenhuma listagem finalizada.</p>
               )}
             </div>
           </div>

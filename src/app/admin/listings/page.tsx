@@ -5,17 +5,19 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface Listing {
-  _id: string;
-  name: string;
+  id: string;
+  title: string;
   city: string;
-  nationality: string;
-  hairColor: string;
+  description: string;
   age: number;
   price: number;
-  services: string[];
-  tags: string[];
-  isVerified: boolean;
-  isActive: boolean;
+  services: string;
+  status: string;
+  user?: {
+    profile?: {
+      name: string;
+    };
+  };
 }
 
 export default function AdminListings() {
@@ -24,8 +26,7 @@ export default function AdminListings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -33,30 +34,18 @@ export default function AdminListings() {
   }, []);
 
   useEffect(() => {
-    // Update filtered listings when search term or selected tags change
+    // Update filtered listings when search term changes
     const filtered = listings.filter(listing => {
       const matchesSearch = 
-        listing.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        listing.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        listing.nationality.toLowerCase().includes(searchTerm.toLowerCase());
+        listing.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        listing.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        listing.description?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesTags = selectedTags.length === 0 || 
-        selectedTags.every(tag => listing.tags.includes(tag));
-      
-      return matchesSearch && matchesTags;
+      return matchesSearch;
     });
     
     setFilteredListings(filtered);
-  }, [listings, searchTerm, selectedTags]);
-
-  useEffect(() => {
-    // Extract unique tags from all listings
-    const tags = new Set<string>();
-    listings.forEach(listing => {
-      listing.tags.forEach(tag => tags.add(tag));
-    });
-    setAvailableTags(Array.from(tags).sort());
-  }, [listings]);
+  }, [listings, searchTerm]);
 
   const fetchListings = async () => {
     try {
@@ -72,33 +61,62 @@ export default function AdminListings() {
     }
   };
 
-  const handleTagUpdate = async (listingId: string, newTags: string[]) => {
+  const handleApproveListing = async (listingId: string) => {
     try {
-      const response = await fetch(`/api/admin/listings/${listingId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tags: newTags }),
+      const response = await fetch(`/api/admin/approve-listing/${listingId}`, {
+        method: 'POST',
       });
       
-      if (!response.ok) throw new Error('Failed to update tags');
+      if (!response.ok) throw new Error('Failed to approve listing');
       
-      // Update local state
-      setListings(listings.map(listing => 
-        listing._id === listingId 
-          ? { ...listing, tags: newTags }
-          : listing
-      ));
+      // Refresh listings
+      fetchListings();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update tags');
+      setError(err instanceof Error ? err.message : 'Failed to approve listing');
     }
   };
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tag)
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
-    );
+  const handleRejectListing = async (listingId: string) => {
+    try {
+      const response = await fetch(`/api/admin/reject-listing/${listingId}`, {
+        method: 'POST',
+      });
+      
+      if (!response.ok) throw new Error('Failed to reject listing');
+      
+      // Refresh listings
+      fetchListings();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reject listing');
+    }
+  };
+
+  const handleDeleteListing = async (listingId: string) => {
+    if (!confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeleting(listingId);
+    try {
+      const response = await fetch(`/api/admin/listings/${listingId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Remove from local state
+        setListings(prev => prev.filter(l => l.id !== listingId));
+        setFilteredListings(prev => prev.filter(l => l.id !== listingId));
+        alert('Listing deleted successfully!');
+      } else {
+        const data = await response.json();
+        alert(`Error deleting listing: ${data.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error('Error deleting listing:', err);
+      alert('Error deleting listing.');
+    } finally {
+      setDeleting(null);
+    }
   };
 
   if (loading) return <div className="p-8">Loading...</div>;
@@ -107,7 +125,7 @@ export default function AdminListings() {
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Manage Listings</h1>
+        <h1 className="text-3xl font-bold text-black">Manage Listings</h1>
         <Link 
           href="/admin/listings/new"
           className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
@@ -116,35 +134,16 @@ export default function AdminListings() {
         </Link>
       </div>
 
-      {/* Search and Filter Section */}
+      {/* Search Section */}
       <div className="mb-8 bg-white rounded-lg shadow p-6">
         <div className="mb-4">
           <input
             type="text"
-            placeholder="Search by name, city, or nationality..."
+            placeholder="Search by title, city, or description..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
           />
-        </div>
-        
-        <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Filter by Tags:</h3>
-          <div className="flex flex-wrap gap-2">
-            {availableTags.map(tag => (
-              <button
-                key={tag}
-                onClick={() => toggleTag(tag)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  selectedTags.includes(tag)
-                    ? 'bg-red-600 text-white'
-                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                }`}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -152,56 +151,65 @@ export default function AdminListings() {
       <div className="grid gap-6">
         {filteredListings.map((listing) => (
           <div 
-            key={listing._id}
+            key={listing.id}
             className="bg-white rounded-lg shadow p-6"
           >
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-xl font-bold">{listing.name}</h2>
+                <h2 className="text-xl font-bold text-black">{listing.title}</h2>
                 <p className="text-gray-600">
-                  {listing.city} • {listing.nationality} • {listing.age} anos
+                  {listing.city} • Age: {listing.age} • €{listing.price}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">{listing.description?.substring(0, 100)}...</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  By: {listing.user?.profile?.name || 'Unknown'}
                 </p>
               </div>
               <div className="flex gap-2">
                 <span className={`px-2 py-1 rounded text-sm ${
-                  listing.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                  listing.status === 'APPROVED' ? 'bg-green-100 text-green-800' : 
+                  listing.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : 
+                  'bg-gray-100 text-gray-800'
                 }`}>
-                  {listing.isVerified ? 'Verified' : 'Unverified'}
-                </span>
-                <span className={`px-2 py-1 rounded text-sm ${
-                  listing.isActive ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {listing.isActive ? 'Active' : 'Inactive'}
+                  {listing.status}
                 </span>
               </div>
             </div>
 
             <div className="mb-4">
-              <h3 className="font-semibold mb-2">Tags</h3>
-              <div className="flex flex-wrap gap-2">
-                {listing.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              <h3 className="font-semibold mb-2 text-black">Services</h3>
+              <p className="text-sm text-gray-600">{listing.services || 'No services listed'}</p>
             </div>
 
             <div className="flex gap-4">
+              {listing.status === 'PENDING' && (
+                <>
+                  <button
+                    onClick={() => handleApproveListing(listing.id)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleRejectListing(listing.id)}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                  >
+                    Reject
+                  </button>
+                </>
+              )}
               <button
-                onClick={() => router.push(`/admin/listings/${listing._id}/edit`)}
+                onClick={() => router.push(`/admin/listings/${listing.id}/edit`)}
                 className="text-blue-600 hover:text-blue-800"
               >
                 Edit
               </button>
               <button
-                onClick={() => handleTagUpdate(listing._id, [...listing.tags, 'New Tag'])}
-                className="text-green-600 hover:text-green-800"
+                onClick={() => handleDeleteListing(listing.id)}
+                disabled={deleting === listing.id}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Add Tag
+                {deleting === listing.id ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>

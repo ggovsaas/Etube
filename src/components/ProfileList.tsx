@@ -74,8 +74,9 @@ export default function ProfileList({ profiles }: { profiles: Profile[] }) {
                         <i className="fas fa-phone mr-1"></i>Contactar
                       </button>
                       <Link 
-                        href={`/perfis/${profile.id}`}
-                        className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition font-medium"
+                        href={profile.listingId ? `/anuncio/${profile.listingId}` : '#'}
+                        className={`bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition font-medium ${!profile.listingId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={(e) => !profile.listingId && e.preventDefault()}
                       >
                         Ver Perfil
                       </Link>

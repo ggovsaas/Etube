@@ -14,8 +14,6 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [pendingListings, setPendingListings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [adminEmail, setAdminEmail] = useState('');
-  const [adminSetupMessage, setAdminSetupMessage] = useState('');
   const router = useRouter();
 
   const fetchStats = async () => {
@@ -91,11 +89,40 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchStats();
-    fetchUsers();
-    fetchPendingListings();
-    setLoading(false);
-  }, []);
+    // Check authentication first
+    const checkAuthAndLoad = async () => {
+      try {
+        // Verify user is admin
+        const profileResponse = await fetch('/api/user/profile');
+        if (!profileResponse.ok) {
+          router.push('/login?redirect=/admin');
+          return;
+        }
+
+        const profileData = await profileResponse.json();
+        if (profileData.user?.role !== 'ADMIN') {
+          const { getUserLocale } = await import('@/lib/localeHelper');
+          const locale = getUserLocale();
+          router.push(`/${locale}/dashboard`);
+          return;
+        }
+
+        // User is authenticated and is admin - load all data
+        await Promise.all([
+          fetchStats(),
+          fetchUsers(),
+          fetchPendingListings()
+        ]);
+      } catch (error) {
+        console.error('Error loading admin data:', error);
+        router.push('/login?redirect=/admin');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuthAndLoad();
+  }, [router]);
 
   const handleLogout = async () => {
     try {
@@ -113,32 +140,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const makeUserAdmin = async () => {
-    if (!adminEmail) return;
-    
-    try {
-      const response = await fetch('/api/admin/make-admin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: adminEmail }),
-      });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        setAdminSetupMessage(`Success: ${data.message}`);
-        setAdminEmail('');
-        // Refresh the page to get new permissions
-        setTimeout(() => window.location.reload(), 2000);
-      } else {
-        setAdminSetupMessage(`Error: ${data.error}`);
-      }
-    } catch (error) {
-      setAdminSetupMessage('Error making user admin');
-    }
-  };
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -164,31 +165,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Admin Setup Section */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-        <h3 className="text-lg font-medium text-yellow-800 mb-2">Admin Setup</h3>
-        <p className="text-sm text-yellow-700 mb-3">
-          If you're getting "Failed to fetch users" errors, you need to make your user an admin first.
-        </p>
-        <div className="flex space-x-3">
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={adminEmail}
-            onChange={(e) => setAdminEmail(e.target.value)}
-            className="flex-1 px-3 py-2 border border-yellow-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500"
-          />
-          <button
-            onClick={makeUserAdmin}
-            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg"
-          >
-            Make Admin
-          </button>
-        </div>
-        {adminSetupMessage && (
-          <p className="mt-2 text-sm text-yellow-800">{adminSetupMessage}</p>
-        )}
-      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

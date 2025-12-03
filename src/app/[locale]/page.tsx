@@ -1,10 +1,13 @@
 'use client';
 
-import Link from 'next/link';
+import LocaleLink from '@/components/LocaleLink';
+import { useLocale } from '@/hooks/useLocale';
+import { getCities } from '@/lib/i18n';
 import { useState, useEffect } from 'react';
 
 interface Profile {
   id: string;
+  listingId?: string | null; // Listing ID for navigation to anuncio page
   name: string;
   age: number;
   city: string;
@@ -22,10 +25,14 @@ interface Profile {
 }
 
 export default function Home() {
+  const { t, getLocalizedPath, locale } = useLocale();
   const [topProfiles, setTopProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchCity, setSearchCity] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
+  
+  // Get cities based on locale
+  const cities = getCities(locale);
 
   // Fetch top profiles
   useEffect(() => {
@@ -53,9 +60,12 @@ export default function Home() {
       const params = new URLSearchParams();
       if (searchCity) params.set('cidade', searchCity);
       if (searchCategory) params.set('categoria', searchCategory);
-      window.location.href = `/perfis?${params.toString()}`;
+      // Use correct route name based on locale
+      const profilesRoute = locale === 'es' ? '/perfiles' : '/perfis';
+      window.location.href = getLocalizedPath(`${profilesRoute}?${params.toString()}`);
     } else {
-      window.location.href = '/perfis';
+      const profilesRoute = locale === 'es' ? '/perfiles' : '/perfis';
+      window.location.href = getLocalizedPath(profilesRoute);
     }
   };
 
@@ -66,12 +76,6 @@ export default function Home() {
     { name: 'VIP', image: 'photo-1506629905057-f39b5c4d3d03' }
   ];
 
-  const cities = [
-    { name: 'Lisboa', image: 'photo-1555881400-74d7acaacd8b' },
-    { name: 'Porto', image: 'photo-1555881400-69d7acaacd9c' },
-    { name: 'Coimbra', image: 'photo-1555881400-83d7acaacd7a' },
-    { name: 'Braga', image: 'photo-1555881400-92d7acaacd6f' }
-  ];
 
   const features = [
     { icon: 'fa-search', title: 'Filtros Avançados', desc: 'Busca personalizada por cidade, categoria e preferências' },
@@ -102,23 +106,23 @@ export default function Home() {
           <div className="flex justify-end">
             <div className="text-right text-white max-w-xl">
               <h1 className="text-5xl md:text-6xl font-bold mb-6">
-                Encontre a
-                <span className="text-pink-300"> Companhia Perfeita</span>
+                {t.findPerfectCompanionPart1}
+                <span className="text-red-600"> {t.findPerfectCompanionPart2}</span>
               </h1>
               
               {/* Statistics */}
               <div className="flex justify-end space-x-8 mb-8">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-pink-300">1000+</div>
-                  <div className="text-sm text-white font-medium">Perfis Ativos</div>
+                  <div className="text-3xl font-bold text-red-600">1000+</div>
+                  <div className="text-sm text-white font-medium">{t.activeProfiles}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-pink-300">50+</div>
-                  <div className="text-sm text-white font-medium">Cidades</div>
+                  <div className="text-3xl font-bold text-red-600">50+</div>
+                  <div className="text-sm text-white font-medium">{t.cities}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-pink-300">24/7</div>
-                  <div className="text-sm text-white font-medium">Disponível</div>
+                  <div className="text-3xl font-bold text-red-600">24/7</div>
+                  <div className="text-sm text-white font-medium">{t.available}</div>
                 </div>
               </div>
               
@@ -130,20 +134,17 @@ export default function Home() {
                     value={searchCity}
                     onChange={(e) => setSearchCity(e.target.value)}
                   >
-                    <option value="" disabled>Selecione a cidade</option>
-                    <option value="lisboa">Lisboa</option>
-                    <option value="porto">Porto</option>
-                    <option value="coimbra">Coimbra</option>
-                    <option value="braga">Braga</option>
-                    <option value="aveiro">Aveiro</option>
-                    <option value="faro">Faro</option>
+                    <option value="" disabled>{t.selectCity}</option>
+                    {cities.map((city) => (
+                      <option key={city.name} value={city.name.toLowerCase()}>{city.name}</option>
+                    ))}
                   </select>
                   <select 
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                     value={searchCategory}
                     onChange={(e) => setSearchCategory(e.target.value)}
                   >
-                    <option value="" disabled>Categoria</option>
+                    <option value="" disabled>{t.category}</option>
                     <option value="feminino">Feminino</option>
                     <option value="masculino">Masculino</option>
                     <option value="trans">Trans</option>
@@ -154,7 +155,7 @@ export default function Home() {
                     type="submit"
                     className="w-full bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition font-medium shadow-lg"
                   >
-                    <i className="fas fa-search mr-2"></i>Pesquisar
+                    <i className="fas fa-search mr-2"></i>{t.search}
                   </button>
                 </form>
               </div>
@@ -167,18 +168,18 @@ export default function Home() {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Top Acompanhantes</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Descubra os perfis mais populares e bem avaliados da nossa plataforma</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">{t.topEscorts}</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">{t.topEscortsDescription}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {loading ? (
-              <p>Carregando perfis...</p>
+              <p>{t.loadingProfiles}</p>
             ) : topProfiles.length === 0 ? (
-              <p>Nenhum perfil encontrado.</p>
+              <p>{t.noProfilesFound}</p>
             ) : (
               topProfiles.map((profile, index) => (
-                <Link href={`/perfis/${profile.id}`} key={profile.id}>
+                <LocaleLink href={profile.listingId ? `/anuncio/${profile.listingId}` : '#'} key={profile.id} onClick={(e) => !profile.listingId && e.preventDefault()}>
                   <div className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                     <div className="aspect-w-3 aspect-h-4">
                       <img 
@@ -188,15 +189,20 @@ export default function Home() {
                       />
                     </div>
                     
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    {/* Hover overlay - Red gradient from bottom (40-50% of image) - transparent so image shows through */}
+                    <div 
+                      className="absolute bottom-0 left-0 right-0 h-[50%] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                      style={{
+                        background: 'linear-gradient(to top, rgba(220, 38, 38, 0.95) 0%, rgba(248, 113, 113, 0.7) 30%, rgba(252, 165, 165, 0.4) 60%, rgba(255, 255, 255, 0) 100%)'
+                      }}
+                    >
+                      <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-auto">
                         <h3 className="text-xl font-bold mb-2">{profile.name}</h3>
                         <div className="flex justify-between items-center text-sm">
-                          <span>Idade: {profile.age} anos</span>
-                          <span>Cidade: {profile.city}</span>
+                          <span>{t.age}: {profile.age} {t.ageYears}</span>
+                          <span>{t.city}: {profile.city}</span>
                         </div>
-                        <div className="mt-2 text-pink-300 font-bold text-lg">€{profile.pricePerHour || profile.price || '0'}/hora</div>
+                        <div className="mt-2 text-white font-bold text-lg">€{profile.pricePerHour || profile.price || '0'}/{t.hour}</div>
                       </div>
                     </div>
                     
@@ -205,7 +211,7 @@ export default function Home() {
                       {profile.name}
                     </div>
                   </div>
-                </Link>
+                </LocaleLink>
               ))
             )}
           </div>
@@ -216,8 +222,8 @@ export default function Home() {
       <section className="py-16 bg-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Variedade para Todos os Gostos</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Explore diferentes categorias e encontre exatamente o que procura</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">{t.varietyForAllTastes}</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">{t.varietyDescription}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -267,8 +273,8 @@ export default function Home() {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Cobertura Nacional</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Presente nas principais cidades de Portugal</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">{t.nationalCoverage}</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">{t.presentInMainCities}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -332,12 +338,12 @@ export default function Home() {
           <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
             Crie o seu perfil hoje e comece a conectar-se com milhares de utilizadores em Portugal
           </p>
-          <Link 
+          <LocaleLink 
             href="/criar-perfil"
             className="inline-block bg-red-600 text-white px-8 py-4 rounded-lg text-lg font-bold hover:bg-red-700 transition-colors duration-300 shadow-lg"
           >
-            Cadastrar Perfil Agora
-          </Link>
+            {t.createProfile}
+          </LocaleLink>
         </div>
       </section>
     </main>

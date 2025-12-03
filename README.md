@@ -34,6 +34,14 @@ NEXTAUTH_URL="https://your-replit-url.repl.co"
 
 # For Replit, you can use a simple secret:
 NEXTAUTH_SECRET="my-secret-key-123"
+
+# Email Verification (Mailgun)
+MAILGUN_API_KEY="your-mailgun-api-key-here"
+MAILGUN_DOMAIN="your-domain.com"  # Your verified Mailgun domain
+MAILGUN_FROM_EMAIL="noreply@your-domain.com"  # Optional, defaults to noreply@MAILGUN_DOMAIN
+
+# Admin Emails (comma-separated)
+ADMIN_EMAILS="admin@example.com,another-admin@example.com"
 ```
 
 ### Step 2: Database Setup
@@ -52,6 +60,8 @@ npm install
 npx prisma generate
 npx prisma db push
 ```
+
+**Note:** After updating the Prisma schema (e.g., adding email verification fields), you need to run these commands to sync the database.
 
 ### Step 5: Create Admin User
 Run this command to create an admin user:
@@ -77,6 +87,7 @@ npm run dev
 - ✅ User account creation
 - ✅ Form validation
 - ✅ Error handling
+- ✅ Email verification with SendGrid
 
 ### Admin Dashboard
 - ✅ View all profiles
@@ -93,7 +104,8 @@ npm run dev
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - User registration
+- `POST /api/auth/register` - User registration (sends verification email)
+- `GET /api/auth/verify` - Email verification endpoint
 - `POST /api/auth/[...nextauth]` - NextAuth.js authentication
 
 ### Admin

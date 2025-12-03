@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -18,19 +18,20 @@ interface Profile {
   createdAt: string;
 }
 
-export default function EditProfilePage({ params }: { params: { id: string } }) {
+export default function EditProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const { id } = use(params);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchProfile();
-  }, [params.id]);
+  }, [id]);
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch(`/api/profiles/${params.id}`);
+      const response = await fetch(`/api/profiles/${id}`);
       const data = await response.json();
       setProfile(data);
       setLoading(false);
@@ -46,7 +47,7 @@ export default function EditProfilePage({ params }: { params: { id: string } }) 
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/profiles/${params.id}`, {
+      const response = await fetch(`/api/profiles/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

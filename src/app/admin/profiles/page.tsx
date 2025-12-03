@@ -30,13 +30,25 @@ export default function AdminProfilesPage() {
 
   const fetchUsers = async () => {
     try {
+      setLoading(true);
+      setError('');
       const response = await fetch('/api/admin/users');
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch users');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        if (response.status === 403) {
+          throw new Error('Admin access denied. Please make sure you are logged in with an admin account.');
+        } else if (response.status === 401) {
+          throw new Error('Authentication required. Please log in again.');
+        } else {
+          throw new Error(errorData.error || `Failed to fetch users (${response.status})`);
+        }
       }
+      
       const data = await response.json();
-      setUsers(data);
+      setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
+      console.error('Error fetching users:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch users');
     } finally {
       setLoading(false);

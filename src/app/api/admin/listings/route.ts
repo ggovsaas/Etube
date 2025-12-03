@@ -1,18 +1,36 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { verifyAdmin } from '@/lib/adminCheck';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Get token from cookies
+    const token = request.cookies.get('auth-token')?.value;
+
+    const { isAdmin, error } = verifyAdmin(token);
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: error || 'Admin access required' },
+        { status: error === 'Authentication required' ? 401 : 403 }
+      );
+    }
+
+    // Fetch ALL listings (admin can see all, including pending)
     const listings = await prisma.listing.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        user: true,
-        images: true,
+        user: {
+          include: {
+            profile: true
+          }
+        },
         media: true,
       },
     });
     return NextResponse.json(listings);
   } catch (error) {
+    console.error('Error fetching listings:', error);
     return NextResponse.json(
       { error: 'Failed to fetch listings' },
       { status: 500 }

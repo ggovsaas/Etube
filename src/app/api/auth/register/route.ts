@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { sign } from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
+import { sendVerificationEmail } from '@/lib/email';
+import crypto from 'crypto';
 
 export async function POST(request: Request) {
   try {
@@ -32,8 +34,29 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate input
+    if (!email || !password || !username) {
+      return NextResponse.json(
+        { error: 'All fields are required' },
+        { status: 400 }
+      );
+    }
+
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: 'Password must be at least 6 characters' },
+        { status: 400 }
+      );
+    }
+
     // Hash password
     const hashedPassword = await hash(password, 12);
+
+    // Generate verification token (for future email verification feature)
+    // Note: User model doesn't have verification fields yet, so we'll just log it
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationExpiry = new Date();
+    verificationExpiry.setHours(verificationExpiry.getHours() + 24); // 24 hours
 
     // Create user and profile in a transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -44,10 +67,13 @@ export async function POST(request: Request) {
           name: username,
           password: hashedPassword,
           role: accountType === 'escort' ? 'ESCORT' : 'USER',
+          emailVerified: false,
+          verificationToken,
+          verificationExpiry,
         },
       });
 
-      // If escort, create basic profile
+      // If escort, create basic profile (but don't show it until listing is approved)
       if (accountType === 'escort') {
         const profile = await tx.profile.create({
           data: {
@@ -64,41 +90,87 @@ export async function POST(request: Request) {
       return { user };
     });
 
-    // Create JWT token for automatic login
+    // Check if user email is in admin list from environment variables
+    const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
+    const adminEmails = adminEmailsEnv
+      .split(',')
+      .map(email => email.trim().toLowerCase())
+      .filter(email => email.length > 0);
+    
+    const isEmailAdmin = adminEmails.includes(result.user.email.toLowerCase());
+    const finalRole = (result.user.role === 'ADMIN' || isEmailAdmin) ? 'ADMIN' : result.user.role;
+
+    // Create JWT token for automatic login with long expiration (7 days)
     const token = sign(
       { 
         userId: result.user.id, 
-        email: result.user.email, 
-        role: result.user.role 
+        email: result.user.email.toLowerCase(), 
+        role: finalRole 
       },
       process.env.NEXTAUTH_SECRET || 'fallback-secret',
       { expiresIn: '7d' }
     );
 
+    // Send verification email
+    try {
+      await sendVerificationEmail(email, verificationToken, username);
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError);
+      // Don't fail registration if email fails, but log it
+      // User can request a new verification email later
+    }
+    
     // Create response with success message
     const response = NextResponse.json(
       { 
-        message: 'Account created successfully',
+        message: 'Account created successfully. Please check your email to verify your account.',
         userId: result.user.id,
         role: result.user.role,
-        success: true
+        success: true,
+        emailVerified: false
       },
       { status: 201 }
     );
 
-    // Set authentication cookie
+    // Set authentication cookie with proper settings for persistence
     response.cookies.set('auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 // 7 days
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/' // Ensure cookie is available site-wide
     });
 
     return response;
   } catch (error) {
     console.error('Registration error:', error);
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      // Check for unique constraint violations
+      if (error.message.includes('Unique constraint')) {
+        if (error.message.includes('email')) {
+          return NextResponse.json(
+            { error: 'Email already registered' },
+            { status: 400 }
+          );
+        }
+        if (error.message.includes('name')) {
+          return NextResponse.json(
+            { error: 'Username already taken' },
+            { status: 400 }
+          );
+        }
+      }
+      
+      return NextResponse.json(
+        { error: error.message || 'Failed to create account' },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to create account' },
+      { error: 'Failed to create account. Please try again.' },
       { status: 500 }
     );
   }

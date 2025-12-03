@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   output: 'standalone',
+  // Optimize dev server performance
+  experimental: {
+    // Reduce memory usage
+    optimizePackageImports: ['lucide-react', 'react-icons'],
+  },
+  // Speed up compilation
+  swcMinify: true,
 };
 
 export default nextConfig;

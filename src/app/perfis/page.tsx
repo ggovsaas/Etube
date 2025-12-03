@@ -29,21 +29,29 @@ function PerfisContent() {
   const fetchProfiles = async () => {
     try {
       setLoading(true);
+      setError('');
       const response = await fetch('/api/profiles');
-      if (!response.ok) {
-        throw new Error('Failed to fetch profiles');
-      }
+      
       const data = await response.json();
       
+      // Handle error in response
+      if (data.error) {
+        console.error('API error:', data.error);
+        setError(data.error);
+        setAllProfiles([]);
+        return;
+      }
+      
       // Transform API data to match Profile interface
-      const transformedProfiles: Profile[] = data.profiles.map((profile: any) => ({
+      const transformedProfiles: Profile[] = (data.profiles || []).map((profile: any) => ({
         id: profile.id,
+        listingId: profile.listingId || null, // Include listing ID for navigation
         name: profile.name || 'Unknown',
         age: profile.age || 0,
         city: profile.city || 'Unknown',
         height: profile.height || 0,
         weight: profile.weight || 0,
-        price: profile.price || 0,
+        price: profile.price || profile.pricePerHour || 0,
         rating: profile.rating || 0,
         reviews: profile.reviews || 0,
         isOnline: profile.isOnline || false,
@@ -55,7 +63,8 @@ function PerfisContent() {
       setAllProfiles(transformedProfiles);
     } catch (err) {
       console.error('Error fetching profiles:', err);
-      setError('Failed to load profiles');
+      setError('Failed to load profiles. Please try again later.');
+      setAllProfiles([]);
     } finally {
       setLoading(false);
     }

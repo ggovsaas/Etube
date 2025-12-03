@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 export interface Profile {
   id: number;
+  listingId?: string | null; // Listing ID for navigation to anuncio page
   name: string;
   age: number;
   city: string;
@@ -79,8 +80,9 @@ export default function ProfileGrid({ profiles }: { profiles: Profile[] }) {
                 €{profile.price}/hora
               </div>
               <Link 
-                href={`/perfis/${profile.id}`}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium"
+                href={profile.listingId ? `/anuncio/${profile.listingId}` : '#'}
+                className={`bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium ${!profile.listingId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={(e) => !profile.listingId && e.preventDefault()}
               >
                 Ver Perfil
               </Link>

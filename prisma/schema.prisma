@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,186 +8,184 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  password      String
-  role          Role      @default(USER)
-  isPro         Boolean   @default(false) // NEW: PRO membership
-  proUntil      DateTime? // NEW: PRO expiration
-  credits       Int       @default(0) // NEW: Credit system
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  profile       Profile?
-  listings      Listing[]
-  reviews       Review[]
-  questions     Question[]
-  favorites     Favorite[]
-  subscriptions Subscription[] // NEW: Subscription tracking
-  creditTransactions CreditTransaction[] // NEW: Credit transaction tracking
+  id                 String              @id @default(cuid())
+  name               String?
+  email              String              @unique
+  password           String
+  role               Role                @default(USER)
+  isPro              Boolean             @default(false)
+  proUntil           DateTime?
+  credits            Int                 @default(0)
+  emailVerified      Boolean             @default(false)
+  verificationToken  String?
+  verificationExpiry DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  creditTransactions CreditTransaction[]
+  favorites          Favorite[]
+  listings           Listing[]
+  profile            Profile?
+  questions          Question[]
+  reviews            Review[]
+  subscriptions      Subscription[]
 }
 
 model Profile {
-  id          String    @id @default(cuid())
-  userId      String    @unique
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  age         Int
-  city        String
-  neighborhood String?  // NEW: Bairro
-  description String?
-  bio         String?
-  location    String?
-  phone       String?
-  whatsappEnabled Boolean @default(false) // NEW: WhatsApp toggle
-  telegramEnabled Boolean @default(false) // NEW: Telegram toggle
-  
-  // Social Media Links
-  onlyfans    String?
-  privacy     String?
-  instagram   String?
-  twitter     String?
-  tiktok      String?
-  snapchat    String?
-  telegramChannel String?
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  name             String
+  age              Int
+  city             String
+  neighborhood     String?
+  description      String?
+  bio              String?
+  location         String?
+  phone            String?
+  whatsappEnabled  Boolean  @default(false)
+  telegramEnabled  Boolean  @default(false)
+  onlyfans         String?
+  privacy          String?
+  instagram        String?
+  twitter          String?
+  tiktok           String?
+  snapchat         String?
+  telegramChannel  String?
   whatsappBusiness String?
-  manyvids    String?
-  chaturbate  String?
-  myfreecams  String?
-  livejasmin  String?
-  linkHubUrl  String?   // Generic link hub (Linktree, Bio.link, Beacons, etc.)
-  
-  gender      String?
-  preference  String?
-  weight      String?
-  height      String?
-  ethnicity   String?
-  eyeColor    String?
-  shoeSize    String?
-  tattoos     String?
-  piercings   String?
-  smoker      String?
-  languages   String?
-  hair        String?   // NEW: Hair color/style
-  bodyType    String?   // NEW: Body type
-  hairColor   String?   // NEW: Hair color
-  breastSize  String?   // NEW: Breast size
-  breastType  String?   // NEW: Breast type
-  personalityTags String[] // NEW: Personality tags
-  isVerified  Boolean   @default(false)
-  isOnline    Boolean   @default(false)
-  rating      Float     @default(0)
-  profilePhoto String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  reviews     Review[]
-  media       Media[]
+  manyvids         String?
+  chaturbate       String?
+  myfreecams       String?
+  livejasmin       String?
+  linkHubUrl       String?
+  gender           String?
+  preference       String?
+  weight           String?
+  height           String?
+  ethnicity        String?
+  eyeColor         String?
+  shoeSize         String?
+  tattoos          String?
+  piercings        String?
+  smoker           String?
+  languages        String?
+  bodyType         String?
+  hairColor        String?
+  breastSize       String?
+  breastType       String?
+  personalityTags  String[]
+  isVerified       Boolean  @default(false)
+  isOnline         Boolean  @default(false)
+  rating           Float    @default(0)
+  profilePhoto     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  hair             String?
+  media            Media[]
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews          Review[]
 }
 
 model Listing {
-  id          String    @id @default(cuid())
-  title       String
-  description String
-  price       Float?
-  location    String
-  city        String
-  age         Int
-  phone       String
-  services    String?
-  minDuration String?   // NEW: Minimum duration (15min, 30min, 1h, 2h)
-  advanceNotice String? // NEW: Advance notice required (1h, 2h, 1 day)
-  acceptsCard Boolean   @default(false) // NEW: Accepts card payment
-  regularDiscount String? // NEW: Regular customer discount (5%, 10%, etc.)
-  status      ListingStatus @default(ACTIVE)
-  isPremium   Boolean   @default(false)
-  isTurbo     Boolean   @default(false) // NEW: TURBO boost
-  isSuperTurbo Boolean  @default(false) // NEW: SUPER TURBO boost
-  expiresAt   DateTime  @default(dbgenerated("(NOW() + INTERVAL '7 days')")) // NEW: 7-day expiration
-  autoRenew   Boolean   @default(false) // NEW: Auto-renewal for PRO users
-  boostUntil  DateTime? // NEW: TURBO/SUPER TURBO expiration
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  images      Image[]
-  media       Media[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id              String        @id @default(cuid())
+  title           String
+  description     String
+  price           Float?
+  location        String
+  city            String
+  age             Int
+  phone           String
+  services        String?
+  minDuration     String?
+  advanceNotice   String?
+  acceptsCard     Boolean       @default(false)
+  regularDiscount String?
+  status          ListingStatus @default(ACTIVE)
+  isPremium       Boolean       @default(false)
+  isTurbo         Boolean       @default(false)
+  isSuperTurbo    Boolean       @default(false)
+  expiresAt       DateTime      @default(dbgenerated("(now() + '7 days'::interval)"))
+  autoRenew       Boolean       @default(false)
+  boostUntil      DateTime?
+  userId          String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  images          Image[]
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media           Media[]
 }
 
 model Image {
-  id          String    @id @default(cuid())
-  url         String
-  listingId   String
-  listing     Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
+  id        String   @id @default(cuid())
+  url       String
+  listingId String
+  createdAt DateTime @default(now())
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
 }
 
 model Review {
-  id          String    @id @default(cuid())
-  rating      Int
-  comment     String?
-  authorName  String?
-  profileId   String
-  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String   @id @default(cuid())
+  rating     Int
+  comment    String?
+  authorName String?
+  profileId  String
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Media {
-  id          String    @id @default(cuid())
-  url         String
-  type        MediaType
-  profileId   String?
-  profile     Profile?  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  listingId   String?
-  listing     Listing?  @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
+  id        String    @id @default(cuid())
+  url       String
+  type      MediaType
+  profileId String?
+  listingId String?
+  createdAt DateTime  @default(now())
+  listing   Listing?  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  profile   Profile?  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
 
 model Question {
-  id          String    @id @default(cuid())
-  question    String
-  answer      String?
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  question  String
+  answer    String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Favorite {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listingId   String
-  createdAt   DateTime  @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// NEW: Subscription tracking
 model Subscription {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type        SubscriptionType
-  status      SubscriptionStatus @default(ACTIVE)
-  stripeId    String?   // Stripe subscription ID
+  id                 String             @id @default(cuid())
+  userId             String
+  type               SubscriptionType
+  status             SubscriptionStatus @default(ACTIVE)
+  stripeId           String?
   currentPeriodStart DateTime
   currentPeriodEnd   DateTime
-  cancelAtPeriodEnd Boolean @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  cancelAtPeriodEnd  Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// NEW: Credit transactions
 model CreditTransaction {
-  id          String    @id @default(cuid())
+  id          String                @id @default(cuid())
   userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   type        CreditTransactionType
   amount      Int
   description String
-  stripeId    String?   // Stripe payment ID
-  createdAt   DateTime  @default(now())
+  stripeId    String?
+  createdAt   DateTime              @default(now())
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Role {
@@ -206,21 +201,19 @@ enum MediaType {
 }
 
 enum ListingStatus {
-  PENDING   // NEW: For admin approval
+  PENDING
   ACTIVE
   INACTIVE
   FINISHED
-  EXPIRED // NEW: For expired listings
+  EXPIRED
 }
 
-// NEW: Subscription types
 enum SubscriptionType {
   PRO_1_MONTH
   PRO_3_MONTHS
   PRO_6_MONTHS
 }
 
-// NEW: Subscription status
 enum SubscriptionStatus {
   ACTIVE
   CANCELED
@@ -228,10 +221,9 @@ enum SubscriptionStatus {
   UNPAID
 }
 
-// NEW: Credit transaction types
 enum CreditTransactionType {
   PURCHASE
   USAGE
   REFUND
   BONUS
-} 
+}

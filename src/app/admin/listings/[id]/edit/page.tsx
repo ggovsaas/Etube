@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -42,8 +42,9 @@ const SERVICES = [
 const HAIR_COLORS = ['Loira', 'Morena', 'Ruiva', 'Negra', 'Castanha', 'Colorida'];
 const NATIONALITIES = ['Brasileira', 'Portuguesa', 'Colombiana', 'Venezuelana', 'Angolana', 'Outra'];
 
-export default function EditListing({ params }: { params: { id: string } }) {
+export default function EditListing({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const { id } = use(params);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +52,7 @@ export default function EditListing({ params }: { params: { id: string } }) {
   const [newTag, setNewTag] = useState('');
 
   useEffect(() => {
-    if (params.id !== 'new') {
+    if (id !== 'new') {
       fetchListing();
     } else {
       setListing({
@@ -73,11 +74,11 @@ export default function EditListing({ params }: { params: { id: string } }) {
       });
       setLoading(false);
     }
-  }, [params.id]);
+  }, [id]);
 
   const fetchListing = async () => {
     try {
-      const response = await fetch(`/api/admin/listings/${params.id}`);
+      const response = await fetch(`/api/admin/listings/${id}`);
       if (!response.ok) throw new Error('Failed to fetch listing');
       const data = await response.json();
       setListing(data);
@@ -94,8 +95,8 @@ export default function EditListing({ params }: { params: { id: string } }) {
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/admin/listings/${params.id === 'new' ? '' : params.id}`, {
-        method: params.id === 'new' ? 'POST' : 'PATCH',
+      const response = await fetch(`/api/admin/listings/${id === 'new' ? '' : id}`, {
+        method: id === 'new' ? 'POST' : 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(listing),
       });
@@ -158,7 +159,7 @@ export default function EditListing({ params }: { params: { id: string } }) {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">
-            {params.id === 'new' ? 'Create New Listing' : 'Edit Listing'}
+            {id === 'new' ? 'Create New Listing' : 'Edit Listing'}
           </h1>
           <Link
             href="/admin/listings"
