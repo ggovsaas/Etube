@@ -15,8 +15,6 @@ const nextConfig: NextConfig = {
     // Reduce memory usage
     optimizePackageImports: ['lucide-react', 'react-icons'],
   },
-  // Speed up compilation
-  swcMinify: true,
 };
 
 export default nextConfig;

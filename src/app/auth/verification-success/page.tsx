@@ -1,10 +1,11 @@
 'use client';
 
+import { Suspense } from 'react';
 import { FaCheckCircle } from 'react-icons/fa';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-export default function VerificationSuccess() {
+function VerificationSuccessContent() {
   const searchParams = useSearchParams();
   const alreadyVerified = searchParams.get('already-verified') === 'true';
 
@@ -43,6 +44,23 @@ export default function VerificationSuccess() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerificationSuccess() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md mx-auto text-center">
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+            <FaCheckCircle className="h-8 w-8 text-green-600" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900">Carregando...</h2>
+        </div>
+      </div>
+    }>
+      <VerificationSuccessContent />
+    </Suspense>
   );
 }
 
