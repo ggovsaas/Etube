@@ -63,8 +63,18 @@ export default function LoginPage() {
       }
 
       if (result?.ok) {
-        // Check for redirect URL
-        const redirectUrl = typeof window !== 'undefined' ? sessionStorage.getItem('loginRedirect') : null;
+        // Wait a moment for session to be set, then check user role
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Get session to check role
+        const { getSession } = await import('next-auth/react');
+        const session = await getSession();
+        
+        // Check for redirect URL from query params or sessionStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectParam = urlParams.get('redirect');
+        const redirectUrl = redirectParam || (typeof window !== 'undefined' ? sessionStorage.getItem('loginRedirect') : null);
+        
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('loginRedirect');
         }
@@ -72,9 +82,15 @@ export default function LoginPage() {
         // Get detected locale
         const userLocale = typeof window !== 'undefined' ? sessionStorage.getItem('userLocale') || 'pt' : 'pt';
         
-        // Redirect based on redirect URL or default dashboard
-        if (redirectUrl) {
-          if (!redirectUrl.startsWith('/pt/') && !redirectUrl.startsWith('/es/') && !redirectUrl.startsWith('/admin')) {
+        // Redirect based on user role or redirect URL
+        if (session?.user?.role === 'ADMIN') {
+          // Admin users go to /admin
+          router.push('/admin');
+        } else if (redirectUrl) {
+          // Handle redirect URL
+          if (redirectUrl.startsWith('/admin')) {
+            router.push('/admin');
+          } else if (!redirectUrl.startsWith('/pt/') && !redirectUrl.startsWith('/es/')) {
             router.push(`/${userLocale}${redirectUrl}`);
           } else {
             router.push(redirectUrl);
@@ -96,13 +112,20 @@ export default function LoginPage() {
     setError('');
     try {
       const { signIn } = await import('next-auth/react');
-      const redirectUrl = typeof window !== 'undefined' ? sessionStorage.getItem('loginRedirect') : null;
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectParam = urlParams.get('redirect');
+      const redirectUrl = redirectParam || (typeof window !== 'undefined' ? sessionStorage.getItem('loginRedirect') : null);
       const userLocale = typeof window !== 'undefined' ? sessionStorage.getItem('userLocale') || 'pt' : 'pt';
-      const callbackUrl = redirectUrl 
-        ? (redirectUrl.startsWith('/pt/') || redirectUrl.startsWith('/es/') || redirectUrl.startsWith('/admin') 
-          ? redirectUrl 
-          : `/${userLocale}${redirectUrl}`)
-        : `/${userLocale}/dashboard`;
+      
+      // For admin redirects, go directly to /admin
+      // Auth.js will handle role checking in the callback
+      const callbackUrl = redirectUrl === '/admin' 
+        ? '/admin'
+        : (redirectUrl 
+          ? (redirectUrl.startsWith('/pt/') || redirectUrl.startsWith('/es/') || redirectUrl.startsWith('/admin') 
+            ? redirectUrl 
+            : `/${userLocale}${redirectUrl}`)
+          : `/${userLocale}/dashboard`);
       
       await signIn('google', { 
         callbackUrl,

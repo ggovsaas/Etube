@@ -4,6 +4,7 @@ import "./globals.css";
 import Script from "next/script";
 import ConditionalLayout from "@/components/ConditionalLayout";
 import HreflangTags from "@/components/HreflangTags";
+import SessionProvider from "@/components/SessionProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,9 +28,11 @@ export default function RootLayout({
         <HreflangTags />
       </head>
       <body className={`${inter.className} font-sans antialiased bg-gray-50`}>
-        <ConditionalLayout>
-          {children}
-        </ConditionalLayout>
+        <SessionProvider session={null}>
+          <ConditionalLayout>
+            {children}
+          </ConditionalLayout>
+        </SessionProvider>
       </body>
     </html>
   );

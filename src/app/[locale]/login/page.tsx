@@ -46,16 +46,28 @@ export default function LoginPage() {
       }
 
       if (result?.ok) {
+        // Wait a moment for session to be set, then check user role
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Get session to check role
+        const { getSession } = await import('next-auth/react');
+        const session = await getSession();
+        
         // Check for redirect URL
         const redirectUrl = typeof window !== 'undefined' ? sessionStorage.getItem('loginRedirect') : null;
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('loginRedirect');
         }
         
-        // Redirect based on redirect URL or default dashboard
-        if (redirectUrl) {
-          // If redirect URL doesn't have locale, add it
-          if (!redirectUrl.startsWith('/pt/') && !redirectUrl.startsWith('/es/') && !redirectUrl.startsWith('/admin')) {
+        // Redirect based on user role or redirect URL
+        if (session?.user?.role === 'ADMIN') {
+          // Admin users go to /admin (non-localized)
+          router.push('/admin');
+        } else if (redirectUrl) {
+          // Handle redirect URL
+          if (redirectUrl.startsWith('/admin')) {
+            router.push('/admin');
+          } else if (!redirectUrl.startsWith('/pt/') && !redirectUrl.startsWith('/es/')) {
             router.push(`/${locale}${redirectUrl}`);
           } else {
             router.push(redirectUrl);

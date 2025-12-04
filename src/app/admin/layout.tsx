@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/DashboardLayout';
 
 export default function AdminLayout({
@@ -10,47 +11,33 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { data: session, status } = useSession();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Check if user is authenticated and is admin
-        const response = await fetch('/api/user/profile');
-        
-        if (!response.ok) {
-          // Not authenticated or not admin - redirect to login
-          router.push('/login?redirect=/admin');
-          return;
-        }
+    if (status === 'loading') {
+      return; // Still loading session
+    }
 
-        const data = await response.json();
-        
-        // Check if user is admin
-        if (data.user?.role === 'ADMIN') {
-          setIsAuthenticated(true);
-          setIsAdmin(true);
-          setUser(data.user);
-        } else {
-          // User is logged in but not admin - redirect to login with error message
-          router.push('/login?error=admin_access_required&redirect=/admin');
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        router.push('/login?redirect=/admin');
-      } finally {
+    if (status === 'unauthenticated') {
+      // Not authenticated - redirect to non-localized login
+      router.push('/login?redirect=/admin');
+      return;
+    }
+
+    if (status === 'authenticated') {
+      // Check if user is admin
+      if (session?.user?.role === 'ADMIN') {
         setLoading(false);
+      } else {
+        // User is logged in but not admin - redirect to login
+        router.push('/login?error=admin_access_required&redirect=/admin');
       }
-    };
+    }
+  }, [status, session, router]);
 
-    checkAuth();
-  }, [router]);
-
-  if (loading) {
+  if (loading || status === 'loading') {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -61,7 +48,7 @@ export default function AdminLayout({
     );
   }
 
-  if (!isAuthenticated || !isAdmin) {
+  if (status === 'unauthenticated' || session?.user?.role !== 'ADMIN') {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -129,6 +116,13 @@ export default function AdminLayout({
       ),
     },
   ];
+
+  const user = session?.user ? {
+    id: session.user.id,
+    email: session.user.email || '',
+    name: session.user.name || '',
+    role: session.user.role || 'USER',
+  } : null;
 
   return (
     <DashboardLayout user={user} isAdmin={true} sidebarItems={adminSidebarItems}>
