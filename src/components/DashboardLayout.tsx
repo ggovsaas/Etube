@@ -41,16 +41,15 @@ export default function DashboardLayout({
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
+      const { signOut } = await import('next-auth/react');
+      const callbackUrl = isAdmin ? '/login' : getLocalizedPath('/');
+      await signOut({ 
+        callbackUrl,
+        redirect: true 
       });
-      if (isAdmin) {
-        router.push('/login');
-      } else {
-        router.push(getLocalizedPath('/'));
-      }
     } catch (error) {
       console.error('Logout error:', error);
+      // Fallback redirect
       if (isAdmin) {
         router.push('/login');
       } else {

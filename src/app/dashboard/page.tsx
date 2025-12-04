@@ -58,16 +58,14 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     try {
-      // Call logout API to clear the cookie
-      await fetch('/api/auth/logout', {
-        method: 'POST',
+      const { signOut } = await import('next-auth/react');
+      await signOut({ 
+        callbackUrl: '/',
+        redirect: true 
       });
-      
-      // Redirect to home page
-      router.push('/');
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if API fails, redirect to home
+      // Fallback redirect
       router.push('/');
     }
   };
