@@ -91,6 +91,7 @@ model Profile {
   isOnline         Boolean  @default(false)
   rating           Float    @default(0)
   profilePhoto     String?
+  voiceNoteUrl     String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   hair             String?

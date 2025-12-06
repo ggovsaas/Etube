@@ -90,6 +90,8 @@ export default function ConditionalLayout({
               <div>
                 <h3 className="text-lg font-semibold mb-4">{t.information}</h3>
                 <ul className="space-y-2">
+                  <li><LocaleLink href="/forum" className="text-gray-300 hover:text-red-600 transition">Fórum</LocaleLink></li>
+                  <li><LocaleLink href="/webcam" className="text-gray-300 hover:text-red-600 transition">Webcam</LocaleLink></li>
                   <li><LocaleLink href="/parceiros" className="text-gray-300 hover:text-red-600 transition">{t.partners}</LocaleLink></li>
                   <li><LocaleLink href="/publicidade" className="text-gray-300 hover:text-red-600 transition">{t.advertising}</LocaleLink></li>
                   <li><LocaleLink href="/contactos" className="text-gray-300 hover:text-red-600 transition">{t.contacts}</LocaleLink></li>

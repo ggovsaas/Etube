@@ -60,7 +60,9 @@ function PerfisContent() {
         isOnline: profile.isOnline || false,
         isVerified: profile.isVerified || false,
         image: profile.imageUrl || '/placeholder-profile.jpg',
-        description: profile.description || 'No description available'
+        description: profile.description || 'No description available',
+        gallery: profile.gallery || [profile.imageUrl || '/placeholder-profile.jpg'],
+        voiceNoteUrl: profile.voiceNoteUrl || null
       }));
       
       setAllProfiles(transformedProfiles);

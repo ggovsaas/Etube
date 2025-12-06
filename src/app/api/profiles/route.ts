@@ -134,24 +134,33 @@ export async function GET(request: NextRequest) {
       : filteredProfiles.length;
 
     // Transform profiles to match expected structure
-    const transformedProfiles = paginatedProfiles.map(profile => ({
-      id: profile.id,
-      listingId: profile.user.listings?.[0]?.id || null, // Include listing ID for navigation
-      name: profile.name,
-      age: profile.age,
-      city: profile.city,
-      height: profile.height ? parseInt(profile.height) : 0,
-      weight: profile.weight ? parseInt(profile.weight) : 0,
-      price: profile.user.listings?.[0]?.price || 0,
-      pricePerHour: profile.user.listings?.[0]?.price || 0,
-      rating: profile.rating,
-      reviews: profile._count?.reviews || 0,
-      isOnline: profile.isOnline,
-      isVerified: profile.isVerified,
-      imageUrl: profile.media?.[0]?.url || '/placeholder-profile.jpg',
-      description: profile.description,
-      createdAt: profile.createdAt
-    }));
+    const transformedProfiles = paginatedProfiles.map(profile => {
+      // Get all gallery images
+      const galleryImages = profile.media
+        ?.filter(m => m.type === 'image' || !m.type)
+        .map(m => m.url) || [];
+      
+      return {
+        id: profile.id,
+        listingId: profile.user.listings?.[0]?.id || null, // Include listing ID for navigation
+        name: profile.name,
+        age: profile.age,
+        city: profile.city,
+        height: profile.height ? parseInt(profile.height) : 0,
+        weight: profile.weight ? parseInt(profile.weight) : 0,
+        price: profile.user.listings?.[0]?.price || 0,
+        pricePerHour: profile.user.listings?.[0]?.price || 0,
+        rating: profile.rating,
+        reviews: profile._count?.reviews || 0,
+        isOnline: profile.isOnline,
+        isVerified: profile.isVerified,
+        imageUrl: profile.media?.[0]?.url || '/placeholder-profile.jpg',
+        description: profile.description,
+        gallery: galleryImages.length > 0 ? galleryImages : [profile.media?.[0]?.url || '/placeholder-profile.jpg'],
+        voiceNoteUrl: profile.voiceNoteUrl || null,
+        createdAt: profile.createdAt
+      };
+    });
 
     // Always return a valid response, even if empty
     return NextResponse.json({

@@ -86,6 +86,7 @@ interface FormData {
   galleryMedia: File[];
   comparisonMedia: File[];
   verificationPhoto: File | null; // Selfie with ID for face verification
+  voiceNoteUrl: string; // Voice note URL
 }
 
 export default function CriarAnuncioPage() {
@@ -147,7 +148,8 @@ export default function CriarAnuncioPage() {
     photos: [],
     galleryMedia: [],
     comparisonMedia: [],
-    verificationPhoto: null
+    verificationPhoto: null,
+    voiceNoteUrl: ''
   });
   
   const [loading, setLoading] = useState(false);
@@ -1329,6 +1331,48 @@ export default function CriarAnuncioPage() {
                   <option value="Não">Não</option>
                 </select>
               </div>
+            </div>
+
+            {/* Voice Note Upload */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nota de Voz (Opcional)
+              </label>
+              <p className="text-xs text-gray-500 mb-3">
+                Adicione uma gravação de voz para que os clientes possam ouvir você. Isso ajuda a criar mais confiança.
+              </p>
+              <div className="flex items-center gap-4">
+                <input
+                  type="url"
+                  value={formData.voiceNoteUrl}
+                  onChange={(e) => handleInputChange('voiceNoteUrl', e.target.value)}
+                  className="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
+                  placeholder="URL do arquivo de áudio (ou faça upload abaixo)"
+                />
+                <input
+                  type="file"
+                  accept="audio/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      // In a real app, you would upload this to a storage service
+                      // For now, we'll create a local URL
+                      const url = URL.createObjectURL(file);
+                      handleInputChange('voiceNoteUrl', url);
+                    }
+                  }}
+                  className="text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                />
+              </div>
+              {formData.voiceNoteUrl && (
+                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-sm text-green-700">
+                    <i className="fas fa-check-circle mr-2"></i>
+                    Nota de voz configurada
+                  </p>
+                </div>
+              )}
+            </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">Desconto para regulares</label>

@@ -17,6 +17,8 @@ import { Card, SectionHeader, Badge } from '@/components/listing/UI';
 import { Icons } from '@/components/listing/Icons';
 import { ListingProfile } from '@/components/listing/types';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import VoiceWaveVisualizer from '@/components/VoiceWaveVisualizer';
+import FavoriteButton from '@/components/FavoriteButton';
 
 interface ListingData {
   id: string;
@@ -274,8 +276,9 @@ function mapListingToProfile(listing: ListingData): ListingProfile {
         url: vid.url || '',
         thumbnail: vid.url || '',
         isVerification: false
-      }))
-    };
+      })),
+      voiceNoteUrl: profile.voiceNoteUrl || null
+    } as ListingProfile & { voiceNoteUrl: string | null };
   } catch (error) {
     console.error('Error mapping listing to profile:', error);
     throw error;
@@ -434,6 +437,15 @@ export default function ListingPage() {
                 <section>
                   <Card className="bg-white">
                     <SectionHeader title="Sobre Mim" />
+                    {/* Voice Note */}
+                    {(profile as any).voiceNoteUrl && (
+                      <div className="mb-6">
+                        <VoiceWaveVisualizer 
+                          audioUrl={(profile as any).voiceNoteUrl} 
+                          variant="full"
+                        />
+                      </div>
+                    )}
                     <div className="prose prose-slate text-gray-600 leading-relaxed whitespace-pre-line">
                       <p className={!showFullDesc ? 'line-clamp-4 md:line-clamp-none' : ''}>
                         {profile.description}

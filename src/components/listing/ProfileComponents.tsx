@@ -6,6 +6,8 @@ import { Icons } from './Icons';
 import { Badge } from './UI';
 import Link from 'next/link';
 import WishlistWidget from '@/components/WishlistWidget';
+import FavoriteButton from '@/components/FavoriteButton';
+import VoiceWaveVisualizer from '@/components/VoiceWaveVisualizer';
 
 // Helper to get safe image URL
 const getImageUrl = (url: string | undefined): string => {
@@ -43,6 +45,16 @@ export const ProfileHero: React.FC<{ profile: ListingProfile }> = ({ profile }) 
           onError={handleImageError}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-transparent to-transparent" />
+        {/* Favorite Button - Mobile */}
+        <div className="absolute top-4 right-4 z-20">
+          <FavoriteButton profileId={profile.id} />
+        </div>
+        {/* Voice Wave - Mobile */}
+        {(profile as any).voiceNoteUrl && (
+          <div className="absolute bottom-20 left-4 z-20">
+            <VoiceWaveVisualizer audioUrl={(profile as any).voiceNoteUrl} variant="thumbnail" />
+          </div>
+        )}
         <div className="absolute bottom-0 left-0 w-full p-5">
           <div className="flex items-center gap-2 mb-2">
             {profile.physical.gender && (
@@ -81,6 +93,16 @@ export const ProfileHero: React.FC<{ profile: ListingProfile }> = ({ profile }) 
           {profile.verified && (
             <div className="absolute top-4 left-4 bg-white/90 backdrop-blur text-red-600 px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-1 shadow-sm">
               <Icons.Verified size={16} /> Verificada
+            </div>
+          )}
+          {/* Favorite Button - Desktop */}
+          <div className="absolute top-4 right-4 z-10">
+            <FavoriteButton profileId={profile.id} />
+          </div>
+          {/* Voice Wave - Desktop */}
+          {(profile as any).voiceNoteUrl && (
+            <div className="absolute bottom-4 left-4 z-20">
+              <VoiceWaveVisualizer audioUrl={(profile as any).voiceNoteUrl} variant="thumbnail" />
             </div>
           )}
         </div>
