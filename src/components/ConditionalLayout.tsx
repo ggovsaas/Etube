@@ -32,7 +32,7 @@ export default function ConditionalLayout({
                 
                 {/* Navigation Links */}
                 <div className="hidden md:block">
-                  <div className="ml-10 flex items-baseline space-x-4">
+                  <div className="ml-10 flex items-baseline space-x-6">
                     <LocaleLink href="/" className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium transition">{t.home}</LocaleLink>
                     <LocaleLink href={locale === 'es' ? '/perfiles' : '/perfis'} className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium transition">{t.profiles}</LocaleLink>
                     <LocaleLink href="/criar-perfil" className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition">{t.createProfile}</LocaleLink>

@@ -76,25 +76,27 @@ export default function BroadcasterVideoPage() {
       <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full">
         {/* Video Player */}
         <div className="relative bg-black">
-          <video
-            src={broadcaster.isLive ? broadcaster.videoUrl : broadcaster.preRecordedUrl}
-            controls={false}
-            autoPlay
-            muted
-            className={`w-full h-[400px] object-cover ${isFullscreen ? "fixed inset-0 z-50 h-full w-full" : "rounded-t-lg"}`}
-            style={{ background: "#000" }}
-          />
-          {/* Controls */}
-          <div className={`absolute bottom-4 left-4 flex space-x-4 items-center ${isFullscreen ? "z-50" : ""}`}>
-            <button className="bg-white/10 hover:bg-red-600 p-2 rounded-full">
-              <FaVolumeUp size={20} />
-            </button>
-            <button
-              className="bg-white/10 hover:bg-red-600 p-2 rounded-full"
-              onClick={() => setIsFullscreen(!isFullscreen)}
-            >
-              <FaExpand size={20} />
-            </button>
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}> {/* 16:9 aspect ratio */}
+            <video
+              src={broadcaster.isLive ? broadcaster.videoUrl : broadcaster.preRecordedUrl}
+              controls={false}
+              autoPlay
+              muted
+              className={`absolute inset-0 w-full h-full object-contain ${isFullscreen ? "fixed inset-0 z-50 h-full w-full" : "rounded-t-lg"}`}
+              style={{ background: "#000" }}
+            />
+            {/* Controls */}
+            <div className={`absolute bottom-4 left-4 flex space-x-4 items-center ${isFullscreen ? "z-50" : ""}`}>
+              <button className="bg-black/60 border border-white/20 hover:bg-red-600 hover:border-red-600 p-2 rounded-full text-white">
+                <FaVolumeUp size={20} />
+              </button>
+              <button
+                className="bg-black/60 border border-white/20 hover:bg-red-600 hover:border-red-600 p-2 rounded-full text-white"
+                onClick={() => setIsFullscreen(!isFullscreen)}
+              >
+                <FaExpand size={20} />
+              </button>
+            </div>
           </div>
           {/* Overlay Chat in Fullscreen */}
           {isFullscreen && (
