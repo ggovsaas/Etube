@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getUserLocale } from '@/lib/localeHelper';
+import ContestBuilder from '@/components/dashboard/ContestBuilder';
 
 interface User {
   id: string;
@@ -225,6 +226,11 @@ export default function DashboardPage() {
                 <p className="text-gray-500">Nenhuma listagem ativa.</p>
               )}
             </div>
+
+            {/* Contest Builder */}
+            {user && (
+              <ContestBuilder userId={user.id} locale={getUserLocale() as 'pt' | 'es'} />
+            )}
           </div>
         </div>
       </div>

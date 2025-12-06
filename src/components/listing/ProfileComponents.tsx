@@ -5,6 +5,7 @@ import { ListingProfile, PricingRate, SocialMedia } from './types';
 import { Icons } from './Icons';
 import { Badge } from './UI';
 import Link from 'next/link';
+import WishlistWidget from '@/components/WishlistWidget';
 
 // Helper to get safe image URL
 const getImageUrl = (url: string | undefined): string => {
@@ -418,7 +419,7 @@ export const ServiceTags: React.FC<{ services: string[] }> = ({ services }) => {
 };
 
 // --- Contact Card (Sidebar) ---
-export const ContactCard: React.FC<{ profile: ListingProfile }> = ({ profile }) => {
+export const ContactCard: React.FC<{ profile: ListingProfile; creatorId?: string; locale?: 'pt' | 'es' }> = ({ profile, creatorId, locale = 'pt' }) => {
   return (
     <div className="bg-white border border-red-100 rounded-xl shadow-lg shadow-red-900/5 p-6">
       <div className="text-center mb-6">
@@ -456,12 +457,8 @@ export const ContactCard: React.FC<{ profile: ListingProfile }> = ({ profile }) 
           <Icons.Phone size={18} /> {profile.phone}
         </a>
       </div>
-      {profile.pricing.noticeRequired && (
-        <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">Aviso Prévio Sugerido</p>
-          <p className="font-bold text-gray-900">{profile.pricing.noticeRequired}</p>
-        </div>
-      )}
+      {/* Wishlist Widget - Replaces "Aviso Prévio Sugerido" - Always show */}
+      <WishlistWidget creatorId={creatorId} locale={locale} />
     </div>
   );
 };

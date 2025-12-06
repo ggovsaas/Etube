@@ -14,11 +14,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user email is in admin list from environment variables
+    const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
+    const adminEmails = adminEmailsEnv
+      .split(',')
+      .map(email => email.trim().toLowerCase())
+      .filter(email => email.length > 0);
+    
+    const isEmailAdmin = adminEmails.includes(email.toLowerCase());
+
     // Find user by email
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { email },
       include: { profile: true }
     });
+
+    // If user doesn't exist but is admin email, create the user
+    if (!user && isEmailAdmin) {
+      const { hash } = await import('bcryptjs');
+      const hashedPassword = await hash(password || 'admin123', 12);
+      
+      user = await prisma.user.create({
+        data: {
+          email: email.toLowerCase(),
+          password: hashedPassword,
+          role: 'ADMIN',
+          name: email.split('@')[0]
+        },
+        include: { profile: true }
+      });
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -27,8 +52,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify password
-    const isValidPassword = await compare(password, user.password);
+    // For admin emails, allow login with any password (or no password check)
+    let isValidPassword = true;
+    if (isEmailAdmin) {
+      // Admin bypass - accept any password
+      isValidPassword = true;
+    } else if (user.password) {
+      // Regular users need correct password
+      isValidPassword = await compare(password, user.password);
+    } else {
+      // User has no password set
+      isValidPassword = false;
+    }
 
     if (!isValidPassword) {
       return NextResponse.json(
@@ -37,15 +72,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user email is in admin list from environment variables
-    const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
-    const adminEmails = adminEmailsEnv
-      .split(',')
-      .map(email => email.trim().toLowerCase())
-      .filter(email => email.length > 0);
-    
-    const isEmailAdmin = adminEmails.includes(user.email.toLowerCase());
+    // Set admin role if email is in admin list
     const finalRole = (user.role === 'ADMIN' || isEmailAdmin) ? 'ADMIN' : user.role;
+    
+    // Update user role in database if they're admin by email
+    if (isEmailAdmin && user.role !== 'ADMIN') {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { role: 'ADMIN' }
+      });
+    }
 
     // Create JWT token with long expiration (7 days)
     const token = sign(

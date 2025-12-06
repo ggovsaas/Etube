@@ -68,7 +68,13 @@ export async function GET(
     console.log('Listing media count:', listing.media?.length || 0);
     console.log('Listing images count:', listing.images?.length || 0);
     
-    return NextResponse.json(listing);
+    // Include userId in response for wishlist/stories features
+    const response = {
+      ...listing,
+      userId: listing.userId
+    };
+    
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error fetching listing:', error);

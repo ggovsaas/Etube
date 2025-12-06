@@ -9,6 +9,7 @@ import Breadcrumb from '@/components/Breadcrumb';
 import ProfileGrid from '@/components/ProfileGrid';
 import ProfileList from '@/components/ProfileList';
 import FilterSidebar from '@/components/FilterSidebar';
+import StoriesBarClient from '@/components/StoriesBarClient';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { Profile } from '@/components/ProfileGrid';
 
@@ -345,6 +346,19 @@ function PerfisContent() {
           </div>
         </div>
       </div>
+
+      {/* Stories Bar - Between header and profile grid */}
+      <Suspense fallback={
+        <div className="w-full bg-gray-50 py-4 min-h-[140px]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            </div>
+          </div>
+        </div>
+      }>
+        <StoriesBarClient locale="pt" />
+      </Suspense>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">

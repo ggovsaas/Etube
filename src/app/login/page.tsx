@@ -63,8 +63,12 @@ export default function LoginPage() {
       }
 
       if (result?.ok) {
+        // Force session update to get latest role
+        const { update } = await import('next-auth/react');
+        await update();
+        
         // Wait a moment for session to be set, then check user role
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Get session to check role
         const { getSession } = await import('next-auth/react');
@@ -89,7 +93,20 @@ export default function LoginPage() {
         } else if (redirectUrl) {
           // Handle redirect URL
           if (redirectUrl.startsWith('/admin')) {
-            router.push('/admin');
+            // If trying to access admin but not admin, check one more time via API
+            try {
+              const profileResponse = await fetch('/api/user/profile');
+              if (profileResponse.ok) {
+                const profileData = await profileResponse.json();
+                if (profileData.user?.role === 'ADMIN') {
+                  router.push('/admin');
+                  return;
+                }
+              }
+            } catch (e) {
+              // Ignore
+            }
+            router.push(`/${userLocale}/dashboard`);
           } else if (!redirectUrl.startsWith('/pt/') && !redirectUrl.startsWith('/es/')) {
             router.push(`/${userLocale}${redirectUrl}`);
           } else {

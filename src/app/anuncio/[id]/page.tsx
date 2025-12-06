@@ -35,7 +35,9 @@ interface ListingData {
   createdAt: string;
   media: { url: string; type: string }[];
   images: { url: string }[];
+  userId?: string;
   user: {
+    id?: string;
     profile: {
       name: string;
       age: number;
@@ -331,10 +333,16 @@ export default function ListingPage() {
         }
         
         // Ensure data structure
-        if (!data.user) data.user = { profile: {} };
+        if (!data.user) data.user = { id: data.userId, profile: {} };
+        if (!data.user.id) data.user.id = data.userId;
         if (!data.user.profile) data.user.profile = {};
         if (!Array.isArray(data.media)) data.media = [];
         if (!Array.isArray(data.images)) data.images = [];
+        
+        // Debug: Log creatorId for wishlist
+        console.log('Listing userId:', data.userId);
+        console.log('Listing user.id:', data.user?.id);
+        console.log('CreatorId for wishlist:', data.userId || data.user?.id);
         
         setListing(data);
       } catch (error: any) {
@@ -520,7 +528,11 @@ export default function ListingPage() {
               <div className="sticky top-24 space-y-6">
                 {/* Contact Card (Desktop Only - Mobile has bottom bar) */}
                 <div className="hidden lg:block">
-                  <ContactCard profile={profile} />
+                  <ContactCard 
+                    profile={profile} 
+                    creatorId={listing?.userId || listing?.user?.id} 
+                    locale="pt"
+                  />
             </div>
 
                 {/* Pricing Card */}

@@ -34,6 +34,15 @@ model User {
   questions          Question[]
   reviews            Review[]
   subscriptions      Subscription[]
+  // Creator features
+  wishlistItems      WishlistItem[]
+  stories            Story[]
+  // Forum relations
+  forumThreads       ForumThread[]
+  forumPosts         ForumPost[]
+  // Contest relations
+  contests           Contest[]           @relation("ContestCreator")
+  contestEntries     ContestEntry[]      @relation("ContestParticipant")
 }
 
 model Profile {
@@ -271,4 +280,158 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Story {
+  id          String   @id @default(cuid())
+  mediaUrl    String
+  storyOrder  Int      @default(0)
+  userId      String   // Links to Creator/User, not Profile
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model WishlistItem {
+  id           String   @id @default(cuid())
+  productName  String
+  productUrl   String   // WooCommerce product URL
+  price        Float?
+  isFulfilled  Boolean  @default(false)
+  userId       String   // Links to Creator/User
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isFulfilled])
+}
+
+// Forum Models
+model ForumCategory {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  slug        String       @unique
+  order       Int          @default(0)
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  threads     ForumThread[]
+
+  @@index([slug])
+  @@index([order])
+}
+
+model ForumThread {
+  id            String      @id @default(cuid())
+  title         String
+  content       String      // Markdown/String content
+  views         Int         @default(0)
+  isSticky      Boolean     @default(false)
+  isLocked      Boolean     @default(false)
+  isSponsored   Boolean     @default(false) // For monetization
+  categoryId    String
+  authorId      String      // Links to User (Creator/Client)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  lastPostAt    DateTime    @default(now())
+  category      ForumCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  posts         ForumPost[]
+  contests      Contest[]   // Contests announced in this thread
+
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([isSticky])
+  @@index([isSponsored])
+  @@index([lastPostAt])
+}
+
+model ForumPost {
+  id          String      @id @default(cuid())
+  content     String      // Markdown/String content
+  threadId    String
+  authorId    String      // Links to User (Creator/Client)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  thread      ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+// Monetization: Product Placement Pricing
+model ProductPlacementPricing {
+  id              String    @id @default(cuid())
+  placementType   String    // 'homepage', 'profile_search', 'forum_category', 'forum_sticky'
+  listingId       String?   // Optional: link to specific Listing
+  threadId        String?   // Optional: link to specific ForumThread (for sponsored posts)
+  price           Float     // Price per time period
+  currency        String    @default("EUR")
+  periodType      String    // 'day', 'week', 'month'
+  periodValue     Int       // e.g., 7 for 7 days
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([placementType])
+  @@index([isActive])
+  @@index([startDate, endDate])
+}
+
+// Contest/Raffle System
+enum ContestStatus {
+  OPEN
+  CLOSED
+  RESOLVED
+}
+
+model Contest {
+  id              String         @id @default(cuid())
+  title           String
+  prizeDescription String        @db.Text
+  totalSlots      Int
+  slotPrice       Float          // Price per slot in EUR
+  status          ContestStatus  @default(OPEN)
+  creatorId       String         // Links to User (Creator/Owner)
+  threadId        String?        // Optional: link to ForumThread where contest is announced
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  resolvedAt      DateTime?
+  winnerId        String?        // Winner's ContestEntry ID (set when resolved)
+  
+  creator         User           @relation("ContestCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  thread          ForumThread?   @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  entries         ContestEntry[]
+
+  @@index([creatorId])
+  @@index([status])
+  @@index([threadId])
+  @@index([createdAt])
+}
+
+model ContestEntry {
+  id              String    @id @default(cuid())
+  contestId       String
+  participantId   String    // Links to User (Client/Participant)
+  isWinner        Boolean   @default(false)
+  entryFeePaid    Float     // Amount paid for this entry
+  stripeSessionId String?   // Stripe checkout session ID
+  enteredAt       DateTime  @default(now())
+  
+  contest         Contest   @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  participant     User      @relation("ContestParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@unique([contestId, participantId]) // Prevent duplicate entries from same user
+  @@index([contestId])
+  @@index([participantId])
+  @@index([isWinner])
+  @@index([enteredAt])
 }

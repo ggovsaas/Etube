@@ -1574,9 +1574,10 @@ export default function CriarAnuncioPage() {
           {currentStep === 5 && (
             <div className="space-y-8 mb-6" id="step5-file-upload-section">
               {/* Content Restrictions Warning Banners */}
-              <div className="space-y-4" key="restrictions-banners" id="restrictions-banners-wrapper">
+              {/* HIDDEN: Temporarily hidden to ease restrictions during initial user base growth */}
+              {/* <div className="space-y-4" key="restrictions-banners" id="restrictions-banners-wrapper">
                 {/* Photo Restrictions Banner */}
-                <div className="bg-red-100 border-2 border-red-400 rounded-lg p-5 shadow-sm" key="photo-restrictions">
+                {/* <div className="bg-red-100 border-2 border-red-400 rounded-lg p-5 shadow-sm" key="photo-restrictions">
                   <div className="flex items-start space-x-4">
                     <div className="text-red-700 text-2xl flex-shrink-0">🚫</div>
                     <div className="flex-1">
@@ -1590,10 +1591,10 @@ export default function CriarAnuncioPage() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Video Restrictions Banner */}
-                <div className="bg-red-100 border-2 border-red-400 rounded-lg p-5 shadow-sm" key="video-restrictions">
+                {/* <div className="bg-red-100 border-2 border-red-400 rounded-lg p-5 shadow-sm" key="video-restrictions">
                   <div className="flex items-start space-x-4">
                     <div className="text-red-700 text-2xl flex-shrink-0">🚫</div>
                     <div className="flex-1">
@@ -1608,7 +1609,7 @@ export default function CriarAnuncioPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Rules Accordions */}
               <div className="space-y-3">
@@ -1677,9 +1678,9 @@ export default function CriarAnuncioPage() {
                         {locale === 'es' ? (
                           <>
                             <li>• No coloque fotos de capa iguales dentro de la misma categoría.</li>
-                            <li>• No describa actos sexuales explícitos o use fotos de desnudez explícita en los anuncios de Masajes, Masajes Masculinos y Masajes Trans.</li>
+                            {/* Removed: Explicit content restriction - temporarily eased during initial user base growth */}
                             <li>• No use fotos sugestivas (fotos que no sean de la propia persona que anuncia) en cuentas certificadas.</li>
-                            <li>• No use fotos con marcas de agua, emojis que tapen el rostro, logotipos de otros sitios web o evidencias de que las fotos hayan sido retiradas y/o manipuladas de otros sitios web.</li>
+                            <li>• No use fotos con marcas de agua, logotipos de otros sitios web o evidencias de que las fotos hayan sido retiradas y/o manipuladas de otros sitios web.</li>
                             <li>• No coloque anuncios en la categoría incorrecta.</li>
                             <li>• No coloque anuncios sin incluir al menos una forma de contacto (teléfono móvil o email).</li>
                             <li>• No coloque enlaces externos fuera del campo de destaque Link Directo.</li>
@@ -1698,9 +1699,9 @@ export default function CriarAnuncioPage() {
                         ) : (
                           <>
                             <li>• Não coloque fotos de capa iguais dentro da mesma categoria.</li>
-                            <li>• Não descreva atos sexuais explícitos ou use fotos de nudez explícita nos anúncios de Massagens, Massagens Masculinas e Massagens Trans.</li>
+                            {/* Removed: Explicit content restriction - temporarily eased during initial user base growth */}
                             <li>• Não use fotos sugestivas (fotos que não sejam da própria pessoa que anuncia) em contas certificadas.</li>
-                            <li>• Não use fotos com marcas d'água, emojis a tapar o rosto, logotipos de outros sites ou evidências de que as fotos tenham sido retiradas e/ou manipuladas de outros sites.</li>
+                            <li>• Não use fotos com marcas d'água, logotipos de outros sites ou evidências de que as fotos tenham sido retiradas e/ou manipuladas de outros sites.</li>
                             <li>• Não coloque anúncios na categoria errada.</li>
                             <li>• Não coloque anúncios sem incluir pelo menos uma forma de contacto (telemóvel ou email).</li>
                             <li>• Não coloque links externos fora do campo de destaque Link Directo.</li>
@@ -1770,7 +1771,8 @@ export default function CriarAnuncioPage() {
               </div>
 
               {/* Verification Photo Banner - Contrasting Yellow Banner */}
-              <div className="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-5 shadow-sm">
+              {/* HIDDEN: Temporarily hidden to ease restrictions during initial user base growth */}
+              {/* <div className="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-5 shadow-sm">
                 <div className="flex items-start space-x-4">
                   <div className="text-yellow-700 text-2xl flex-shrink-0">📸</div>
                   <div className="flex-1">
@@ -1793,7 +1795,7 @@ export default function CriarAnuncioPage() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Verification Photo Upload Section */}
               <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6">

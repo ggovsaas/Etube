@@ -92,19 +92,35 @@ export default function AdminDashboard() {
     // Check authentication first
     const checkAuthAndLoad = async () => {
       try {
+        // Hardcoded admin emails
+        const adminEmails = ['jwfcarvalho1989@gmail.com', 'ggovsaas@gmail.com'];
+        
         // Verify user is admin
         const profileResponse = await fetch('/api/user/profile');
         if (!profileResponse.ok) {
-          router.push('/login?redirect=/admin');
+          // Check if we can get email from session/cookie
+          const token = document.cookie.split('; ').find(row => row.startsWith('auth-token='));
+          if (!token) {
+            return; // Let layout handle login form
+          }
           return;
         }
 
         const profileData = await profileResponse.json();
-        if (profileData.user?.role !== 'ADMIN') {
-          const { getUserLocale } = await import('@/lib/localeHelper');
-          const locale = getUserLocale();
-          router.push(`/${locale}/dashboard`);
-          return;
+        const userEmail = profileData.user?.email?.toLowerCase();
+        const isEmailAdmin = userEmail && adminEmails.includes(userEmail);
+        
+        if (profileData.user?.role !== 'ADMIN' && !isEmailAdmin) {
+          return; // Not admin, but don't redirect - let layout handle it
+        }
+
+        // Update role if needed
+        if (isEmailAdmin && profileData.user?.role !== 'ADMIN') {
+          await fetch('/api/admin/make-admin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userEmail })
+          });
         }
 
         // User is authenticated and is admin - load all data
@@ -115,14 +131,14 @@ export default function AdminDashboard() {
         ]);
       } catch (error) {
         console.error('Error loading admin data:', error);
-        router.push('/login?redirect=/admin');
+        // Don't redirect, just stop loading
       } finally {
         setLoading(false);
       }
     };
 
     checkAuthAndLoad();
-  }, [router]);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -257,144 +273,65 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Recent Activity */}
+      {/* All Users with Emails */}
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b">
           <h2 className="text-lg font-semibold text-gray-900">
-            Recent Activity
+            All Users ({users.length})
           </h2>
         </div>
         <div className="p-6">
-          <div className="flow-root">
-            <ul className="-mb-8">
-              <li>
-                <div className="relative pb-8">
-                  <span
-                    className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
-                    aria-hidden="true"
-                  ></span>
-                  <div className="relative flex space-x-3">
-                    <div>
-                      <span className="h-8 w-8 rounded-full bg-pink-100 flex items-center justify-center ring-8 ring-white">
-                        <svg
-                          className="h-5 w-5 text-pink-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                          />
-                        </svg>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Role
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Listings
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Created
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users.map((user: any) => (
+                  <tr key={user.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{user.email}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{user.name || user.profile?.name || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        user.role === 'ADMIN' 
+                          ? 'bg-red-100 text-red-800' 
+                          : user.role === 'ESCORT'
+                          ? 'bg-purple-100 text-purple-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {user.role}
                       </span>
-                    </div>
-                    <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                      <div>
-                        <p className="text-sm text-gray-500">
-                          New profile added by{' '}
-                          <a
-                            href="#"
-                            className="font-medium text-gray-900"
-                          >
-                            Admin
-                          </a>
-                        </p>
-                      </div>
-                      <div className="text-right text-sm whitespace-nowrap text-gray-500">
-                        <time dateTime="2024-03-20">20 minutes ago</time>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </li>
-
-              <li>
-                <div className="relative pb-8">
-                  <span
-                    className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
-                    aria-hidden="true"
-                  ></span>
-                  <div className="relative flex space-x-3">
-                    <div>
-                      <span className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center ring-8 ring-white">
-                        <svg
-                          className="h-5 w-5 text-blue-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                          />
-                        </svg>
-                      </span>
-                    </div>
-                    <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                      <div>
-                        <p className="text-sm text-gray-500">
-                          New review submitted for{' '}
-                          <a
-                            href="#"
-                            className="font-medium text-gray-900"
-                          >
-                            Isabella Santos
-                          </a>
-                        </p>
-                      </div>
-                      <div className="text-right text-sm whitespace-nowrap text-gray-500">
-                        <time dateTime="2024-03-20">1 hour ago</time>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </li>
-
-              <li>
-                <div className="relative pb-8">
-                  <div className="relative flex space-x-3">
-                    <div>
-                      <span className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center ring-8 ring-white">
-                        <svg
-                          className="h-5 w-5 text-green-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                      </span>
-                    </div>
-                    <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                      <div>
-                        <p className="text-sm text-gray-500">
-                          Profile verified:{ ' ' }
-                          <a
-                            href="#"
-                            className="font-medium text-gray-900"
-                          >
-                            Maria Silva
-                          </a>
-                        </p>
-                      </div>
-                      <div className="text-right text-sm whitespace-nowrap text-gray-500">
-                        <time dateTime="2024-03-20">2 hours ago</time>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </li>
-            </ul>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {user._count?.listings || 0}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

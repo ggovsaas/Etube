@@ -6,6 +6,129 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/DashboardLayout';
 
+function AdminLoginForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      // Use NextAuth signIn for proper session management
+      const { signIn } = await import('next-auth/react');
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        throw new Error(result.error || 'Login failed');
+      }
+
+      if (result?.ok) {
+        // Wait for session to update
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Check session to verify admin role
+        const { getSession } = await import('next-auth/react');
+        const session = await getSession();
+        
+        // Also check via API as fallback
+        const profileResponse = await fetch('/api/user/profile');
+        let isAdmin = session?.user?.role === 'ADMIN';
+        
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          isAdmin = isAdmin || profileData.user?.role === 'ADMIN';
+        }
+
+        if (isAdmin) {
+          // Force full page reload to get new session
+          window.location.href = '/admin';
+        } else {
+          setError('Admin access required. This email is not an admin.');
+          setLoading(false);
+        }
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Login failed');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Admin Login
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Access the admin dashboard
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="email" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
+                placeholder="Admin email"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
+                placeholder="Password"
+              />
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Logging in...' : 'Sign in'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminLayout({
   children,
 }: {
@@ -13,29 +136,70 @@ export default function AdminLayout({
 }) {
   const { data: session, status } = useSession();
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    const adminEmails = ['jwfcarvalho1989@gmail.com', 'ggovsaas@gmail.com'];
+    
     if (status === 'loading') {
-      return; // Still loading session
-    }
-
-    if (status === 'unauthenticated') {
-      // Not authenticated - redirect to non-localized login
-      router.push('/login?redirect=/admin');
       return;
     }
 
-    if (status === 'authenticated') {
-      // Check if user is admin
-      if (session?.user?.role === 'ADMIN') {
-        setLoading(false);
-      } else {
-        // User is logged in but not admin - redirect to login
-        router.push('/login?error=admin_access_required&redirect=/admin');
-      }
+    if (status === 'unauthenticated') {
+      setLoading(false);
+      setIsAdmin(false);
+      return;
     }
-  }, [status, session, router]);
+
+    if (status === 'authenticated' && session?.user) {
+      const userEmail = session?.user?.email?.toLowerCase();
+      const isEmailAdmin = userEmail && adminEmails.includes(userEmail);
+      const hasAdminRole = session?.user?.role === 'ADMIN';
+      
+      // If admin by email or role, allow immediately
+      if (hasAdminRole || isEmailAdmin) {
+        setIsAdmin(true);
+        setLoading(false);
+        return; // Exit early, don't check again
+      }
+
+      // Only check API if role not set
+      const checkAdmin = async () => {
+        try {
+          const response = await fetch('/api/user/profile');
+          if (response.ok) {
+            const data = await response.json();
+            if (data.user?.role === 'ADMIN' || isEmailAdmin) {
+              setIsAdmin(true);
+              setLoading(false);
+            } else {
+              setIsAdmin(false);
+              setLoading(false);
+            }
+          } else {
+            // If API fails but email is admin, allow
+            if (isEmailAdmin) {
+              setIsAdmin(true);
+            } else {
+              setIsAdmin(false);
+            }
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error('Admin check error:', error);
+          if (isEmailAdmin) {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
+          }
+          setLoading(false);
+        }
+      };
+      
+      checkAdmin();
+    }
+  }, [status]); // Only depend on status, not session
 
   if (loading || status === 'loading') {
     return (
@@ -48,14 +212,25 @@ export default function AdminLayout({
     );
   }
 
-  if (status === 'unauthenticated' || session?.user?.role !== 'ADMIN') {
+  // Show admin login form if not authenticated or not admin
+  if (status === 'unauthenticated' || (status === 'authenticated' && !isAdmin && !loading)) {
+    return <AdminLoginForm />;
+  }
+
+  if (loading || status === 'loading') {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">Redirecionando para login...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verificando autenticação...</p>
         </div>
       </div>
     );
+  }
+
+  // Only show dashboard if authenticated and admin
+  if (status !== 'authenticated' || !isAdmin) {
+    return <AdminLoginForm />;
   }
 
   const adminSidebarItems = [
