@@ -175,17 +175,6 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Invalid credentials");
           }
 
-          // For admin emails, bypass password check
-          if (isEmailAdmin) {
-            // Admin bypass - accept any password
-            return {
-              id: user.id,
-              email: user.email,
-              name: user.name,
-              image: user.image,
-            };
-          }
-
           // Regular users need correct password
           if (!user?.password) {
             throw new Error("Invalid credentials");
@@ -207,17 +196,6 @@ export const authOptions: NextAuthOptions = {
             image: user.image,
           };
         } catch (error: any) {
-          // If database connection fails but user is admin, allow login anyway
-          if (isEmailAdmin && (error?.code === 'P1001' || error?.message?.includes('Can\'t reach database'))) {
-            console.warn('Database unavailable, but allowing admin login:', credentials.email);
-            // Return a minimal user object for admin
-            return {
-              id: credentials.email, // Temporary ID
-              email: credentials.email.toLowerCase(),
-              name: credentials.email.split('@')[0],
-              image: null,
-            };
-          }
           throw error;
         }
       }
@@ -228,6 +206,19 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
     updateAge: 24 * 60 * 60, // Update session every 24 hours
   },
+  cookies: {
+    sessionToken: {
+      name: `__Secure-next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+      }
+    }
+  },
+  useSecureCookies: process.env.NODE_ENV === 'production',
   secret: process.env.AUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
   pages: {
@@ -235,6 +226,39 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      // Allow email/password login for all users
+      if (account?.provider === "credentials") {
+        return true;
+      }
+
+      // For OAuth providers (Google), enforce strict email whitelisting for admins
+      if (account?.provider === "google") {
+        const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
+        const adminEmails = adminEmailsEnv
+          .split(',')
+          .map(email => email.trim().toLowerCase())
+          .filter(email => email.length > 0);
+
+        const userEmail = user.email?.toLowerCase() || '';
+
+        // Only allow sign in if email is in the admin whitelist
+        if (!adminEmails.includes(userEmail)) {
+          console.warn(`Unauthorized Google login attempt: ${userEmail}`);
+          return false;
+        }
+
+        console.log(`Authorized admin Google login: ${userEmail}`);
+        return true;
+      }
+
+      // Allow email provider
+      if (account?.provider === "email") {
+        return true;
+      }
+
+      return false;
+    },
     async jwt({ token, user, account }) {
       // Initial sign in
       if (user) {
@@ -252,14 +276,14 @@ export const authOptions: NextAuthOptions = {
           .split(',')
           .map(email => email.trim().toLowerCase())
           .filter(email => email.length > 0);
-        
+
         const isEmailAdmin = adminEmails.includes((token.email as string).toLowerCase());
 
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email as string },
           select: { role: true }
         });
-        
+
         // Set role: prioritize ADMIN if email is in admin list or user role is ADMIN
         if (isEmailAdmin || dbUser?.role === 'ADMIN') {
           token.role = 'ADMIN';

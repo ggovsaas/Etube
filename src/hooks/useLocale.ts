@@ -30,8 +30,8 @@ export function useLocale() {
     try {
       // Remove leading slash if present
       const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-      // Remove locale prefix if present
-      const pathWithoutLocale = cleanPath.replace(/^(pt|es)\//, '');
+      // Remove locale prefix if present (support all locales)
+      const pathWithoutLocale = cleanPath.replace(/^(pt|es|pt-AO|nl|es-CO|pt-BR|es-CL|de|nl-BE|fr-BE)\//, '');
       // Return with current locale
       return `/${locale}/${pathWithoutLocale}`;
     } catch (error) {

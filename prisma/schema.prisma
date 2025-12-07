@@ -1,11 +1,17 @@
 generator client {
   provider = "prisma-client-js"
+  // Optimize for serverless environments
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
   provider     = "postgresql"
   url          = env("DATABASE_URL")
+  // Use Prisma relation mode for serverless databases (Neon, PlanetScale)
+  // This emulates foreign keys in Prisma instead of relying on database foreign keys
   relationMode = "prisma"
+  // Enable connection pooling extension (improves Neon connection stability)
+  // Note: Ensure your DATABASE_URL includes pgbouncer=true for Neon pooling
 }
 
 model User {

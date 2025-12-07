@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Supported locales
-export const locales = ['pt', 'es'] as const;
+// Portugal, Spain, Angola, Netherlands, Colombia, Brazil, Chile, Germany, Belgium (Dutch), Belgium (French)
+export const locales = ['pt', 'es', 'pt-AO', 'nl', 'es-CO', 'pt-BR', 'es-CL', 'de', 'nl-BE', 'fr-BE'] as const;
 export const defaultLocale = 'pt' as const;
 
 export type Locale = (typeof locales)[number];

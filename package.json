@@ -13,7 +13,9 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:reset": "prisma db push --force-reset"
+    "db:reset": "prisma db push --force-reset",
+    "test:db": "node scripts/test-database-connection.js",
+    "test:db:verbose": "node scripts/test-database-connection.js --verbose"
   },
   "dependencies": {
     "@alpinejs/collapse": "^3.14.9",
@@ -46,6 +48,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.3",
     "eslint": "^9",
     "eslint-config-next": "15.5.7",
     "prisma": "^6.9.0",
