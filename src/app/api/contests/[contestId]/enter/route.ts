@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/src/auth';
+import { authOptions } from '@/auth';
 import Stripe from 'stripe';
 
 const stripe = process.env.STRIPE_SECRET_KEY 

@@ -1374,20 +1374,19 @@ export default function CriarAnuncioPage() {
               )}
             </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Desconto para regulares</label>
-                <select
-                  value={formData.regularDiscount}
-                  onChange={(e) => handleInputChange('regularDiscount', e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
-                >
-                  <option value="">Selecione</option>
-                  <option value="5%">5%</option>
-                  <option value="10%">10%</option>
-                  <option value="15%">15%</option>
-                  <option value="20%">20%</option>
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Desconto para regulares</label>
+              <select
+                value={formData.regularDiscount}
+                onChange={(e) => handleInputChange('regularDiscount', e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
+              >
+                <option value="">Selecione</option>
+                <option value="5%">5%</option>
+                <option value="10%">10%</option>
+                <option value="15%">15%</option>
+                <option value="20%">20%</option>
+              </select>
             </div>
           </div>
         );

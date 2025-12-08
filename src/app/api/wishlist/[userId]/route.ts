@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCreatorWishlist } from '@/lib/data/wishlists';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/src/auth';
+import { authOptions } from '@/auth';
 
 export async function GET(
   request: NextRequest,
