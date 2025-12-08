@@ -249,23 +249,9 @@ export const authOptions: NextAuthOptions = {
         return true;
       }
 
-      // For OAuth providers (Google), enforce strict email whitelisting for admins
+      // For OAuth providers (Google), allow any user to sign in/sign up
       if (account?.provider === "google") {
-        const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
-        const adminEmails = adminEmailsEnv
-          .split(',')
-          .map(email => email.trim().toLowerCase())
-          .filter(email => email.length > 0);
-
-        const userEmail = user.email?.toLowerCase() || '';
-
-        // Only allow sign in if email is in the admin whitelist
-        if (!adminEmails.includes(userEmail)) {
-          console.warn(`Unauthorized Google login attempt: ${userEmail}`);
-          return false;
-        }
-
-        console.log(`Authorized admin Google login: ${userEmail}`);
+        console.log(`Google OAuth sign in: ${user.email}`);
         return true;
       }
 
