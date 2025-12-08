@@ -4,6 +4,8 @@ import { getCategoryBySlug, getCategoryThreads } from '@/lib/data/forum';
 import { MessageSquare, Eye, Lock, Pin, Sparkles, Plus, ArrowLeft } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import CreateThreadForm from '@/components/forum/CreateThreadForm';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +25,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   }
 
   const threads = await getCategoryThreads(category.id);
+  const session = await getServerSession(authOptions);
 
   const translations = {
     pt: {
@@ -36,7 +39,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       noThreads: 'Nenhum tópico ainda. Seja o primeiro a criar um!',
       sticky: 'Fixado',
       sponsored: 'Patrocinado',
-      locked: 'Bloqueado'
+      locked: 'Bloqueado',
+      loginToPost: 'Faça login para criar tópicos',
+      login: 'Login'
     },
     es: {
       backToForum: 'Volver al Foro',
@@ -49,7 +54,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       noThreads: 'Aún no hay temas. ¡Sé el primero en crear uno!',
       sticky: 'Fijado',
       sponsored: 'Patrocinado',
-      locked: 'Bloqueado'
+      locked: 'Bloqueado',
+      loginToPost: 'Inicia sesión para crear temas',
+      login: 'Iniciar Sesión'
     }
   };
 
@@ -74,7 +81,18 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 <p className="text-gray-600 mt-2">{category.description}</p>
               )}
             </div>
-            <CreateThreadForm categoryId={category.id} locale={locale} />
+            {session?.user ? (
+              <CreateThreadForm categoryId={category.id} locale={locale} />
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition-colors"
+                title={t.loginToPost}
+              >
+                <Plus size={18} />
+                {t.login}
+              </Link>
+            )}
           </div>
         </div>
       </div>
