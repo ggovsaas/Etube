@@ -67,7 +67,7 @@ export async function POST(request: Request) {
           name: username,
           password: hashedPassword,
           role: accountType === 'escort' ? 'ESCORT' : 'USER',
-          emailVerified: false,
+          emailVerified: null, // DateTime? expects null, not false
           verificationToken,
           verificationExpiry,
         },

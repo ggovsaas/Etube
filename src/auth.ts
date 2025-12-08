@@ -175,7 +175,24 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Invalid credentials");
           }
 
-          // Regular users need correct password
+          // For admin emails: allow login with any password if no Google OAuth is configured
+          // This is a temporary convenience for development/initial setup
+          // IMPORTANT: Configure Google OAuth (AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET) for production security
+          const hasGoogleOAuth = process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET;
+
+          if (isEmailAdmin && !hasGoogleOAuth) {
+            console.warn('⚠️ Admin login without password verification - Google OAuth not configured');
+            console.warn('⚠️ For production security, configure AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET');
+            // Allow admin login without password check if Google OAuth is not set up
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              image: user.image,
+            };
+          }
+
+          // Regular users and admins with Google OAuth need correct password
           if (!user?.password) {
             throw new Error("Invalid credentials");
           }
