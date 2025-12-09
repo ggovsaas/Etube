@@ -141,7 +141,7 @@ export default function AdminLayout({
 
   useEffect(() => {
     const adminEmails = ['jwfcarvalho1989@gmail.com', 'ggovsaas@gmail.com'];
-    
+
     if (status === 'loading') {
       return;
     }
@@ -156,50 +156,16 @@ export default function AdminLayout({
       const userEmail = session?.user?.email?.toLowerCase();
       const isEmailAdmin = userEmail && adminEmails.includes(userEmail);
       const hasAdminRole = session?.user?.role === 'ADMIN';
-      
-      // If admin by email or role, allow immediately
+
+      // Check admin by email or role only - no API calls to prevent session issues
       if (hasAdminRole || isEmailAdmin) {
         setIsAdmin(true);
-        setLoading(false);
-        return; // Exit early, don't check again
+      } else {
+        setIsAdmin(false);
       }
-
-      // Only check API if role not set
-      const checkAdmin = async () => {
-        try {
-          const response = await fetch('/api/user/profile');
-          if (response.ok) {
-            const data = await response.json();
-            if (data.user?.role === 'ADMIN' || isEmailAdmin) {
-              setIsAdmin(true);
-              setLoading(false);
-            } else {
-              setIsAdmin(false);
-              setLoading(false);
-            }
-          } else {
-            // If API fails but email is admin, allow
-            if (isEmailAdmin) {
-              setIsAdmin(true);
-            } else {
-              setIsAdmin(false);
-            }
-            setLoading(false);
-          }
-        } catch (error) {
-          console.error('Admin check error:', error);
-          if (isEmailAdmin) {
-            setIsAdmin(true);
-          } else {
-            setIsAdmin(false);
-          }
-          setLoading(false);
-        }
-      };
-      
-      checkAdmin();
+      setLoading(false);
     }
-  }, [status]); // Only depend on status, not session
+  }, [status, session])
 
   if (loading || status === 'loading') {
     return (

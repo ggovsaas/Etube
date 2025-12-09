@@ -5,21 +5,19 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface Listing {
-  _id: string;
-  name: string;
-  city: string;
-  nationality: string;
-  hairColor: string;
-  height: number;
-  weight: number;
-  age: number;
-  price: number;
-  services: string[];
-  tags: string[];
-  images: string[];
+  id: string;
+  title: string;
   description: string;
-  isVerified: boolean;
-  isActive: boolean;
+  price: number;
+  location: string;
+  city: string;
+  age: number;
+  phone: string;
+  services: string[];
+  status: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const SERVICES = [
@@ -39,8 +37,12 @@ const SERVICES = [
   'Rapidinha'
 ];
 
-const HAIR_COLORS = ['Loira', 'Morena', 'Ruiva', 'Negra', 'Castanha', 'Colorida'];
-const NATIONALITIES = ['Brasileira', 'Portuguesa', 'Colombiana', 'Venezuelana', 'Angolana', 'Outra'];
+// NOTE: These fields don't exist in the current Listing model in Prisma schema
+// Commented out until DB schema is updated to include these fields
+// const HAIR_COLORS = ['Loira', 'Morena', 'Ruiva', 'Negra', 'Castanha', 'Colorida'];
+// const NATIONALITIES = ['Brasileira', 'Portuguesa', 'Colombiana', 'Venezuelana', 'Angolana', 'Outra'];
+
+const STATUSES = ['ACTIVE', 'PENDING', 'INACTIVE', 'REJECTED'];
 
 export default function EditListing({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -49,28 +51,25 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [listing, setListing] = useState<Listing | null>(null);
-  const [newTag, setNewTag] = useState('');
 
   useEffect(() => {
     if (id !== 'new') {
       fetchListing();
     } else {
       setListing({
-        _id: '',
-        name: '',
-        city: '',
-        nationality: '',
-        hairColor: '',
-        height: 0,
-        weight: 0,
-        age: 0,
-        price: 0,
-        services: [],
-        tags: [],
-        images: [],
+        id: '',
+        title: '',
         description: '',
-        isVerified: false,
-        isActive: true
+        price: 0,
+        location: '',
+        city: '',
+        age: 0,
+        phone: '',
+        services: [],
+        status: 'PENDING',
+        userId: '',
+        createdAt: '',
+        updatedAt: ''
       });
       setLoading(false);
     }
@@ -122,31 +121,12 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
 
   const handleServiceToggle = (service: string) => {
     if (!listing) return;
-    
+
     setListing({
       ...listing,
       services: listing.services.includes(service)
         ? listing.services.filter(s => s !== service)
         : [...listing.services, service]
-    });
-  };
-
-  const handleAddTag = () => {
-    if (!listing || !newTag.trim()) return;
-    
-    setListing({
-      ...listing,
-      tags: [...listing.tags, newTag.trim()]
-    });
-    setNewTag('');
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    if (!listing) return;
-    
-    setListing({
-      ...listing,
-      tags: listing.tags.filter(tag => tag !== tagToRemove)
     });
   };
 
@@ -174,12 +154,23 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">Title</label>
                 <input
                   type="text"
-                  name="name"
-                  value={listing.name}
+                  name="title"
+                  value={listing.title}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Location</label>
+                <input
+                  type="text"
+                  name="location"
+                  value={listing.location}
                   onChange={handleChange}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
                   required
@@ -197,65 +188,6 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Nationality</label>
-                <select
-                  name="nationality"
-                  value={listing.nationality}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                  required
-                >
-                  <option value="">Select Nationality</option>
-                  {NATIONALITIES.map(nat => (
-                    <option key={nat} value={nat}>{nat}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Hair Color</label>
-                <select
-                  name="hairColor"
-                  value={listing.hairColor}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                  required
-                >
-                  <option value="">Select Hair Color</option>
-                  {HAIR_COLORS.map(color => (
-                    <option key={color} value={color}>{color}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Physical Information */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Physical Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Height (cm)</label>
-                <input
-                  type="number"
-                  name="height"
-                  value={listing.height}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Weight (kg)</label>
-                <input
-                  type="number"
-                  name="weight"
-                  value={listing.weight}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                  required
-                />
-              </div>
-              <div>
                 <label className="block text-sm font-medium text-gray-700">Age</label>
                 <input
                   type="number"
@@ -266,8 +198,51 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
                   required
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Phone</label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={listing.phone}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                  required
+                />
+              </div>
+              {/* COMMENTED: These fields don't exist in Listing model
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Nationality</label>
+                <select name="nationality" className="mt-1 block w-full rounded-md border-gray-300">
+                  <option value="">Select Nationality</option>
+                  {NATIONALITIES.map(nat => <option key={nat} value={nat}>{nat}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Hair Color</label>
+                <select name="hairColor" className="mt-1 block w-full rounded-md border-gray-300">
+                  <option value="">Select Hair Color</option>
+                  {HAIR_COLORS.map(color => <option key={color} value={color}>{color}</option>)}
+                </select>
+              </div>
+              */}
             </div>
           </div>
+
+          {/* COMMENTED: Physical Information section - fields don't exist in Listing model
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold mb-4">Physical Information</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Height (cm)</label>
+                <input type="number" name="height" className="mt-1 block w-full rounded-md border-gray-300" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Weight (kg)</label>
+                <input type="number" name="weight" className="mt-1 block w-full rounded-md border-gray-300" />
+              </div>
+            </div>
+          </div>
+          */}
 
           {/* Services */}
           <div className="bg-white rounded-lg shadow p-6">
@@ -287,81 +262,55 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
             </div>
           </div>
 
-          {/* Tags */}
+          {/* COMMENTED: Tags section - tags field doesn't exist in Listing model
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4">Tags</h2>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {listing.tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTag(tag)}
-                    className="ml-2 text-gray-500 hover:text-gray-700"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                placeholder="Add new tag"
-                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-              />
-              <button
-                type="button"
-                onClick={handleAddTag}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-              >
-                Add Tag
-              </button>
-            </div>
+            ... tag management UI ...
           </div>
+          */}
 
           {/* Price and Status */}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4">Price and Status</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Price (€/hour)</label>
                 <input
                   type="number"
                   name="price"
-                  value={listing.price}
+                  value={listing.price || ''}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <select
+                  name="status"
+                  value={listing.status}
                   onChange={handleChange}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
                   required
-                />
+                >
+                  {STATUSES.map(status => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
               </div>
+              {/* COMMENTED: isVerified and isActive don't exist in Listing model
               <div className="flex items-center">
                 <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={listing.isVerified}
-                    onChange={(e) => setListing({ ...listing, isVerified: e.target.checked })}
-                    className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-                  />
+                  <input type="checkbox" checked={listing.isVerified} />
                   <span className="text-sm text-gray-700">Verified</span>
                 </label>
               </div>
               <div className="flex items-center">
                 <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={listing.isActive}
-                    onChange={(e) => setListing({ ...listing, isActive: e.target.checked })}
-                    className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-                  />
+                  <input type="checkbox" checked={listing.isActive} />
                   <span className="text-sm text-gray-700">Active</span>
                 </label>
               </div>
+              */}
             </div>
           </div>
 

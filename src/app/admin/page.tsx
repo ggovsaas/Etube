@@ -89,41 +89,9 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    // Check authentication first
-    const checkAuthAndLoad = async () => {
+    // Load admin data - authentication is handled by layout
+    const loadData = async () => {
       try {
-        // Hardcoded admin emails
-        const adminEmails = ['jwfcarvalho1989@gmail.com', 'ggovsaas@gmail.com'];
-        
-        // Verify user is admin
-        const profileResponse = await fetch('/api/user/profile');
-        if (!profileResponse.ok) {
-          // Check if we can get email from session/cookie
-          const token = document.cookie.split('; ').find(row => row.startsWith('auth-token='));
-          if (!token) {
-            return; // Let layout handle login form
-          }
-          return;
-        }
-
-        const profileData = await profileResponse.json();
-        const userEmail = profileData.user?.email?.toLowerCase();
-        const isEmailAdmin = userEmail && adminEmails.includes(userEmail);
-        
-        if (profileData.user?.role !== 'ADMIN' && !isEmailAdmin) {
-          return; // Not admin, but don't redirect - let layout handle it
-        }
-
-        // Update role if needed
-        if (isEmailAdmin && profileData.user?.role !== 'ADMIN') {
-          await fetch('/api/admin/make-admin', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: userEmail })
-          });
-        }
-
-        // User is authenticated and is admin - load all data
         await Promise.all([
           fetchStats(),
           fetchUsers(),
@@ -131,13 +99,12 @@ export default function AdminDashboard() {
         ]);
       } catch (error) {
         console.error('Error loading admin data:', error);
-        // Don't redirect, just stop loading
       } finally {
         setLoading(false);
       }
     };
 
-    checkAuthAndLoad();
+    loadData();
   }, []);
 
   const handleLogout = async () => {
