@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyAdmin } from '@/lib/adminCheck';
+import { verifyAdminSession } from '@/lib/adminCheck';
 
 export async function POST(
   request: NextRequest,
@@ -10,9 +10,8 @@ export async function POST(
     const { id } = await params;
     
     // Get token from cookies
-    const token = request.cookies.get('auth-token')?.value;
 
-    const { isAdmin, error } = verifyAdmin(token);
+    const { isAdmin, error } = await verifyAdminSession();
 
     if (!isAdmin) {
       return NextResponse.json(

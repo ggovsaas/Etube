@@ -4,7 +4,6 @@ import { verify } from 'jsonwebtoken';
 export async function GET(request: NextRequest) {
   try {
     // Get token from cookies
-    const token = request.cookies.get('auth-token')?.value;
 
     if (!token) {
       return NextResponse.json({

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyAdmin } from '@/lib/adminCheck';
+import { verifyAdminSession } from '@/lib/adminCheck';
 
 export async function PATCH(
   request: NextRequest,
@@ -11,8 +11,7 @@ export async function PATCH(
     const data = await request.json();
 
     // Verify admin
-    const token = request.cookies.get('auth-token')?.value;
-    const { isAdmin, error } = verifyAdmin(token);
+    const { isAdmin, error } = await verifyAdminSession();
 
     if (!isAdmin) {
       return NextResponse.json(
@@ -53,8 +52,7 @@ export async function DELETE(
     const { id } = await params;
 
     // Verify admin
-    const token = request.cookies.get('auth-token')?.value;
-    const { isAdmin, error } = verifyAdmin(token);
+    const { isAdmin, error } = await verifyAdminSession();
 
     if (!isAdmin) {
       return NextResponse.json(

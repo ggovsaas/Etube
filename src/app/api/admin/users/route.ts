@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyAdmin } from '@/lib/adminCheck';
+import { verifyAdminSession } from '@/lib/adminCheck';
 
 export async function GET(request: NextRequest) {
   try {
     // Get token from cookies
-    const token = request.cookies.get('auth-token')?.value;
 
     const { isAdmin, decoded, error } = verifyAdmin(token);
 

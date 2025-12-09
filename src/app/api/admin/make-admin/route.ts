@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { sign, verify } from 'jsonwebtoken';
+import { verifyAdminSession } from '@/lib/adminCheck';
 
 export async function POST(request: NextRequest) {
   try {
+    // Verify admin access
+    const { isAdmin, error } = await verifyAdminSession();
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: error || 'Admin access required' },
+        { status: error === 'Authentication required' ? 401 : 403 }
+      );
+    }
+
     const { email } = await request.json();
 
     if (!email) {
@@ -24,34 +34,22 @@ export async function POST(request: NextRequest) {
         select: { email: true, name: true, role: true },
         take: 10
       });
-      
+
       return NextResponse.json(
-        { 
-          error: `User with email "${email}" not found. Available users: ${allUsers.map(u => u.email).join(', ')}` 
+        {
+          error: `User with email "${email}" not found. Available users: ${allUsers.map(u => u.email).join(', ')}`
         },
         { status: 404 }
       );
     }
 
-    // Find user by email and make them admin
+    // Update user role to ADMIN
     const user = await prisma.user.update({
       where: { email: email.toLowerCase() },
       data: { role: 'ADMIN' }
     });
 
-    // Generate new token with admin role
-    const token = sign(
-      { 
-        userId: user.id, 
-        email: user.email, 
-        role: 'ADMIN' 
-      },
-      process.env.NEXTAUTH_SECRET || 'fallback-secret',
-      { expiresIn: '7d' }
-    );
-
-    // Create response
-    const response = NextResponse.json({
+    return NextResponse.json({
       success: true,
       message: `User ${email} is now admin`,
       user: {
@@ -60,17 +58,6 @@ export async function POST(request: NextRequest) {
         role: user.role
       }
     });
-
-    // Update the auth token cookie with new admin role
-    response.cookies.set('auth-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: '/' // Ensure cookie is available site-wide
-    });
-
-    return response;
 
   } catch (error) {
     console.error('Error making user admin:', error);
