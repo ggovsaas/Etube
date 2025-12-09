@@ -1854,10 +1854,8 @@ export default function CriarAnuncioPage() {
                   </div>
                 </div>
                 
-                {/* Upload Widget for Verification Photo */}
                 <div className="bg-white border-2 border-dashed border-green-300 rounded-lg p-6 text-center mb-4">
                   <div className="space-y-4">
-                    {/* Illustration Image - Upload your image to /public/verification-selfie-illustration.png */}
                     <div className="flex justify-center mb-4">
                       <div className="max-w-xs w-full">
                         <img 
@@ -1899,7 +1897,6 @@ export default function CriarAnuncioPage() {
                   </div>
                 </div>
                 
-                {/* Verification Photo Preview */}
                 {formData.verificationPhoto && (
                   <div className="bg-white rounded-lg border-2 border-green-300 p-4">
                     <div className="flex items-center space-x-4">
