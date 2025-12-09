@@ -50,7 +50,8 @@ model User {
   contests           Contest[]           @relation("ContestCreator")
   contestEntries     ContestEntry[]      @relation("ContestParticipant")
   // Admin relations
-  adminRole          AdminRole?
+  adminRoleId        String?
+  adminRole          AdminRole?          @relation("UserAdminRole", fields: [adminRoleId], references: [id], onDelete: SetNull)
 }
 
 model Profile {
@@ -456,7 +457,7 @@ model AdminRole {
   countryScope      String?  // e.g., 'Germany', 'Brazil', or null for 'GLOBAL'
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-  users             User[]
+  users             User[]   @relation("UserAdminRole")
   
   @@index([name])
   @@index([countryScope])
