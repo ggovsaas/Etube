@@ -34,7 +34,7 @@ export function removeLocale(pathname: string): string {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // Routes that don't need locale prefix
   const nonLocalizedRoutes = [
     '/api',
@@ -46,7 +46,16 @@ export function middleware(request: NextRequest) {
     '/editar-anuncio',
     '/publicar-anuncio',
   ];
-  
+
+  // For admin routes, prevent caching to ensure fresh session checks
+  if (pathname.startsWith('/admin')) {
+    const response = NextResponse.next();
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
+  }
+
   // Skip middleware for non-localized routes and static files
   if (
     nonLocalizedRoutes.some(route => pathname.startsWith(route)) ||
