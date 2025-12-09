@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { isAdmin } from '@/lib/adminCheck';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/auth';
+import { isAdminEmail, isAdminRole } from '@/lib/adminCheck';
 
 // GET /api/profiles - Get all profiles
 export async function GET(request: NextRequest) {
@@ -13,15 +15,13 @@ export async function GET(request: NextRequest) {
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
     const locale = searchParams.get('locale') || 'pt'; // Get locale for filtering
-    
-    // Check if user is admin (from cookie)
+
+    // Check if user is admin using NextAuth session
     let userIsAdmin = false;
     try {
-      const token = request.cookies.get('auth-token')?.value;
-      if (token) {
-        const { verify } = await import('jsonwebtoken');
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
-        userIsAdmin = isAdmin(decoded);
+      const session = await getServerSession(authOptions);
+      if (session?.user) {
+        userIsAdmin = isAdminRole(session.user.role) || isAdminEmail(session.user.email);
       }
     } catch (e) {
       // Not authenticated or not admin, continue with public filter
