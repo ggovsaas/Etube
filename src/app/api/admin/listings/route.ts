@@ -61,12 +61,13 @@ export async function POST(request: Request) {
       data: {
         title: data.title,
         description: data.description,
-        price: data.price,
+        price: data.price || 0,
         location: data.location,
         city: data.city,
-        age: data.age,
+        age: parseInt(data.age) || 0,
         phone: data.phone,
-        services: data.services,
+        // Convert services array to comma-separated string
+        services: Array.isArray(data.services) ? data.services.join(',') : data.services,
         userId: data.userId,
         status: data.status || 'ACTIVE',
       },
