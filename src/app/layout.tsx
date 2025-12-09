@@ -5,6 +5,8 @@ import Script from "next/script";
 import ConditionalLayout from "@/components/ConditionalLayout";
 import HreflangTags from "@/components/HreflangTags";
 import SessionProvider from "@/components/SessionProvider";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -13,11 +15,12 @@ export const metadata: Metadata = {
   description: "Encontre a companhia perfeita em Portugal",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getServerSession(authOptions);
 
   return (
     <html lang="pt">
@@ -28,7 +31,7 @@ export default function RootLayout({
         <HreflangTags />
       </head>
       <body className={`${inter.className} font-sans antialiased bg-gray-50`}>
-        <SessionProvider session={null}>
+        <SessionProvider session={session}>
           <ConditionalLayout>
             {children}
           </ConditionalLayout>
