@@ -14,6 +14,8 @@ interface Listing {
   services: string;
   status: string;
   user?: {
+    email?: string;
+    name?: string;
     profile?: {
       name: string;
     };
@@ -162,7 +164,7 @@ export default function AdminListings() {
                 </p>
                 <p className="text-sm text-gray-500 mt-1">{listing.description?.substring(0, 100)}...</p>
                 <p className="text-sm text-gray-500 mt-1">
-                  By: {listing.user?.profile?.name || 'Unknown'}
+                  By: {listing.user?.profile?.name || listing.user?.name || listing.user?.email || 'Unknown'}
                 </p>
               </div>
               <div className="flex gap-2">
