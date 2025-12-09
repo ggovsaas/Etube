@@ -257,39 +257,39 @@ export const authOptions: NextAuthOptions = {
 
       return false;
     },
-    async jwt({ token, user, account }) {
-      // Initial sign in
+    async jwt({ token, user, account, trigger }) {
+      // Initial sign in - fetch user data from database
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
         token.picture = user.image;
-      }
 
-      // Get user role from database and check admin emails
-      if (token.email) {
-        // Check admin emails from env
-        const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
-        const adminEmails = adminEmailsEnv
-          .split(',')
-          .map(email => email.trim().toLowerCase())
-          .filter(email => email.length > 0);
+        // Only query database on initial sign in, not on every request
+        if (token.email) {
+          const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
+          const adminEmails = adminEmailsEnv
+            .split(',')
+            .map(email => email.trim().toLowerCase())
+            .filter(email => email.length > 0);
 
-        const isEmailAdmin = adminEmails.includes((token.email as string).toLowerCase());
+          const isEmailAdmin = adminEmails.includes((token.email as string).toLowerCase());
 
-        const dbUser = await prisma.user.findUnique({
-          where: { email: token.email as string },
-          select: { role: true }
-        });
+          const dbUser = await prisma.user.findUnique({
+            where: { email: token.email as string },
+            select: { role: true }
+          });
 
-        // Set role: prioritize ADMIN if email is in admin list or user role is ADMIN
-        if (isEmailAdmin || dbUser?.role === 'ADMIN') {
-          token.role = 'ADMIN';
-        } else if (dbUser) {
-          token.role = dbUser.role;
+          // Set role: prioritize ADMIN if email is in admin list or user role is ADMIN
+          if (isEmailAdmin || dbUser?.role === 'ADMIN') {
+            token.role = 'ADMIN';
+          } else if (dbUser) {
+            token.role = dbUser.role;
+          }
         }
       }
 
+      // On subsequent requests, just return the existing token (no DB queries)
       return token;
     },
     async session({ session, token }) {
