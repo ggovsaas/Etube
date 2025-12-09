@@ -19,7 +19,7 @@ export default function CriarPerfilPage() {
   const locale = params?.locale as string || 'pt';
   const { locale: currentLocale } = useLocale();
   
-  const [accountType, setAccountType] = useState<'escort' | 'user'>('escort');
+  const [accountType, setAccountType] = useState<'escort' | 'user' | 'cam_creator'>('escort');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState<FormData>({
@@ -36,6 +36,7 @@ export default function CriarPerfilPage() {
       accountType: 'Tipo de Conta',
       escort: 'Sou Escort',
       client: 'Sou Cliente',
+      camCreator: 'Sou Criador de Webcam',
       username: 'Nome de Utilizador',
       email: 'Email',
       password: 'Senha',
@@ -53,6 +54,7 @@ export default function CriarPerfilPage() {
       accountType: 'Tipo de Cuenta',
       escort: 'Soy Acompañante',
       client: 'Soy Cliente',
+      camCreator: 'Soy Creador de Webcam',
       username: 'Nombre de Usuario',
       email: 'Correo Electrónico',
       password: 'Contraseña',
@@ -140,20 +142,27 @@ export default function CriarPerfilPage() {
           {/* Account Type Selector */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">{t.accountType}</label>
-            <div className="flex gap-4">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
-                className={`flex-1 px-4 py-2 rounded-lg border ${accountType === 'escort' ? 'bg-red-600 text-white border-red-600' : 'bg-gray-100 text-gray-700 border-gray-300'}`}
+                className={`px-4 py-2 rounded-lg border text-sm ${accountType === 'escort' ? 'bg-red-600 text-white border-red-600' : 'bg-gray-100 text-gray-700 border-gray-300'}`}
                 onClick={() => setAccountType('escort')}
               >
                 {t.escort}
               </button>
               <button
                 type="button"
-                className={`flex-1 px-4 py-2 rounded-lg border ${accountType === 'user' ? 'bg-red-600 text-white border-red-600' : 'bg-gray-100 text-gray-700 border-gray-300'}`}
+                className={`px-4 py-2 rounded-lg border text-sm ${accountType === 'user' ? 'bg-red-600 text-white border-red-600' : 'bg-gray-100 text-gray-700 border-gray-300'}`}
                 onClick={() => setAccountType('user')}
               >
                 {t.client}
+              </button>
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-lg border text-sm ${accountType === 'cam_creator' ? 'bg-red-600 text-white border-red-600' : 'bg-gray-100 text-gray-700 border-gray-300'}`}
+                onClick={() => setAccountType('cam_creator')}
+              >
+                {t.camCreator}
               </button>
             </div>
           </div>

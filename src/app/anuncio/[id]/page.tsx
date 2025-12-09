@@ -75,6 +75,7 @@ interface ListingData {
       myfreecams?: string;
       livejasmin?: string;
       linkHubUrl?: string;
+      voiceNoteUrl?: string | null;
     };
   };
 }

@@ -66,7 +66,7 @@ export async function POST(request: Request) {
           email,
           name: username,
           password: hashedPassword,
-          role: accountType === 'escort' ? 'ESCORT' : 'USER',
+          role: accountType === 'escort' ? 'ESCORT' : accountType === 'cam_creator' ? 'CAM_CREATOR' : 'USER',
           emailVerified: null, // DateTime? expects null, not false
           verificationToken,
           verificationExpiry,

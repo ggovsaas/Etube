@@ -50,6 +50,11 @@ export default function FavoriteButton({ profileId, className = '', size = 'md' 
         localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(updated));
         setIsFavorited(false);
       } else {
+        // Check if limit reached (50 favorites max)
+        if (favorites.length >= 50) {
+          alert('Você atingiu o limite de 50 favoritos. Remova alguns favoritos antes de adicionar novos.');
+          return;
+        }
         // Add to favorites
         favorites.push(profileIdStr);
         localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favorites));

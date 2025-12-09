@@ -23,6 +23,7 @@ export default function AdminProfilesPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -52,6 +53,33 @@ export default function AdminProfilesPage() {
       setError(err instanceof Error ? err.message : 'Failed to fetch users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteProfile = async (profileId: string) => {
+    if (!confirm('Are you sure you want to delete this profile? This action cannot be undone and will also delete associated listings and media.')) {
+      return;
+    }
+
+    setDeleting(profileId);
+    try {
+      const response = await fetch(`/api/profiles/${profileId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Refresh the list
+        fetchUsers();
+        alert('Profile deleted successfully!');
+      } else {
+        const data = await response.json();
+        alert(`Error deleting profile: ${data.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error('Error deleting profile:', err);
+      alert('Error deleting profile.');
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -148,6 +176,15 @@ export default function AdminProfilesPage() {
                   >
                     View Details
                   </Link>
+                  {user.profile && (
+                    <button
+                      onClick={() => handleDeleteProfile(user.profile!.id)}
+                      disabled={deleting === user.profile.id}
+                      className="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {deleting === user.profile.id ? 'Deleting...' : 'Delete Profile'}
+                    </button>
+                  )}
                 </div>
               </div>
             </li>

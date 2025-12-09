@@ -160,23 +160,14 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    // Get token from cookies
-    const token = request.cookies.get('auth-token')?.value;
+    // Use NextAuth session instead of JWT token
+    const { getServerSession } = await import('next-auth');
+    const { authOptions } = await import('@/auth');
+    const session = await getServerSession(authOptions);
 
-    if (!token) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    // Verify token
-    const { verify } = await import('jsonwebtoken');
-    const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
-    
-    if (!decoded || !decoded.userId) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
         { status: 401 }
       );
     }
@@ -195,11 +186,11 @@ export async function DELETE(
     }
 
     // Check if user is admin
-    const { isAdmin } = await import('@/lib/adminCheck');
-    const userIsAdmin = isAdmin(decoded);
+    const { verifyAdminSession } = await import('@/lib/adminCheck');
+    const { isAdmin } = await verifyAdminSession();
 
     // User must own the listing OR be an admin
-    if (!userIsAdmin && listing.userId !== decoded.userId) {
+    if (!isAdmin && listing.userId !== session.user.id) {
       return NextResponse.json(
         { error: 'Not authorized to delete this listing' },
         { status: 403 }
@@ -216,7 +207,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting listing:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

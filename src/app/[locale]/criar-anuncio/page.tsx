@@ -1840,8 +1840,8 @@ export default function CriarAnuncioPage() {
                 </div>
               </div> */}
 
-              {/* Verification Photo Upload Section */}
-              <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6">
+              {/* Verification Photo Upload Section - HIDDEN FOR NOW */}
+              {/* <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6">
                 <div className="flex items-center space-x-3 mb-4">
                   <div className="text-2xl">🆔</div>
                   <div>
@@ -1942,7 +1942,7 @@ export default function CriarAnuncioPage() {
                     </p>
                   </div>
                 )}
-              </div>
+              </div> */}
 
               {/* Two Column Layout with Separate Upload Widgets */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
