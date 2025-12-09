@@ -2,6 +2,52 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminSession } from '@/lib/adminCheck';
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    // Verify admin
+    const { isAdmin, error } = await verifyAdminSession();
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: error || 'Admin access required' },
+        { status: error === 'Authentication required' ? 401 : 403 }
+      );
+    }
+
+    const listing = await prisma.listing.findUnique({
+      where: { id },
+      include: {
+        user: {
+          include: {
+            profile: true
+          }
+        },
+        media: true,
+      },
+    });
+
+    if (!listing) {
+      return NextResponse.json(
+        { error: 'Listing not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(listing);
+  } catch (error) {
+    console.error('Error fetching listing:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch listing' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

@@ -4,12 +4,9 @@ import { verifyAdminSession } from '@/lib/adminCheck';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get token from cookies
-
-    const { isAdmin, decoded, error } = verifyAdmin(token);
+    const { isAdmin, error } = await verifyAdminSession();
 
     if (!isAdmin) {
-      console.log('User is not admin:', decoded?.role, decoded?.email);
       return NextResponse.json(
         { error: error || 'Admin access required' },
         { status: error === 'Authentication required' ? 401 : 403 }
