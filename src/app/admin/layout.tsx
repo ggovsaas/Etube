@@ -32,29 +32,9 @@ function AdminLoginForm() {
       }
 
       if (result?.ok) {
-        // Wait for session to update
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Check session to verify admin role
-        const { getSession } = await import('next-auth/react');
-        const session = await getSession();
-        
-        // Also check via API as fallback
-        const profileResponse = await fetch('/api/user/profile');
-        let isAdmin = session?.user?.role === 'ADMIN';
-        
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json();
-          isAdmin = isAdmin || profileData.user?.role === 'ADMIN';
-        }
-
-        if (isAdmin) {
-          // Force full page reload to get new session
-          window.location.href = '/admin';
-        } else {
-          setError('Admin access required. This email is not an admin.');
-          setLoading(false);
-        }
+        // Session is now set, use router.push instead of window.location to preserve session
+        router.push('/admin');
+        router.refresh(); // Refresh to update UI with new session
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Login failed');
@@ -143,6 +123,7 @@ export default function AdminLayout({
     const adminEmails = ['jwfcarvalho1989@gmail.com', 'ggovsaas@gmail.com'];
 
     if (status === 'loading') {
+      setLoading(true);
       return;
     }
 
@@ -152,20 +133,16 @@ export default function AdminLayout({
       return;
     }
 
-    if (status === 'authenticated' && session?.user) {
+    if (status === 'authenticated') {
       const userEmail = session?.user?.email?.toLowerCase();
       const isEmailAdmin = userEmail && adminEmails.includes(userEmail);
       const hasAdminRole = session?.user?.role === 'ADMIN';
 
       // Check admin by email or role only - no API calls to prevent session issues
-      if (hasAdminRole || isEmailAdmin) {
-        setIsAdmin(true);
-      } else {
-        setIsAdmin(false);
-      }
+      setIsAdmin(hasAdminRole || isEmailAdmin);
       setLoading(false);
     }
-  }, [status, session])
+  }, [status, session?.user?.email, session?.user?.role])
 
   if (loading || status === 'loading') {
     return (
