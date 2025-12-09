@@ -126,8 +126,8 @@ export default function AdminListings() {
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-black">Manage Listings</h1>
-        <Link 
-          href="/admin/listings/new"
+        <Link
+          href="/admin/listings/new/edit"
           className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
         >
           Add New Listing

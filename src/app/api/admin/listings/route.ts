@@ -37,7 +37,26 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   try {
+    // Verify admin access
+    const { isAdmin, error } = await verifyAdminSession();
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: error || 'Admin access required' },
+        { status: error === 'Authentication required' ? 401 : 403 }
+      );
+    }
+
     const data = await request.json();
+
+    // Validate required fields
+    if (!data.userId) {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      );
+    }
+
     const listing = await prisma.listing.create({
       data: {
         title: data.title,
@@ -54,6 +73,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(listing, { status: 201 });
   } catch (error) {
+    console.error('Error creating listing:', error);
     return NextResponse.json(
       { error: 'Failed to create listing' },
       { status: 500 }

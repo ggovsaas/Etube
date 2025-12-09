@@ -51,11 +51,14 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [listing, setListing] = useState<Listing | null>(null);
+  const [users, setUsers] = useState<Array<{id: string; email: string; name?: string}>>([]);
 
   useEffect(() => {
     if (id !== 'new') {
       fetchListing();
     } else {
+      // Fetch users list for new listing
+      fetchUsers();
       setListing({
         id: '',
         title: '',
@@ -74,6 +77,17 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
       setLoading(false);
     }
   }, [id]);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/admin/users');
+      if (!response.ok) throw new Error('Failed to fetch users');
+      const data = await response.json();
+      setUsers(data);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    }
+  };
 
   const fetchListing = async () => {
     try {
@@ -154,6 +168,25 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {id === 'new' && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">User</label>
+                  <select
+                    name="userId"
+                    value={listing.userId}
+                    onChange={handleChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                    required
+                  >
+                    <option value="">Select a user</option>
+                    {users.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.email} {user.name ? `(${user.name})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700">Title</label>
                 <input
