@@ -4,108 +4,81 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+interface Metrics {
+  siteHealth: {
+    totalUsers: number;
+    totalListings: number;
+    newUsersLast7Days: number;
+    activeListings: number;
+    newCreatorsLast7Days: number;
+    newClientOnlyUsersLast7Days: number;
+    userRolesBreakdown: {
+      clients: number;
+      creators: number;
+      providers: number;
+      camCreators: number;
+      total: number;
+    };
+  };
+  monetization: {
+    totalRevenueLast30Days: number;
+    creditSalesLast7Days: number;
+    contestRevenue: number;
+    directChatRevenue: number;
+    videoViewsPaid: number;
+    tipsProcessed: number;
+    creatorPayoutLiability: number;
+    arpu: number;
+  } | null;
+  compliance: {
+    pendingListingApproval: number;
+    pendingPhotoVerification: number;
+    pendingIdVerification: number | null;
+    newBlogPostsUnmoderated: number;
+    reportedProfilesActive: number;
+    totalAccountsBannedLast30Days: number;
+  };
+  community: {
+    newForumThreadsLast24h: number;
+    activeContestsTotal: number;
+    activeBloggersLast7Days: number;
+    wishlistItemsCreated: number;
+    totalBlogPostsPublished: number;
+    avgSessionDuration: number;
+  } | null;
+  service: {
+    directChatSessionsTotal: number;
+    contestEntriesTotal: number;
+    premiumSubscriptionsActive: number;
+    tvTubeViews: number;
+  } | null;
+  countryScope: string;
+}
+
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalListings: 0,
-    activeListings: 0,
-    pendingListings: 0
-  });
-  const [users, setUsers] = useState([]);
-  const [pendingListings, setPendingListings] = useState([]);
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const fetchStats = async () => {
-    try {
-      const response = await fetch('/api/admin/stats');
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data);
-      }
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  };
-
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch('/api/admin/users');
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
-      } else {
-        console.error('Failed to fetch users:', response.status, response.statusText);
-        // Check if it's an auth error
-        if (response.status === 403) {
-          console.error('Admin access denied - user is not admin');
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    }
-  };
-
-  const fetchPendingListings = async () => {
-    try {
-      const response = await fetch('/api/admin/pending-listings');
-      if (response.ok) {
-        const data = await response.json();
-        setPendingListings(data);
-      }
-    } catch (error) {
-      console.error('Error fetching pending listings:', error);
-    }
-  };
-
-  const handleApproveListing = async (listingId: string) => {
-    try {
-      const response = await fetch(`/api/admin/approve-listing/${listingId}`, {
-        method: 'POST'
-      });
-      if (response.ok) {
-        // Refresh the pending listings
-        fetchPendingListings();
-        fetchStats();
-      }
-    } catch (error) {
-      console.error('Error approving listing:', error);
-    }
-  };
-
-  const handleRejectListing = async (listingId: string) => {
-    try {
-      const response = await fetch(`/api/admin/reject-listing/${listingId}`, {
-        method: 'POST'
-      });
-      if (response.ok) {
-        // Refresh the pending listings
-        fetchPendingListings();
-        fetchStats();
-      }
-    } catch (error) {
-      console.error('Error rejecting listing:', error);
-    }
-  };
-
   useEffect(() => {
-    // Load admin data - authentication is handled by layout
-    const loadData = async () => {
-      try {
-        await Promise.all([
-          fetchStats(),
-          fetchUsers(),
-          fetchPendingListings()
-        ]);
-      } catch (error) {
-        console.error('Error loading admin data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
+    fetchMetrics();
   }, []);
+
+  const fetchMetrics = async () => {
+    try {
+      const response = await fetch('/api/admin/metrics');
+      if (response.ok) {
+        const data = await response.json();
+        setMetrics(data);
+      } else {
+        console.error('Failed to fetch metrics:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching metrics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -116,27 +89,54 @@ export default function AdminDashboard() {
       });
     } catch (error) {
       console.error('Logout error:', error);
-      // Fallback redirect
       router.push('/login');
     }
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('pt-PT', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(amount);
+  };
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading metrics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!metrics) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-600">Failed to load metrics</p>
+          <button 
+            onClick={fetchMetrics}
+            className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Scope: <span className="font-semibold">{metrics.countryScope}</span>
+          </p>
+        </div>
         <div className="flex space-x-3">
-          <button className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700">
-            Add New Profile
-          </button>
-          <button className="bg-white text-gray-700 px-4 py-2 rounded-lg border hover:bg-gray-50">
-            Import Data
-          </button>
           <button 
             onClick={handleLogout}
             className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200"
@@ -146,162 +146,308 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Users</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.totalUsers}</p>
-            </div>
-          </div>
+      {/* 1. Site Health & Growth */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">📈 Site Health & Growth</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricCard
+            icon="👥"
+            label="Total Users"
+            value={metrics.siteHealth.totalUsers}
+            color="blue"
+          />
+          <MetricCard
+            icon="📋"
+            label="Total Listings"
+            value={metrics.siteHealth.totalListings}
+            color="green"
+          />
+          <MetricCard
+            icon="🆕"
+            label="New Users (7d)"
+            value={metrics.siteHealth.newUsersLast7Days}
+            color="purple"
+          />
+          <MetricCard
+            icon="✅"
+            label="Active Listings"
+            value={metrics.siteHealth.activeListings}
+            color="yellow"
+          />
+          <MetricCard
+            icon="🎨"
+            label="New Creators (7d)"
+            value={metrics.siteHealth.newCreatorsLast7Days}
+            color="indigo"
+          />
+          <MetricCard
+            icon="🛒"
+            label="New Clients (7d)"
+            value={metrics.siteHealth.newClientOnlyUsersLast7Days}
+            color="pink"
+          />
         </div>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+        
+        {/* User Roles Breakdown */}
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">User Roles Breakdown</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-blue-600">{metrics.siteHealth.userRolesBreakdown.clients}</p>
+              <p className="text-sm text-gray-600">Clients</p>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Listings</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.totalListings}</p>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-purple-600">{metrics.siteHealth.userRolesBreakdown.creators}</p>
+              <p className="text-sm text-gray-600">Content Creators</p>
             </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex items-center">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-600">{metrics.siteHealth.userRolesBreakdown.providers}</p>
+              <p className="text-sm text-gray-600">Service Providers</p>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Pending Approval</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.pendingListings}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Active Listings</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.activeListings}</p>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-red-600">{metrics.siteHealth.userRolesBreakdown.camCreators}</p>
+              <p className="text-sm text-gray-600">CAM Creators</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Pending Listings Section */}
-      {stats.pendingListings > 0 && (
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Pending Listings for Approval</h2>
-          <div className="space-y-4">
-            {pendingListings.map((listing: any) => (
-              <div key={listing.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium text-gray-900">{listing.title}</h3>
-                    <p className="text-sm text-gray-600">by {listing.user?.profile?.name || 'Unknown'}</p>
-                    <p className="text-sm text-gray-500">Created: {new Date(listing.createdAt).toLocaleDateString()}</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleApproveListing(listing.id)}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleRejectListing(listing.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                    >
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+      {/* 2. Monetization & Sales (Master Admin Only) */}
+      {metrics.monetization && (
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">💵 Monetization & Sales</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricCard
+              icon="💰"
+              label="Revenue (30d)"
+              value={formatCurrency(metrics.monetization.totalRevenueLast30Days)}
+              color="green"
+            />
+            <MetricCard
+              icon="💳"
+              label="Credit Sales (7d)"
+              value={formatCurrency(metrics.monetization.creditSalesLast7Days)}
+              color="blue"
+            />
+            <MetricCard
+              icon="🎯"
+              label="ARPU"
+              value={formatCurrency(metrics.monetization.arpu)}
+              color="purple"
+            />
+            <MetricCard
+              icon="🎲"
+              label="Contest Revenue"
+              value={formatCurrency(metrics.monetization.contestRevenue)}
+              color="yellow"
+            />
+            <MetricCard
+              icon="💬"
+              label="Chat/Call Revenue"
+              value={formatCurrency(metrics.monetization.directChatRevenue)}
+              color="indigo"
+            />
+            <MetricCard
+              icon="🎬"
+              label="Video Views (Paid)"
+              value={metrics.monetization.videoViewsPaid.toLocaleString()}
+              color="pink"
+            />
+            <MetricCard
+              icon="💝"
+              label="Tips Processed"
+              value={formatCurrency(metrics.monetization.tipsProcessed)}
+              color="red"
+            />
+            <MetricCard
+              icon="💸"
+              label="Creator Payout Liability"
+              value={formatCurrency(metrics.monetization.creatorPayoutLiability)}
+              color="orange"
+            />
           </div>
         </div>
       )}
 
-      {/* All Users with Emails */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">
-            All Users ({users.length})
-          </h2>
+      {/* 3. Compliance & Content Moderation */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">🛡️ Compliance & Content Moderation</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Link href="/admin/pending-listings">
+            <MetricCard
+              icon="⏳"
+              label="Pending Listing Approval"
+              value={metrics.compliance.pendingListingApproval}
+              color="yellow"
+              clickable
+            />
+          </Link>
+          <Link href="/admin/verifications">
+            <MetricCard
+              icon="📸"
+              label="Pending Photo Verification"
+              value={metrics.compliance.pendingPhotoVerification}
+              color="orange"
+              clickable
+            />
+          </Link>
+          {metrics.compliance.pendingIdVerification !== null && (
+            <MetricCard
+              icon="🆔"
+              label="Pending ID Verification"
+              value={metrics.compliance.pendingIdVerification}
+              color="red"
+            />
+          )}
+          <Link href="/admin/blog">
+            <MetricCard
+              icon="📝"
+              label="Unmoderated Blog Posts"
+              value={metrics.compliance.newBlogPostsUnmoderated}
+              color="blue"
+              clickable
+            />
+          </Link>
+          <MetricCard
+            icon="⚠️"
+            label="Reported Profiles (Active)"
+            value={metrics.compliance.reportedProfilesActive}
+            color="red"
+          />
+          <MetricCard
+            icon="🚫"
+            label="Accounts Banned (30d)"
+            value={metrics.compliance.totalAccountsBannedLast30Days}
+            color="gray"
+          />
         </div>
-        <div className="p-6">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Listings
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {users.map((user: any) => (
-                  <tr key={user.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{user.email}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{user.name || user.profile?.name || 'N/A'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.role === 'ADMIN' 
-                          ? 'bg-red-100 text-red-800' 
-                          : user.role === 'ESCORT'
-                          ? 'bg-purple-100 text-purple-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user._count?.listings || 0}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      </div>
+
+      {/* 4. Community & Engagement (Master Admin Only) */}
+      {metrics.community && (
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">💬 Community & Engagement</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <MetricCard
+              icon="💭"
+              label="New Forum Threads (24h)"
+              value={metrics.community.newForumThreadsLast24h}
+              color="blue"
+            />
+            <Link href="/admin/contests">
+              <MetricCard
+                icon="🎲"
+                label="Active Contests"
+                value={metrics.community.activeContestsTotal}
+                color="purple"
+                clickable
+              />
+            </Link>
+            <MetricCard
+              icon="✍️"
+              label="Active Bloggers (7d)"
+              value={metrics.community.activeBloggersLast7Days}
+              color="green"
+            />
+            <MetricCard
+              icon="🎁"
+              label="Wishlist Items Created"
+              value={metrics.community.wishlistItemsCreated}
+              color="pink"
+            />
+            <MetricCard
+              icon="📰"
+              label="Total Blog Posts Published"
+              value={metrics.community.totalBlogPostsPublished}
+              color="indigo"
+            />
+            <MetricCard
+              icon="⏱️"
+              label="Avg Session Duration"
+              value={`${metrics.community.avgSessionDuration}s`}
+              color="yellow"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 5. Service Utilization (Master Admin Only) */}
+      {metrics.service && (
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">📞 Service Utilization</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricCard
+              icon="💬"
+              label="DirectChat Sessions (Total)"
+              value={metrics.service.directChatSessionsTotal.toLocaleString()}
+              color="blue"
+            />
+            <MetricCard
+              icon="🎯"
+              label="Contest Entries (Total)"
+              value={metrics.service.contestEntriesTotal.toLocaleString()}
+              color="purple"
+            />
+            <MetricCard
+              icon="⭐"
+              label="Premium Subscriptions (Active)"
+              value={metrics.service.premiumSubscriptionsActive}
+              color="yellow"
+            />
+            <MetricCard
+              icon="📺"
+              label="TV/Tube Views"
+              value={metrics.service.tvTubeViews.toLocaleString()}
+              color="green"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MetricCard({ 
+  icon, 
+  label, 
+  value, 
+  color, 
+  clickable = false 
+}: { 
+  icon: string; 
+  label: string; 
+  value: string | number; 
+  color: string;
+  clickable?: boolean;
+}) {
+  const colorClasses: Record<string, string> = {
+    blue: 'bg-blue-100 text-blue-600',
+    green: 'bg-green-100 text-green-600',
+    yellow: 'bg-yellow-100 text-yellow-600',
+    purple: 'bg-purple-100 text-purple-600',
+    indigo: 'bg-indigo-100 text-indigo-600',
+    pink: 'bg-pink-100 text-pink-600',
+    red: 'bg-red-100 text-red-600',
+    orange: 'bg-orange-100 text-orange-600',
+    gray: 'bg-gray-100 text-gray-600',
+  };
+
+  const baseClasses = "p-4 rounded-lg border border-gray-200";
+  const clickableClasses = clickable ? "hover:shadow-md transition-shadow cursor-pointer" : "";
+
+  return (
+    <div className={`${baseClasses} ${clickableClasses}`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className={`p-2 rounded-lg ${colorClasses[color] || colorClasses.blue}`}>
+            <span className="text-xl">{icon}</span>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">{label}</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}

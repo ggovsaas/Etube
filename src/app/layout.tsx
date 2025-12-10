@@ -29,6 +29,23 @@ export default async function RootLayout({
         <Script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" strategy="beforeInteractive" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
         <HreflangTags />
+        {/* Google Analytics 4 */}
+        {process.env.NEXT_PUBLIC_GA_TRACKING_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_TRACKING_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${process.env.NEXT_PUBLIC_GA_TRACKING_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </head>
       <body className={`${inter.className} font-sans antialiased bg-gray-50`}>
         <SessionProvider session={session}>

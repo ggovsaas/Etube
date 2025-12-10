@@ -630,6 +630,34 @@ export default function ListingPage() {
           </div>
         </div>
       </div>
+      
+      {/* JSON-LD Schema for ProfessionalService */}
+      {listing && profile && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'ProfessionalService',
+              name: profile.name || listing.title,
+              description: profile.description || listing.description || '',
+              image: listing.media?.[0]?.url || listing.images?.[0]?.url || '',
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: listing.city || '',
+                addressCountry: 'PT'
+              },
+              areaServed: {
+                '@type': 'City',
+                name: listing.city || ''
+              },
+              priceRange: listing.price ? `€${listing.price}` : undefined,
+              telephone: profile.phone || '',
+              url: typeof window !== 'undefined' ? window.location.href : ''
+            })
+          }}
+        />
+      )}
     </ErrorBoundary>
   );
 } 

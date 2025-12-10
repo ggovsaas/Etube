@@ -352,6 +352,29 @@ export default function Home() {
           </LocaleLink>
         </div>
       </section>
+      
+      {/* JSON-LD Schema for Organization */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'EscortTube',
+            url: 'https://www.escorttube.vip',
+            logo: 'https://www.escorttube.vip/logo.png',
+            description: 'Portal de Acompanhantes - Encontre a companhia perfeita',
+            sameAs: [
+              // Add social media links if available
+            ],
+            contactPoint: {
+              '@type': 'ContactPoint',
+              contactType: 'Customer Service',
+              email: 'support@escorttube.vip'
+            }
+          })
+        }}
+      />
     </main>
   );
 } 
