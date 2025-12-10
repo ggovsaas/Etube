@@ -146,7 +146,7 @@ export default function MisDatosPage() {
     <DashboardLayout user={user}>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          {locale === 'pt' ? 'Meus Dados' : 'Mis Datos'}
+          {locale === 'pt' ? 'Dados de Faturação' : 'Datos de Facturación'}
         </h1>
 
         {/* Success/Error Messages */}
@@ -178,7 +178,7 @@ export default function MisDatosPage() {
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                   />
                 </div>
                 <div>
@@ -190,7 +190,7 @@ export default function MisDatosPage() {
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                   />
                 </div>
                 <div>
@@ -201,7 +201,7 @@ export default function MisDatosPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                     placeholder={locale === 'pt' ? '+351 912 345 678' : '+34 612 345 678'}
                   />
                 </div>
@@ -213,7 +213,7 @@ export default function MisDatosPage() {
                     type="text"
                     value={formData.nif}
                     onChange={(e) => handleInputChange('nif', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                     placeholder={locale === 'pt' ? '123456789' : '12345678A'}
                   />
                 </div>
@@ -234,7 +234,7 @@ export default function MisDatosPage() {
                     rows={3}
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                     placeholder={locale === 'pt' ? 'Rua, número, andar...' : 'Calle, número, piso...'}
                   />
                 </div>
@@ -247,7 +247,7 @@ export default function MisDatosPage() {
                       type="text"
                       value={formData.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                     />
                   </div>
                   <div>
@@ -258,7 +258,7 @@ export default function MisDatosPage() {
                       type="text"
                       value={formData.postalCode}
                       onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                       placeholder={locale === 'pt' ? '1000-000' : '28001'}
                     />
                   </div>
@@ -270,7 +270,7 @@ export default function MisDatosPage() {
                       type="text"
                       value={formData.country}
                       onChange={(e) => handleInputChange('country', e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                       placeholder={locale === 'pt' ? 'Portugal' : 'España'}
                     />
                   </div>

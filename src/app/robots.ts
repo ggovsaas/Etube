@@ -1,6 +1,21 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
+  // TEMPORARILY BLOCK INDEXING until SEO is fully implemented
+  // Set to false when ready to allow indexing
+  const allowIndexing = false;
+  
+  if (!allowIndexing) {
+    return {
+      rules: [
+        {
+          userAgent: '*',
+          disallow: '/',
+        },
+      ],
+    };
+  }
+  
   return {
     rules: [
       {
@@ -9,7 +24,7 @@ export default function robots(): MetadataRoute.Robots {
           '/',
           '/pt/',
           '/es/',
-          '/pt/profis',
+          '/pt/perfis',
           '/es/perfiles',
           '/pt/blog',
           '/es/blog',
@@ -33,4 +48,5 @@ export default function robots(): MetadataRoute.Robots {
     sitemap: 'https://www.escorttube.vip/sitemap.xml',
   };
 }
+
 

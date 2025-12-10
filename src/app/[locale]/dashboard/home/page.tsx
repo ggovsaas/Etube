@@ -11,6 +11,8 @@ interface User {
   email: string;
   name: string;
   role: string;
+  isContentCreator?: boolean;
+  isServiceProvider?: boolean;
   profile?: {
     id: string;
     name: string;
@@ -166,6 +168,31 @@ export default function DashboardHomePage() {
           {locale === 'pt' ? 'Dashboard' : 'Panel de Control'}
         </h1>
 
+        {/* Creator CTA Banner - Only show for creators who are not service providers */}
+        {user && user.isContentCreator && !user.isServiceProvider && (
+          <div className="bg-gradient-to-r from-red-600 to-pink-600 rounded-lg shadow-lg p-6 mb-8 text-white">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold mb-2">
+                  {locale === 'pt' ? 'Triplique sua Renda!' : '¡Triplica tus Ingresos!'}
+                </h2>
+                <p className="text-red-50 mb-4">
+                  {locale === 'pt' 
+                    ? 'Como criador de conteúdo, você pode expandir seus negócios criando anúncios de acompanhante. Aventure-se no mundo dos acompanhantes e aumente significativamente sua receita!'
+                    : 'Como creador de contenido, puedes expandir tus negocios creando anuncios de acompañante. ¡Aventúrate en el mundo de las acompañantes y aumenta significativamente tus ingresos!'}
+                </p>
+                <Link
+                  href={`/${locale}/criar-anuncio`}
+                  className="inline-block bg-white text-red-600 font-semibold py-3 px-6 rounded-lg hover:bg-red-50 transition duration-200"
+                >
+                  {locale === 'pt' ? 'Criar Anúncio Agora' : 'Crear Anuncio Ahora'}
+                </Link>
+              </div>
+              <div className="text-6xl">💰</div>
+            </div>
+          </div>
+        )}
+
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Listings */}
@@ -313,7 +340,7 @@ export default function DashboardHomePage() {
               <span>{locale === 'pt' ? 'Criar Anúncio' : 'Crear Anuncio'}</span>
             </Link>
             <Link
-              href={`/${locale}/dashboard/mis-anuncios`}
+              href={`/${locale}/dashboard/meus-anuncios`}
               className="flex items-center justify-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition duration-200"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -74,7 +74,7 @@ export default function PremiumPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               {locale === 'pt' ? 'Upgrade para Premium' : 'Actualizar a Premium'}
             </h2>
-            <p className="text-gray-600">
+            <p className="text-gray-700">
               {locale === 'pt' 
                 ? 'Desbloqueie recursos exclusivos e aumente a visibilidade dos seus anúncios.'
                 : 'Desbloquee recursos exclusivos y aumente la visibilidad de sus anuncios.'}
@@ -83,19 +83,19 @@ export default function PremiumPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="border rounded-lg p-4">
               <h3 className="font-semibold mb-2">{locale === 'pt' ? 'Destaque' : 'Destacado'}</h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-700">
                 {locale === 'pt' ? 'Seus anúncios aparecem no topo' : 'Tus anuncios aparecen en la parte superior'}
               </p>
             </div>
             <div className="border rounded-lg p-4">
               <h3 className="font-semibold mb-2">{locale === 'pt' ? 'Mais Visualizações' : 'Más Visualizaciones'}</h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-700">
                 {locale === 'pt' ? 'Aumente sua visibilidade' : 'Aumenta tu visibilidad'}
               </p>
             </div>
             <div className="border rounded-lg p-4">
               <h3 className="font-semibold mb-2">{locale === 'pt' ? 'Suporte Prioritário' : 'Soporte Prioritario'}</h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-700">
                 {locale === 'pt' ? 'Atendimento preferencial' : 'Atención preferencial'}
               </p>
             </div>

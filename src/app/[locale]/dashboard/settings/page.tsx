@@ -263,7 +263,7 @@ export default function SettingsPage() {
                       value={settings.currentPassword}
                       onChange={(e) => handleInputChange('currentPassword', e.target.value)}
                       required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                     />
                   </div>
                   <div>
@@ -276,7 +276,7 @@ export default function SettingsPage() {
                       onChange={(e) => handleInputChange('newPassword', e.target.value)}
                       required
                       minLength={8}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                     />
                     <p className="mt-1 text-xs text-gray-500">
                       {locale === 'pt' ? 'Mínimo de 8 caracteres' : 'Mínimo de 8 caracteres'}
@@ -291,7 +291,7 @@ export default function SettingsPage() {
                       value={settings.confirmPassword}
                       onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                       required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                     />
                   </div>
                   <button
@@ -322,7 +322,7 @@ export default function SettingsPage() {
                     <select
                       value={settings.profileVisibility}
                       onChange={(e) => handleInputChange('profileVisibility', e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                     >
                       <option value="public">{locale === 'pt' ? 'Público' : 'Público'}</option>
                       <option value="private">{locale === 'pt' ? 'Privado' : 'Privado'}</option>
@@ -530,7 +530,7 @@ export default function SettingsPage() {
                     <select
                       value={settings.preferredLanguage}
                       onChange={(e) => handleInputChange('preferredLanguage', e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                     >
                       <option value="pt">Português</option>
                       <option value="es">Español</option>
@@ -544,7 +544,7 @@ export default function SettingsPage() {
                     <select
                       value={settings.timezone}
                       onChange={(e) => handleInputChange('timezone', e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
                     >
                       <option value="Europe/Lisbon">Europe/Lisbon (WET/WEST)</option>
                       <option value="Europe/Madrid">Europe/Madrid (CET/CEST)</option>
@@ -570,4 +570,5 @@ export default function SettingsPage() {
     </DashboardLayout>
   );
 }
+
 
