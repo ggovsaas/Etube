@@ -14,10 +14,17 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState('');
+
   const handleSave = async () => {
     setLoading(true);
     setMessage('');
-    
+
     try {
       // TODO: Implement API endpoint to save settings
       // For now, just show a success message
@@ -28,6 +35,53 @@ export default function AdminSettingsPage() {
       setMessage('Error saving settings');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordMessage('');
+
+    // Validation
+    if (newPassword.length < 6) {
+      setPasswordMessage('New password must be at least 6 characters');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage('Passwords do not match');
+      return;
+    }
+
+    setPasswordLoading(true);
+
+    try {
+      const response = await fetch('/api/admin/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentPassword: currentPassword || undefined,
+          newPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to change password');
+      }
+
+      setPasswordMessage('Password changed successfully!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPasswordMessage(''), 5000);
+    } catch (error) {
+      setPasswordMessage(error instanceof Error ? error.message : 'Failed to change password');
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -48,6 +102,86 @@ export default function AdminSettingsPage() {
           {message}
         </div>
       )}
+
+      {/* Password Change Section */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Admin Password</h2>
+
+          {passwordMessage && (
+            <div className={`mb-4 p-4 rounded-lg ${passwordMessage.includes('successfully') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+              {passwordMessage}
+            </div>
+          )}
+
+          <form onSubmit={handlePasswordChange} className="space-y-4">
+            <div>
+              <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                Current Password
+              </label>
+              <input
+                type="password"
+                id="currentPassword"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Leave blank if using admin email bypass"
+                disabled={passwordLoading}
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Leave blank if you're using the admin email bypass feature
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                New Password
+              </label>
+              <input
+                type="password"
+                id="newPassword"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                required
+                disabled={passwordLoading}
+                minLength={6}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                required
+                disabled={passwordLoading}
+                minLength={6}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={passwordLoading}
+              className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {passwordLoading ? 'Changing Password...' : 'Change Password'}
+            </button>
+          </form>
+
+          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> Even after setting a password, the admin email bypass will still work.
+              This gives you flexibility to login with either your password or use the bypass feature.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 space-y-6">

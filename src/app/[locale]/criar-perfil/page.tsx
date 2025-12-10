@@ -118,9 +118,12 @@ export default function CriarPerfilPage() {
       }
 
       const result = await response.json();
-      
-      // Redirect to main dashboard with locale
-      router.push(`/${locale}/dashboard`);
+
+      // Show success message and redirect to login
+      alert(result.message || 'Account created successfully! Please login with your credentials.');
+
+      // Redirect to login page
+      router.push(`/${locale}/login`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.registrationFailed);
       console.error('Registration error:', err);
