@@ -62,7 +62,7 @@ export default function AdminSettingsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          currentPassword: currentPassword || undefined,
+          currentPassword,
           newPassword,
         }),
       });
@@ -125,12 +125,9 @@ export default function AdminSettingsPage() {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="Leave blank if using admin email bypass"
+                required
                 disabled={passwordLoading}
               />
-              <p className="mt-1 text-xs text-gray-500">
-                Leave blank if you're using the admin email bypass feature
-              </p>
             </div>
 
             <div>
@@ -176,8 +173,7 @@ export default function AdminSettingsPage() {
 
           <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> Even after setting a password, the admin email bypass will still work.
-              This gives you flexibility to login with either your password or use the bypass feature.
+              <strong>Note:</strong> Make sure to remember your new password as it will be required for all future logins.
             </p>
           </div>
         </div>

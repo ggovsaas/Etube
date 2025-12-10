@@ -152,42 +152,17 @@ export const authOptions: NextAuthOptions = {
             }
           });
 
-          // If user doesn't exist but is admin email, create the user
+          // If user doesn't exist but is admin email, don't auto-create
+          // Admin must register through the normal registration flow
           if (!user && isEmailAdmin) {
-            const hashedPassword = await bcrypt.hash(credentials.password || 'admin123', 12);
-            const newUser = await prisma.user.create({
-              data: {
-                email: credentials.email.toLowerCase(),
-                password: hashedPassword,
-                role: 'ADMIN',
-                name: credentials.email.split('@')[0]
-              }
-            });
-            return {
-              id: newUser.id,
-              email: newUser.email,
-              name: newUser.name,
-              image: newUser.image,
-            };
+            throw new Error("Admin account not found. Please register first.");
           }
 
           if (!user) {
             throw new Error("Invalid credentials");
           }
 
-          // For admin emails: allow login with any password
-          // This is a convenience feature for the admin to access the dashboard quickly
-          if (isEmailAdmin) {
-            console.log(`✅ Admin login: ${user.email} (password verification bypassed)`);
-            return {
-              id: user.id,
-              email: user.email,
-              name: user.name,
-              image: user.image,
-            };
-          }
-
-          // Regular users and admins with Google OAuth need correct password
+          // Verify password for all users (including admins)
           if (!user?.password) {
             throw new Error("Invalid credentials");
           }

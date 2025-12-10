@@ -34,7 +34,14 @@ export async function POST(request: Request) {
 
     const { currentPassword, newPassword } = await request.json();
 
-    // Validate new password
+    // Validate inputs
+    if (!currentPassword) {
+      return NextResponse.json(
+        { error: 'Current password is required' },
+        { status: 400 }
+      );
+    }
+
     if (!newPassword || newPassword.length < 6) {
       return NextResponse.json(
         { error: 'New password must be at least 6 characters' },
@@ -55,15 +62,20 @@ export async function POST(request: Request) {
       );
     }
 
-    // If user has a password and currentPassword is provided, verify it
-    if (user.password && currentPassword) {
-      const isValidPassword = await compare(currentPassword, user.password);
-      if (!isValidPassword) {
-        return NextResponse.json(
-          { error: 'Current password is incorrect' },
-          { status: 400 }
-        );
-      }
+    // Verify current password
+    if (!user.password) {
+      return NextResponse.json(
+        { error: 'No password set for this account' },
+        { status: 400 }
+      );
+    }
+
+    const isValidPassword = await compare(currentPassword, user.password);
+    if (!isValidPassword) {
+      return NextResponse.json(
+        { error: 'Current password is incorrect' },
+        { status: 400 }
+      );
     }
 
     // Hash new password
