@@ -118,9 +118,9 @@ export default function CriarPerfilPage() {
       }
 
       const result = await response.json();
-      
-      // Redirect to main dashboard with locale
-      router.push(`/${locale}/dashboard`);
+
+      // Redirect to login page directly (no alert needed)
+      router.push(`/${locale}/login`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.registrationFailed);
       console.error('Registration error:', err);

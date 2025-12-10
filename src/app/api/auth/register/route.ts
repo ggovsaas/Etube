@@ -94,27 +94,6 @@ export async function POST(request: Request) {
       return { user };
     });
 
-    // Check if user email is in admin list from environment variables
-    const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
-    const adminEmails = adminEmailsEnv
-      .split(',')
-      .map(email => email.trim().toLowerCase())
-      .filter(email => email.length > 0);
-    
-    const isEmailAdmin = adminEmails.includes(result.user.email.toLowerCase());
-    const finalRole = (result.user.role === 'ADMIN' || isEmailAdmin) ? 'ADMIN' : result.user.role;
-
-    // Create JWT token for automatic login with long expiration (7 days)
-    const token = sign(
-      { 
-        userId: result.user.id, 
-        email: result.user.email.toLowerCase(), 
-        role: finalRole 
-      },
-      process.env.NEXTAUTH_SECRET || 'fallback-secret',
-      { expiresIn: '7d' }
-    );
-
     // Send verification email
     try {
       await sendVerificationEmail(email, verificationToken, username);
@@ -123,29 +102,18 @@ export async function POST(request: Request) {
       // Don't fail registration if email fails, but log it
       // User can request a new verification email later
     }
-    
-    // Create response with success message
-    const response = NextResponse.json(
-      { 
-        message: 'Account created successfully. Please check your email to verify your account.',
+
+    // Return success - user will need to login manually
+    // This prevents the "Access Denied" error from old JWT system
+    return NextResponse.json(
+      {
+        message: 'Account created successfully. You can now login with your credentials.',
         userId: result.user.id,
-        role: result.user.role,
         success: true,
         emailVerified: false
       },
       { status: 201 }
     );
-
-    // Set authentication cookie with proper settings for persistence
-    response.cookies.set('auth-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: '/' // Ensure cookie is available site-wide
-    });
-
-    return response;
   } catch (error) {
     console.error('Registration error:', error);
     
