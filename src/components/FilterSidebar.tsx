@@ -81,7 +81,7 @@ export default function FilterSidebar({
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-700"
           >
             <option value="">Todas as cidades</option>
-            {cities.map((c) => (
+            {(Array.isArray(cities) ? cities : []).map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
@@ -91,7 +91,7 @@ export default function FilterSidebar({
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
           <div className="space-y-2">
-            {categories.map((cat) => (
+            {(Array.isArray(categories) ? categories : []).map((cat) => (
               <label key={cat.name} className="flex items-center text-gray-700">
                 <input
                   type="checkbox"
@@ -135,7 +135,7 @@ export default function FilterSidebar({
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">Idade</label>
           <div className="space-y-2">
-            {ages.map((age) => (
+            {(Array.isArray(ages) ? ages : []).map((age) => (
               <label key={age.label} className="flex items-center text-gray-700">
                 <input
                   type="checkbox"
@@ -153,7 +153,7 @@ export default function FilterSidebar({
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">Disponibilidade</label>
           <div className="space-y-2">
-            {availability.map((a) => (
+            {(Array.isArray(availability) ? availability : []).map((a) => (
               <label key={a.label} className="flex items-center text-gray-700">
                 <input
                   type="checkbox"
@@ -171,7 +171,7 @@ export default function FilterSidebar({
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">Cor do Cabelo</label>
           <div className="space-y-2">
-            {hairColors.map((hair) => (
+            {(Array.isArray(hairColors) ? hairColors : []).map((hair) => (
               <label key={hair.label} className="flex items-center text-gray-700">
                 <input
                   type="checkbox"
@@ -189,7 +189,7 @@ export default function FilterSidebar({
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">Cor dos Olhos</label>
           <div className="space-y-2">
-            {eyeColors.map((eye) => (
+            {(Array.isArray(eyeColors) ? eyeColors : []).map((eye) => (
               <label key={eye.label} className="flex items-center text-gray-700">
                 <input
                   type="checkbox"
@@ -207,7 +207,7 @@ export default function FilterSidebar({
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">Etnia</label>
           <div className="space-y-2">
-            {ethnicities.map((ethnicity) => (
+            {(Array.isArray(ethnicities) ? ethnicities : []).map((ethnicity) => (
               <label key={ethnicity.label} className="flex items-center text-gray-700">
                 <input
                   type="checkbox"
@@ -225,7 +225,7 @@ export default function FilterSidebar({
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Corpo</label>
           <div className="space-y-2">
-            {bodyTypes.map((bodyType) => (
+            {(Array.isArray(bodyTypes) ? bodyTypes : []).map((bodyType) => (
               <label key={bodyType.label} className="flex items-center text-gray-700">
                 <input
                   type="checkbox"

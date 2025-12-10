@@ -24,11 +24,13 @@ export interface Profile {
 }
 
 export default function ProfileGrid({ profiles }: { profiles: Profile[] }) {
+  const profilesArray = Array.isArray(profiles) ? profiles : [];
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-      {profiles.map((profile) => (
-        <ProfileCard key={profile.id} profile={profile} />
-      ))}
+      {profilesArray.map((profile) => {
+        if (!profile) return null;
+        return <ProfileCard key={profile.id} profile={profile} />;
+      }).filter(Boolean)}
     </div>
   );
 }

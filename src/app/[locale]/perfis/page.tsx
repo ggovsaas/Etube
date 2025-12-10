@@ -158,6 +158,12 @@ function PerfisContent() {
     { label: 'Latina', checked: false },
     { label: 'Mista', checked: false },
   ]);
+  const [bodyTypes, setBodyTypes] = useState([
+    { label: 'Magra', checked: false },
+    { label: 'Atlética', checked: false },
+    { label: 'Curvilínea', checked: false },
+    { label: 'Plus Size', checked: false },
+  ]);
   const [cities, setCities] = useState(['Lisboa', 'Porto', 'Coimbra', 'Braga', 'Aveiro', 'Faro']);
 
   // Filtering logic
@@ -302,6 +308,9 @@ function PerfisContent() {
   const handleEthnicityChange = (label: string) => {
     setEthnicities(ethnicities.map(ethnicity => ethnicity.label === label ? { ...ethnicity, checked: !ethnicity.checked } : ethnicity));
   };
+  const handleBodyTypeChange = (label: string) => {
+    setBodyTypes(bodyTypes.map(bodyType => bodyType.label === label ? { ...bodyType, checked: !bodyType.checked } : bodyType));
+  };
   const handleClear = () => {
     setSearch('');
     setCity('');
@@ -312,6 +321,7 @@ function PerfisContent() {
     setHairColors(hairColors.map(hair => ({ ...hair, checked: false })));
     setEyeColors(eyeColors.map(eye => ({ ...eye, checked: false })));
     setEthnicities(ethnicities.map(ethnicity => ({ ...ethnicity, checked: false })));
+    setBodyTypes(bodyTypes.map(bodyType => ({ ...bodyType, checked: false })));
   };
 
   return (
@@ -416,6 +426,8 @@ function PerfisContent() {
               onEyeColorChange={handleEyeColorChange}
               ethnicities={ethnicities}
               onEthnicityChange={handleEthnicityChange}
+              bodyTypes={bodyTypes}
+              onBodyTypeChange={handleBodyTypeChange}
               onClear={handleClear}
             />
             {/* Single Sidebar Banner (only on lg+) */}

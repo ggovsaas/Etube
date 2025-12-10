@@ -136,7 +136,9 @@ export async function GET(request: NextRequest) {
 
     // Transform profiles to match expected structure
     const profilesToTransform = Array.isArray(paginatedProfiles) ? paginatedProfiles : [];
-    const transformedProfiles = profilesToTransform.map(profile => {
+    const transformedProfiles = profilesToTransform
+      .filter(profile => profile != null) // Filter out null/undefined profiles first
+      .map(profile => {
       if (!profile) return null;
       // Get all gallery images
       const mediaArray = Array.isArray(profile.media) ? profile.media : [];
@@ -171,10 +173,11 @@ export async function GET(request: NextRequest) {
     }).filter(p => p !== null); // Remove any null entries
 
     // Always return a valid response, even if empty
+    const validProfiles = Array.isArray(transformedProfiles) ? transformedProfiles.filter(p => p != null) : [];
     return NextResponse.json({
-      profiles: transformedProfiles || [],
-      total: transformedProfiles.length,
-      pages: Math.ceil((transformedProfiles.length || 0) / limit),
+      profiles: validProfiles,
+      total: validProfiles.length,
+      pages: Math.ceil((validProfiles.length || 0) / limit),
       currentPage: page,
     });
   } catch (error) {
