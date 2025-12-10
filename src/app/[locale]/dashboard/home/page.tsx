@@ -70,11 +70,11 @@ export default function DashboardHomePage() {
       const response = await fetch('/api/user/profile');
       if (response.ok) {
         const data = await response.json();
-        const listings = data.listings || [];
+        const listings = Array.isArray(data.listings) ? data.listings : [];
         
-        const activeListings = listings.filter((l: any) => l.status === 'ACTIVE').length;
-        const pendingListings = listings.filter((l: any) => l.status === 'PENDING').length;
-        const inactiveListings = listings.filter((l: any) => l.status === 'INACTIVE').length;
+        const activeListings = listings.filter((l: any) => l && l.status === 'ACTIVE').length;
+        const pendingListings = listings.filter((l: any) => l && l.status === 'PENDING').length;
+        const inactiveListings = listings.filter((l: any) => l && l.status === 'INACTIVE').length;
         
         // Fetch reviews count if profile exists
         let totalReviews = 0;
@@ -84,10 +84,10 @@ export default function DashboardHomePage() {
             const reviewsResponse = await fetch(`/api/reviews?profileId=${data.user.profile.id}&limit=1000`);
             if (reviewsResponse.ok) {
               const reviewsData = await reviewsResponse.json();
-              const reviews = reviewsData.reviews || [];
+              const reviews = Array.isArray(reviewsData.reviews) ? reviewsData.reviews : [];
               totalReviews = reviews.length;
               if (totalReviews > 0) {
-                const sum = reviews.reduce((acc: number, r: any) => acc + (r.rating || 0), 0);
+                const sum = reviews.reduce((acc: number, r: any) => acc + (r && r.rating ? r.rating : 0), 0);
                 averageRating = sum / totalReviews;
               }
             }

@@ -62,9 +62,7 @@ export default function DashboardLayout({
   };
 
   // No redirect needed - all authenticated users should have dashboard access
-  useEffect(() => {
-    setCheckingAccess(false);
-  }, []);
+  // Removed setCheckingAccess - no longer needed
 
   // Dynamic sidebar items based on user roles
   const getDynamicSidebarItems = () => {

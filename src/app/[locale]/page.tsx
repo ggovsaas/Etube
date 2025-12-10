@@ -41,7 +41,10 @@ export default function Home() {
         const response = await fetch('/api/profiles?limit=8');
         if (response.ok) {
           const data = await response.json();
-          setTopProfiles(data.profiles || []);
+          const profilesArray = Array.isArray(data.profiles) ? data.profiles : [];
+          setTopProfiles(profilesArray);
+        } else {
+          setTopProfiles([]);
         }
       } catch (error) {
         console.error('Error fetching top profiles:', error);
@@ -175,10 +178,12 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {loading ? (
               <p>{t.loadingProfiles}</p>
-            ) : topProfiles.length === 0 ? (
+            ) : (Array.isArray(topProfiles) ? topProfiles : []).length === 0 ? (
               <p>{t.noProfilesFound}</p>
             ) : (
-              topProfiles.map((profile, index) => (
+              (Array.isArray(topProfiles) ? topProfiles : []).map((profile, index) => {
+                if (!profile) return null;
+                return (
                 <LocaleLink href={profile.listingId ? `/anuncio/${profile.listingId}` : '#'} key={profile.id} onClick={(e) => !profile.listingId && e.preventDefault()}>
                   <div className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                     <div className="aspect-w-3 aspect-h-4">
@@ -212,7 +217,8 @@ export default function Home() {
                     </div>
                   </div>
                 </LocaleLink>
-              ))
+                );
+              }).filter(Boolean)
             )}
           </div>
         </div>

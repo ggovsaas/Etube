@@ -8,9 +8,12 @@ interface Profile extends ProfileType {
 }
 
 export default function ProfileList({ profiles }: { profiles: Profile[] }) {
+  const profilesArray = Array.isArray(profiles) ? profiles : [];
   return (
     <div className="space-y-4">
-      {profiles.map((profile) => (
+      {profilesArray.map((profile) => {
+        if (!profile) return null;
+        return (
         <div key={profile.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
           <div className="flex">
             {/* Profile Image */}
@@ -55,10 +58,10 @@ export default function ProfileList({ profiles }: { profiles: Profile[] }) {
                   </div>
                   
                   <div className="flex items-center mb-3">
-                    {Array.from({ length: profile.rating }).map((_, i) => (
+                    {Array.from({ length: Math.max(0, Math.floor(profile.rating || 0)) }).map((_, i) => (
                       <i key={i} className="fas fa-star text-yellow-400 text-sm"></i>
                     ))}
-                    <span className="text-sm text-gray-500 ml-2">({profile.reviews} avaliações)</span>
+                    <span className="text-sm text-gray-500 ml-2">({profile.reviews || 0} avaliações)</span>
                   </div>
                   
                   <p className="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -87,7 +90,8 @@ export default function ProfileList({ profiles }: { profiles: Profile[] }) {
             </div>
           </div>
         </div>
-      ))}
+        );
+      }).filter(Boolean)}
     </div>
   );
 } 

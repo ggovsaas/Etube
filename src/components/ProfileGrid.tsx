@@ -6,7 +6,7 @@ import FavoriteButton from './FavoriteButton';
 import VoiceWaveVisualizer from './VoiceWaveVisualizer';
 
 export interface Profile {
-  id: number;
+  id: string | number; // Can be string (from database) or number
   listingId?: string | null; // Listing ID for navigation to anuncio page
   name: string;
   age: number;
@@ -40,9 +40,9 @@ function ProfileCard({ profile }: { profile: Profile }) {
 
   // Initialize gallery images
   useEffect(() => {
-    const images = profile.gallery && profile.gallery.length > 0 
-      ? profile.gallery 
-      : [profile.image];
+    const images = Array.isArray(profile.gallery) && profile.gallery.length > 0 
+      ? profile.gallery.filter(img => img && typeof img === 'string')
+      : (profile.image ? [profile.image] : ['/placeholder-profile.jpg']);
     setGalleryImages(images);
   }, [profile.gallery, profile.image]);
 

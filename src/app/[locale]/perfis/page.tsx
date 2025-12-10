@@ -46,24 +46,37 @@ function PerfisContent() {
       }
       
       // Transform API data to match Profile interface
-      const transformedProfiles: Profile[] = (data.profiles || []).map((profile: any) => ({
-        id: profile.id,
-        listingId: profile.listingId || null, // Include listing ID for navigation
-        name: profile.name || 'Unknown',
-        age: profile.age || 0,
-        city: profile.city || 'Unknown',
-        height: profile.height || 0,
-        weight: profile.weight || 0,
-        price: profile.price || profile.pricePerHour || 0,
-        rating: profile.rating || 0,
-        reviews: profile.reviews || 0,
-        isOnline: profile.isOnline || false,
-        isVerified: profile.isVerified || false,
-        image: profile.imageUrl || '/placeholder-profile.jpg',
-        description: profile.description || 'No description available',
-        gallery: profile.gallery || [profile.imageUrl || '/placeholder-profile.jpg'],
-        voiceNoteUrl: profile.voiceNoteUrl || null
-      }));
+      const profilesArray = Array.isArray(data.profiles) ? data.profiles : [];
+      const transformedProfiles: Profile[] = profilesArray.map((profile: any) => {
+        // Ensure gallery is always an array
+        let galleryArray: string[] = [];
+        if (Array.isArray(profile.gallery) && profile.gallery.length > 0) {
+          galleryArray = profile.gallery;
+        } else if (profile.imageUrl) {
+          galleryArray = [profile.imageUrl];
+        } else {
+          galleryArray = ['/placeholder-profile.jpg'];
+        }
+
+        return {
+          id: profile.id,
+          listingId: profile.listingId || null, // Include listing ID for navigation
+          name: profile.name || 'Unknown',
+          age: profile.age || 0,
+          city: profile.city || 'Unknown',
+          height: profile.height || 0,
+          weight: profile.weight || 0,
+          price: profile.price || profile.pricePerHour || 0,
+          rating: profile.rating || 0,
+          reviews: profile.reviews || 0,
+          isOnline: profile.isOnline || false,
+          isVerified: profile.isVerified || false,
+          image: profile.imageUrl || '/placeholder-profile.jpg',
+          description: profile.description || 'No description available',
+          gallery: galleryArray,
+          voiceNoteUrl: profile.voiceNoteUrl || null
+        };
+      });
       
       setAllProfiles(transformedProfiles);
     } catch (err) {
@@ -82,10 +95,19 @@ function PerfisContent() {
 
   // Calculate filter counts dynamically
   const calculateFilterCounts = (): { name: string; count: number; checked: boolean }[] => {
+    if (!Array.isArray(allProfiles) || allProfiles.length === 0) {
+      return [
+        { name: 'Feminino', count: 0, checked: false },
+        { name: 'MILF', count: 0, checked: false },
+        { name: 'Trans', count: 0, checked: false },
+        { name: 'VIP', count: 0, checked: false },
+      ];
+    }
+
     const counts = {
-      feminino: allProfiles.filter(p => !p.name.toLowerCase().includes('trans')).length,
+      feminino: allProfiles.filter(p => p.name && !p.name.toLowerCase().includes('trans')).length,
       milf: allProfiles.filter(p => p.age >= 36).length,
-      trans: allProfiles.filter(p => p.name.toLowerCase().includes('trans')).length,
+      trans: allProfiles.filter(p => p.name && p.name.toLowerCase().includes('trans')).length,
       vip: allProfiles.filter(p => p.price >= 200).length,
     };
 
@@ -139,17 +161,18 @@ function PerfisContent() {
   const [cities, setCities] = useState(['Lisboa', 'Porto', 'Coimbra', 'Braga', 'Aveiro', 'Faro']);
 
   // Filtering logic
-  const filteredProfiles = allProfiles.filter(profile => {
+  const filteredProfiles = (Array.isArray(allProfiles) ? allProfiles : []).filter(profile => {
+    if (!profile) return false;
     // Search
-    if (search && !profile.name.toLowerCase().includes(search.toLowerCase()) && !profile.city.toLowerCase().includes(search.toLowerCase())) {
+    if (search && profile.name && profile.city && !profile.name.toLowerCase().includes(search.toLowerCase()) && !profile.city.toLowerCase().includes(search.toLowerCase())) {
       return false;
     }
     // City
-    if (city && profile.city.toLowerCase() !== city.toLowerCase()) {
+    if (city && profile.city && profile.city.toLowerCase() !== city.toLowerCase()) {
       return false;
     }
     // Categories (improved logic)
-    const selectedCategories = categories.filter(c => c.checked).map(c => c.name);
+    const selectedCategories = (Array.isArray(categories) ? categories : []).filter(c => c && c.checked).map(c => c.name);
     if (selectedCategories.length > 0) {
       const matchesCategory = selectedCategories.some(category => {
         switch (category) {
@@ -171,7 +194,7 @@ function PerfisContent() {
     if (priceRange.min && profile.price < Number(priceRange.min)) return false;
     if (priceRange.max && profile.price > Number(priceRange.max)) return false;
     // Age
-    const selectedAges = ages.filter(a => a.checked).map(a => a.label);
+    const selectedAges = (Array.isArray(ages) ? ages : []).filter(a => a && a.checked).map(a => a.label);
     if (selectedAges.length > 0) {
       const ageMatch = selectedAges.some(label => {
         if (label === '18-25') return profile.age >= 18 && profile.age <= 25;
@@ -183,32 +206,35 @@ function PerfisContent() {
       if (!ageMatch) return false;
     }
     // Availability
-    const selectedAvail = availability.filter(a => a.checked).map(a => a.label);
+    const selectedAvail = (Array.isArray(availability) ? availability : []).filter(a => a && a.checked).map(a => a.label);
     if (selectedAvail.length > 0) {
       if (selectedAvail.includes('Online agora') && !profile.isOnline) return false;
       if (selectedAvail.includes('Verificado') && !profile.isVerified) return false;
       // 'Com fotos' always true in mock
     }
     // Hair Color (mock filtering - in real app this would use actual profile data)
-    const selectedHairColors = hairColors.filter(h => h.checked).map(h => h.label);
+    const selectedHairColors = (Array.isArray(hairColors) ? hairColors : []).filter(h => h && h.checked).map(h => h.label);
     if (selectedHairColors.length > 0) {
       // Mock: assign hair colors based on profile ID for demo
       const mockHairColors = ['Loiro', 'Moreno', 'Ruivo', 'Preto', 'Castanho'];
-      const profileHairColor = mockHairColors[profile.id % mockHairColors.length];
+      const profileIdNum = typeof profile.id === 'string' ? parseInt(profile.id) || 0 : (profile.id || 0);
+      const profileHairColor = mockHairColors[Math.abs(profileIdNum) % mockHairColors.length];
       if (!selectedHairColors.includes(profileHairColor)) return false;
     }
     // Eye Color (mock filtering)
-    const selectedEyeColors = eyeColors.filter(e => e.checked).map(e => e.label);
+    const selectedEyeColors = (Array.isArray(eyeColors) ? eyeColors : []).filter(e => e && e.checked).map(e => e.label);
     if (selectedEyeColors.length > 0) {
       const mockEyeColors = ['Azul', 'Verde', 'Castanho', 'Preto', 'Cinza'];
-      const profileEyeColor = mockEyeColors[profile.id % mockEyeColors.length];
+      const profileIdNum = typeof profile.id === 'string' ? parseInt(profile.id) || 0 : (profile.id || 0);
+      const profileEyeColor = mockEyeColors[Math.abs(profileIdNum) % mockEyeColors.length];
       if (!selectedEyeColors.includes(profileEyeColor)) return false;
     }
     // Ethnicity (mock filtering)
-    const selectedEthnicities = ethnicities.filter(e => e.checked).map(e => e.label);
+    const selectedEthnicities = (Array.isArray(ethnicities) ? ethnicities : []).filter(e => e && e.checked).map(e => e.label);
     if (selectedEthnicities.length > 0) {
       const mockEthnicities = ['Caucasiana', 'Africana', 'Asiática', 'Latina', 'Mista'];
-      const profileEthnicity = mockEthnicities[profile.id % mockEthnicities.length];
+      const profileIdNum = typeof profile.id === 'string' ? parseInt(profile.id) || 0 : (profile.id || 0);
+      const profileEthnicity = mockEthnicities[Math.abs(profileIdNum) % mockEthnicities.length];
       if (!selectedEthnicities.includes(profileEthnicity)) return false;
     }
     return true;
@@ -217,8 +243,9 @@ function PerfisContent() {
   // Pagination state (must come after filteredProfiles is declared)
   const [currentPage, setCurrentPage] = useState(1);
   const profilesPerPage = 12;
-  const totalPages = Math.ceil(filteredProfiles.length / profilesPerPage);
-  const paginatedProfiles = filteredProfiles.slice((currentPage - 1) * profilesPerPage, currentPage * profilesPerPage);
+  const safeFilteredProfiles = Array.isArray(filteredProfiles) ? filteredProfiles : [];
+  const totalPages = Math.max(1, Math.ceil(safeFilteredProfiles.length / profilesPerPage));
+  const paginatedProfiles = safeFilteredProfiles.slice((currentPage - 1) * profilesPerPage, currentPage * profilesPerPage);
 
   // Sync filter state with URL
   useEffect(() => {
@@ -450,7 +477,7 @@ function PerfisContent() {
                 >
                   <i className="fas fa-chevron-left"></i>
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => (
+                {Array.from({ length: Math.max(0, totalPages) }, (_, i) => (
                   <button
                     key={i + 1}
                     className={`px-3 py-2 rounded-lg ${currentPage === i + 1 ? 'bg-red-600 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}

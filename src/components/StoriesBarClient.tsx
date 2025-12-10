@@ -60,10 +60,11 @@ export default function StoriesBarClient({ locale = 'pt' }: StoriesBarClientProp
         }
 
         const data = await response.json();
-        setUsersWithStories(data.users || []);
+        const usersArray = Array.isArray(data.users) ? data.users : [];
+        setUsersWithStories(usersArray);
       } catch (error) {
         console.error('Error fetching stories:', error);
-        setProfilesWithStories([]);
+        setUsersWithStories([]);
       } finally {
         setLoading(false);
       }
@@ -141,10 +142,12 @@ export default function StoriesBarClient({ locale = 'pt' }: StoriesBarClientProp
         </div>
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {usersWithStories.map((user) => {
+          {(Array.isArray(usersWithStories) ? usersWithStories : []).map((user) => {
+            if (!user) return null;
             // Get the first story as preview (or use user image/profile photo as fallback)
-            const previewImage = user.stories[0]?.mediaUrl || user.image || user.profileInfo?.profilePhoto;
-            const storyCount = user.stories.length;
+            const storiesArray = Array.isArray(user.stories) ? user.stories : [];
+            const previewImage = storiesArray[0]?.mediaUrl || user.image || user.profileInfo?.profilePhoto;
+            const storyCount = storiesArray.length;
             const displayName = user.name || user.email.split('@')[0];
 
             return (
@@ -204,7 +207,7 @@ export default function StoriesBarClient({ locale = 'pt' }: StoriesBarClientProp
                 </span>
               </Link>
             );
-          })}
+          }).filter(Boolean)}
         </div>
       )}
         </>

@@ -118,14 +118,15 @@ export async function GET(request: NextRequest) {
     });
 
     // Filter profiles: non-admin only sees profiles with active listings
+    const profilesArray = Array.isArray(profiles) ? profiles : [];
     const filteredProfiles = userIsAdmin 
-      ? profiles 
-      : profiles.filter(profile => profile.user.listings && profile.user.listings.length > 0);
+      ? profilesArray 
+      : profilesArray.filter(profile => profile && profile.user && profile.user.listings && Array.isArray(profile.user.listings) && profile.user.listings.length > 0);
 
     // Apply pagination to filtered results for non-admin
     const paginatedProfiles = userIsAdmin 
       ? filteredProfiles 
-      : filteredProfiles.slice((page - 1) * limit, page * limit);
+      : (Array.isArray(filteredProfiles) ? filteredProfiles : []).slice((page - 1) * limit, page * limit);
 
     // For total count: admin gets accurate count, non-admin gets approximate
     // (For accurate non-admin count, we'd need to fetch all profiles which is expensive)
@@ -134,33 +135,40 @@ export async function GET(request: NextRequest) {
       : filteredProfiles.length;
 
     // Transform profiles to match expected structure
-    const transformedProfiles = paginatedProfiles.map(profile => {
+    const profilesToTransform = Array.isArray(paginatedProfiles) ? paginatedProfiles : [];
+    const transformedProfiles = profilesToTransform.map(profile => {
+      if (!profile) return null;
       // Get all gallery images
-      const galleryImages = profile.media
-        ?.filter(m => m.type === 'image' || !m.type)
-        .map(m => m.url) || [];
+      const mediaArray = Array.isArray(profile.media) ? profile.media : [];
+      const galleryImages = mediaArray
+        .filter(m => m && (m.type === 'image' || !m.type) && m.url)
+        .map(m => m.url);
+      
+      const listingsArray = Array.isArray(profile.user?.listings) ? profile.user.listings : [];
+      const firstListing = listingsArray[0] || null;
+      const firstMedia = mediaArray[0] || null;
       
       return {
-        id: profile.id,
-        listingId: profile.user.listings?.[0]?.id || null, // Include listing ID for navigation
-        name: profile.name,
-        age: profile.age,
-        city: profile.city,
-        height: profile.height ? parseInt(profile.height) : 0,
-        weight: profile.weight ? parseInt(profile.weight) : 0,
-        price: profile.user.listings?.[0]?.price || 0,
-        pricePerHour: profile.user.listings?.[0]?.price || 0,
-        rating: profile.rating,
+        id: profile.id || '',
+        listingId: firstListing?.id || null, // Include listing ID for navigation
+        name: profile.name || 'Unknown',
+        age: profile.age || 0,
+        city: profile.city || 'Unknown',
+        height: profile.height ? parseInt(String(profile.height)) : 0,
+        weight: profile.weight ? parseInt(String(profile.weight)) : 0,
+        price: firstListing?.price || 0,
+        pricePerHour: firstListing?.price || 0,
+        rating: profile.rating || 0,
         reviews: profile._count?.reviews || 0,
-        isOnline: profile.isOnline,
-        isVerified: profile.isVerified,
-        imageUrl: profile.media?.[0]?.url || '/placeholder-profile.jpg',
-        description: profile.description,
-        gallery: galleryImages.length > 0 ? galleryImages : [profile.media?.[0]?.url || '/placeholder-profile.jpg'],
+        isOnline: profile.isOnline || false,
+        isVerified: profile.isVerified || false,
+        imageUrl: firstMedia?.url || '/placeholder-profile.jpg',
+        description: profile.description || '',
+        gallery: galleryImages.length > 0 ? galleryImages : [firstMedia?.url || '/placeholder-profile.jpg'],
         voiceNoteUrl: profile.voiceNoteUrl || null,
         createdAt: profile.createdAt
       };
-    });
+    }).filter(p => p !== null); // Remove any null entries
 
     // Always return a valid response, even if empty
     return NextResponse.json({
