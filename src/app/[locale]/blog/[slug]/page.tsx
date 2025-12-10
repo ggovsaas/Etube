@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useLocale } from '@/hooks/useLocale';
-// Note: Install react-markdown for full markdown support: npm install react-markdown
-// For now, we'll render content as plain text with basic formatting
+import ReactMarkdown from 'react-markdown';
 
 interface BlogPost {
   id: string;
@@ -142,17 +141,7 @@ export default function BlogPostPage() {
 
         {/* Post Content */}
         <div className="prose prose-lg max-w-none">
-          <div 
-            className="blog-content"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-            style={{
-              whiteSpace: 'pre-wrap',
-              wordWrap: 'break-word'
-            }}
-          />
-          {/* Note: For full markdown support, install react-markdown and use:
-            <ReactMarkdown>{post.content}</ReactMarkdown>
-          */}
+          <ReactMarkdown>{post.content}</ReactMarkdown>
         </div>
 
         {/* JSON-LD Schema for BlogPosting */}
