@@ -22,6 +22,8 @@ interface FilterSidebarProps {
   onEyeColorChange: (label: string) => void;
   ethnicities: { label: string; checked: boolean }[];
   onEthnicityChange: (label: string) => void;
+  bodyTypes: { label: string; checked: boolean }[];
+  onBodyTypeChange: (label: string) => void;
   onClear: () => void;
 }
 
@@ -46,6 +48,8 @@ export default function FilterSidebar({
   onEyeColorChange,
   ethnicities,
   onEthnicityChange,
+  bodyTypes,
+  onBodyTypeChange,
   onClear,
 }: FilterSidebarProps) {
   return (
@@ -212,6 +216,24 @@ export default function FilterSidebar({
                   className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                 />
                 <span className="ml-2 text-sm">{ethnicity.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Body Type */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Corpo</label>
+          <div className="space-y-2">
+            {bodyTypes.map((bodyType) => (
+              <label key={bodyType.label} className="flex items-center text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={bodyType.checked}
+                  onChange={() => onBodyTypeChange(bodyType.label)}
+                  className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                />
+                <span className="ml-2 text-sm">{bodyType.label}</span>
               </label>
             ))}
           </div>

@@ -23,7 +23,13 @@ export async function GET(
       where: { id: id.trim() },
       include: {
         user: {
-          include: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            isClient: true,
+            isContentCreator: true,
+            isServiceProvider: true,
             profile: {
               include: {
                 media: {

@@ -428,7 +428,14 @@ export default function ListingPage() {
       <div className="min-h-screen bg-gray-50 font-sans">
         <main className="max-w-7xl mx-auto md:px-6 md:py-8">
           {/* Profile Hero */}
-          <ProfileHero profile={profile} />
+          <ProfileHero 
+            profile={profile} 
+            creatorId={listing.userId}
+            userRoles={{
+              isContentCreator: listing.user?.isContentCreator || false,
+              isServiceProvider: listing.user?.isServiceProvider || false,
+            }}
+          />
 
           <div className="px-4 md:px-0 grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6 md:mt-0">
             {/* Left Column (Main Content) */}
@@ -541,7 +548,13 @@ export default function ListingPage() {
               <div className="sticky top-24 space-y-6">
                 {/* Contact Card (Desktop Only - Mobile has bottom bar) */}
                 <div className="hidden lg:block">
-                  <ContactCard 
+                  <ContactCard
+                    profile={profile}
+                    creatorId={listing.userId}
+                    userRoles={{
+                      isContentCreator: listing.user?.isContentCreator || false,
+                      isServiceProvider: listing.user?.isServiceProvider || false,
+                    }} 
                     profile={profile} 
                     creatorId={listing?.userId || listing?.user?.id} 
                     locale="pt"

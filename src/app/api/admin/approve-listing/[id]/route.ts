@@ -20,6 +20,21 @@ export async function POST(
       );
     }
 
+    // Get listing with user info
+    const listing = await prisma.listing.findUnique({
+      where: { id },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!listing) {
+      return NextResponse.json(
+        { error: 'Listing not found' },
+        { status: 404 }
+      );
+    }
+
     // Update listing status to ACTIVE
     const updatedListing = await prisma.listing.update({
       where: { id },
@@ -27,6 +42,16 @@ export async function POST(
         status: 'ACTIVE'
       }
     });
+
+    // Activate Service Provider role when first listing is approved
+    if (!listing.user.isServiceProvider) {
+      await prisma.user.update({
+        where: { id: listing.userId },
+        data: {
+          isServiceProvider: true,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

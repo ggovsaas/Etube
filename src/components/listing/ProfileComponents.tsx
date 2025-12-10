@@ -25,7 +25,14 @@ const getImageUrl = (url: string | undefined): string => {
 };
 
 // --- Profile Hero Section ---
-export const ProfileHero: React.FC<{ profile: ListingProfile }> = ({ profile }) => {
+export const ProfileHero: React.FC<{ 
+  profile: ListingProfile;
+  creatorId?: string;
+  userRoles?: {
+    isContentCreator?: boolean;
+    isServiceProvider?: boolean;
+  };
+}> = ({ profile, creatorId, userRoles }) => {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.currentTarget;
     target.src = 'https://via.placeholder.com/400x600?text=Profile+Image';
@@ -65,8 +72,9 @@ export const ProfileHero: React.FC<{ profile: ListingProfile }> = ({ profile }) 
               />
             )}
             {profile.verified && (
-              <span className="flex items-center gap-1 text-white text-xs font-bold bg-red-600/90 px-2 py-1 rounded-full">
-                <Icons.Verified size={12} /> Verificada
+              <span className="flex items-center gap-1.5 text-white text-xs font-bold bg-gradient-to-r from-red-600 to-red-700 px-3 py-1.5 rounded-full shadow-md shadow-red-600/30 border border-red-500/20">
+                <Icons.Verified size={12} className="fill-current" />
+                <span>Verificada</span>
               </span>
             )}
           </div>
@@ -91,8 +99,9 @@ export const ProfileHero: React.FC<{ profile: ListingProfile }> = ({ profile }) 
             onError={handleImageError}
           />
           {profile.verified && (
-            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur text-red-600 px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-1 shadow-sm">
-              <Icons.Verified size={16} /> Verificada
+            <div className="absolute top-4 left-4 bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-1.5 shadow-lg shadow-red-600/40 border border-red-500/30 backdrop-blur-sm z-10">
+              <Icons.Verified size={16} className="fill-current" />
+              <span>Verificada</span>
             </div>
           )}
           {/* Favorite Button - Desktop */}
@@ -111,14 +120,26 @@ export const ProfileHero: React.FC<{ profile: ListingProfile }> = ({ profile }) 
         <div className="col-span-7 flex flex-col justify-center py-4">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
-              <div className="flex gap-2 mb-3">
+              <div className="flex gap-2 mb-3 flex-wrap">
                 {profile.physical.gender && (
                   <Badge label={profile.physical.gender} variant="accent" />
                 )}
                 <Badge label="Disponível Agora" variant="brand" />
+                {profile.verified && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-full text-xs font-bold shadow-md shadow-red-600/30 border border-red-500/20">
+                    <Icons.Verified size={14} className="fill-current" />
+                    <span>Verificada</span>
+                  </div>
+                )}
               </div>
-              <h1 className="text-5xl font-extrabold text-gray-900 tracking-tight mb-2">
-                {profile.name} <span className="text-gray-400 font-light">, {profile.age}</span>
+              <h1 className="text-5xl font-extrabold text-gray-900 tracking-tight mb-2 flex items-center gap-3">
+                <span>{profile.name} <span className="text-gray-400 font-light">, {profile.age}</span></span>
+                {profile.verified && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-full text-sm font-bold shadow-lg shadow-red-600/40 border border-red-500/30 hover:shadow-xl hover:shadow-red-600/50 transition-all">
+                    <Icons.Verified size={18} className="fill-current" />
+                    <span>Verificada</span>
+                  </div>
+                )}
               </h1>
               <div className="flex items-center gap-4 text-gray-500 text-lg mb-6">
                 <span className="flex items-center gap-1">
@@ -441,7 +462,15 @@ export const ServiceTags: React.FC<{ services: string[] }> = ({ services }) => {
 };
 
 // --- Contact Card (Sidebar) ---
-export const ContactCard: React.FC<{ profile: ListingProfile; creatorId?: string; locale?: 'pt' | 'es' }> = ({ profile, creatorId, locale = 'pt' }) => {
+export const ContactCard: React.FC<{ 
+  profile: ListingProfile; 
+  creatorId?: string; 
+  locale?: 'pt' | 'es';
+  userRoles?: {
+    isContentCreator?: boolean;
+    isServiceProvider?: boolean;
+  };
+}> = ({ profile, creatorId, locale = 'pt', userRoles }) => {
   return (
     <div className="bg-white border border-red-100 rounded-xl shadow-lg shadow-red-900/5 p-6">
       <div className="text-center mb-6">
@@ -479,8 +508,40 @@ export const ContactCard: React.FC<{ profile: ListingProfile; creatorId?: string
           <Icons.Phone size={18} /> {profile.phone}
         </a>
       </div>
-      {/* Wishlist Widget - Replaces "Aviso Prévio Sugerido" - Always show */}
-      <WishlistWidget creatorId={creatorId} locale={locale} />
+      {/* Action Buttons: Wishlist, Tip Me, Contests */}
+      <div className="flex flex-wrap gap-3">
+        <WishlistWidget creatorId={creatorId} locale={locale} />
+        
+        {/* Tip Me Button */}
+        <button
+          onClick={() => {
+            // TODO: Open tip modal
+            alert(locale === 'es' ? 'Función de propina próximamente' : 'Função de gorjeta em breve');
+          }}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {locale === 'es' ? 'Propina' : 'Gorjeta'}
+        </button>
+
+        {/* Contest/Poll Button - Only show if user is Content Creator or Service Provider */}
+        {(userRoles?.isContentCreator || userRoles?.isServiceProvider) && (
+          <button
+            onClick={() => {
+              // TODO: Open contest/poll modal
+              alert(locale === 'es' ? 'Función de concursos próximamente' : 'Função de concursos em breve');
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+            {locale === 'es' ? 'Concursos' : 'Concursos'}
+          </button>
+        )}
+      </div>
     </div>
   );
 };

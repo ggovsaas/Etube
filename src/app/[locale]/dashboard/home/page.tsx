@@ -155,8 +155,8 @@ export default function DashboardHomePage() {
               </p>
               <p className="text-sm text-yellow-700 mt-1">
                 {locale === 'es' 
-                  ? 'Desde Escorttube nunca contactamos por Whatsapp, siempre lo hacemos por email y con dominio @escorttube.sex Si alguien se hace pasar por EscortTube por Whatsapp, ignóralo.'
-                  : 'Desde Escorttube nunca contactamos por Whatsapp, sempre o fazemos por email e com domínio @escorttube.sex Se alguém se fizer passar por EscortTube por Whatsapp, ignore-o.'}
+                  ? 'Desde Escorttube nunca contactamos por Whatsapp, siempre lo hacemos por email y con dominio @escorttube.vip Si alguien se hace pasar por EscortTube por Whatsapp, ignóralo.'
+                  : 'Desde Escorttube nunca contactamos por Whatsapp, sempre o fazemos por email e com domínio @escorttube.vip Se alguém se fizer passar por EscortTube por Whatsapp, ignore-o.'}
               </p>
             </div>
           </div>

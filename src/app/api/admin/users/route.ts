@@ -15,7 +15,15 @@ export async function GET(request: NextRequest) {
 
     // Fetch all users with their profiles
     const users = await prisma.user.findMany({
-      include: {
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isClient: true,
+        isContentCreator: true,
+        isServiceProvider: true,
+        createdAt: true,
         profile: true,
         listings: {
           take: 5,

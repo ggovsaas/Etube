@@ -136,6 +136,13 @@ function PerfisContent() {
     { label: 'Latina', checked: false },
     { label: 'Mista', checked: false },
   ]);
+  const [bodyTypes, setBodyTypes] = useState([
+    { label: 'Magra', checked: false },
+    { label: 'Atlética', checked: false },
+    { label: 'Curvilínea', checked: false },
+    { label: 'Plus Size', checked: false },
+    { label: 'Voluptuosa', checked: false },
+  ]);
   const [cities, setCities] = useState(localeCities.map(c => c.name));
 
   // Filtering logic
@@ -285,6 +292,7 @@ function PerfisContent() {
     setHairColors(hairColors.map(hair => ({ ...hair, checked: false })));
     setEyeColors(eyeColors.map(eye => ({ ...eye, checked: false })));
     setEthnicities(ethnicities.map(ethnicity => ({ ...ethnicity, checked: false })));
+    setBodyTypes(bodyTypes.map(bodyType => ({ ...bodyType, checked: false })));
   };
 
   return (
@@ -376,6 +384,8 @@ function PerfisContent() {
               onEyeColorChange={handleEyeColorChange}
               ethnicities={ethnicities}
               onEthnicityChange={handleEthnicityChange}
+              bodyTypes={bodyTypes}
+              onBodyTypeChange={handleBodyTypeChange}
               onClear={handleClear}
             />
             {/* Single Sidebar Banner (only on lg+) */}

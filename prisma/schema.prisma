@@ -27,6 +27,10 @@ model User {
   credits            Int                 @default(0)
   verificationToken  String?             // Legacy verification token (can be removed later)
   verificationExpiry DateTime?           // Legacy verification expiry (can be removed later)
+  // Multi-role architecture flags
+  isClient           Boolean             @default(true)  // All registered users are clients by default
+  isContentCreator   Boolean             @default(false) // Activated when user creates content
+  isServiceProvider  Boolean             @default(false) // Activated when first listing is verified
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   // Auth.js relations
@@ -52,6 +56,8 @@ model User {
   // Admin relations
   adminRoleId        String?
   adminRole          AdminRole?          @relation("UserAdminRole", fields: [adminRoleId], references: [id], onDelete: SetNull)
+  // Verification relations
+  verificationRequests VerificationRequest[]
 }
 
 model Profile {
@@ -107,6 +113,32 @@ model Profile {
   media            Media[]
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviews          Review[]
+  verificationRequests VerificationRequest[]
+}
+
+model VerificationRequest {
+  id          String   @id @default(cuid())
+  userId      String
+  profileId   String?
+  photoUrl    String   // URL to the verification photo
+  status      VerificationStatus @default(PENDING)
+  reviewedBy  String?  // Admin user ID who reviewed it
+  reviewedAt  DateTime?
+  rejectionReason String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile     Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model Listing {

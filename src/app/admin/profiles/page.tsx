@@ -24,6 +24,7 @@ export default function AdminProfilesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [deletingUser, setDeletingUser] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -80,6 +81,33 @@ export default function AdminProfilesPage() {
       alert('Error deleting profile.');
     } finally {
       setDeleting(null);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user account? This will permanently delete the user, their profile, listings, and all associated data. This action cannot be undone.')) {
+      return;
+    }
+
+    setDeletingUser(userId);
+    try {
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Refresh the list
+        fetchUsers();
+        alert('User deleted successfully!');
+      } else {
+        const data = await response.json();
+        alert(`Error deleting user: ${data.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      alert('Error deleting user.');
+    } finally {
+      setDeletingUser(null);
     }
   };
 
@@ -180,11 +208,18 @@ export default function AdminProfilesPage() {
                     <button
                       onClick={() => handleDeleteProfile(user.profile!.id)}
                       disabled={deleting === user.profile.id}
-                      className="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="text-orange-600 hover:text-orange-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {deleting === user.profile.id ? 'Deleting...' : 'Delete Profile'}
                     </button>
                   )}
+                  <button
+                    onClick={() => handleDeleteUser(user.id)}
+                    disabled={deletingUser === user.id}
+                    className="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {deletingUser === user.id ? 'Deleting...' : 'Delete User'}
+                  </button>
                 </div>
               </div>
             </li>

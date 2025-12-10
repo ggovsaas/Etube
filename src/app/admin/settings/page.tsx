@@ -10,9 +10,27 @@ export default function AdminSettingsPage() {
     maintenanceMode: false,
     allowRegistrations: true,
     requireEmailVerification: false,
+    defaultLanguage: 'pt',
+    timezone: 'Europe/Lisbon',
+    contactEmail: 'admin@escorttube.vip',
+    contactPhone: '',
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [permissions, setPermissions] = useState<any>(null);
+  const [loadingPermissions, setLoadingPermissions] = useState(true);
+  const [isMasterAdmin, setIsMasterAdmin] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/admin/permissions')
+      .then(res => res.json())
+      .then(data => {
+        setPermissions(data);
+        setIsMasterAdmin(data.isMasterAdmin || false);
+      })
+      .catch(err => console.error('Error fetching permissions:', err))
+      .finally(() => setLoadingPermissions(false));
+  }, []);
 
   const handleSave = async () => {
     setLoading(true);
@@ -84,25 +102,35 @@ export default function AdminSettingsPage() {
           <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-4">System Settings</h2>
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Maintenance Mode
+              {/* Maintenance Mode - Master Admin Only */}
+              {permissions?.canManageMaintenance && (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Maintenance Mode
+                    </label>
+                    <p className="text-sm text-gray-500">
+                      Enable to put the site in maintenance mode
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.maintenanceMode}
+                      onChange={(e) => setSettings({ ...settings, maintenanceMode: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                   </label>
-                  <p className="text-sm text-gray-500">
-                    Enable to put the site in maintenance mode
+                </div>
+              )}
+              {!permissions?.canManageMaintenance && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Restricted:</strong> Maintenance mode can only be managed by Master Admins.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.maintenanceMode}
-                    onChange={(e) => setSettings({ ...settings, maintenanceMode: e.target.checked })}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                </label>
-              </div>
+              )}
               <div className="flex items-center justify-between">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
@@ -143,6 +171,109 @@ export default function AdminSettingsPage() {
               </div>
             </div>
           </div>
+
+          {/* Localization Settings - All Admins */}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Localization & Language</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Default Language
+                </label>
+                <select
+                  value={settings.defaultLanguage}
+                  onChange={(e) => setSettings({ ...settings, defaultLanguage: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                >
+                  <option value="pt">Português</option>
+                  <option value="es">Español</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Timezone
+                </label>
+                <select
+                  value={settings.timezone}
+                  onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                >
+                  <option value="Europe/Lisbon">Europe/Lisbon (WET/WEST)</option>
+                  <option value="Europe/Madrid">Europe/Madrid (CET/CEST)</option>
+                  <option value="UTC">UTC</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Information - All Admins */}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Contact Email
+                </label>
+                <input
+                  type="email"
+                  value={settings.contactEmail}
+                  onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Contact Phone
+                </label>
+                <input
+                  type="tel"
+                  value={settings.contactPhone}
+                  onChange={(e) => setSettings({ ...settings, contactPhone: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="+351 XXX XXX XXX"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Master Admin Only Sections */}
+          {isMasterAdmin && (
+            <>
+              {/* Integrations & APIs - Master Admin Only */}
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Integrations & APIs</h2>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>Master Admin Only:</strong> API keys and integration settings are managed through environment variables for security.
+                  </p>
+                </div>
+              </div>
+
+              {/* Security Settings - Master Admin Only */}
+              {permissions?.canManageSecuritySettings && (
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Security Settings</h2>
+                  <div className="space-y-4">
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-sm text-yellow-800">
+                        <strong>Note:</strong> Security settings such as password requirements, MFA policies, and session timeouts are configured at the application level.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Standard Admin Notice */}
+          {!isMasterAdmin && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <p className="text-sm text-gray-700">
+                <strong>Standard Admin Access:</strong> You have limited access to settings. Advanced configuration options (Integrations, Security, Maintenance) are restricted to Master Admins.
+              </p>
+            </div>
+          )}
 
           {/* Save Button */}
           <div className="pt-4 border-t">

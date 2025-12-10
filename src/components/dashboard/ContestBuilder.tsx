@@ -26,6 +26,8 @@ export default function ContestBuilder({ userId, locale = 'pt' }: ContestBuilder
   const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingContest, setEditingContest] = useState<Contest | null>(null);
+  const [deletingContest, setDeletingContest] = useState<string | null>(null);
   const [resolving, setResolving] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -118,8 +120,11 @@ export default function ContestBuilder({ userId, locale = 'pt' }: ContestBuilder
     setSuccess(null);
 
     try {
-      const response = await fetch('/api/contests', {
-        method: 'POST',
+      const url = editingContest ? `/api/contests/${editingContest.id}` : '/api/contests';
+      const method = editingContest ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -135,10 +140,13 @@ export default function ContestBuilder({ userId, locale = 'pt' }: ContestBuilder
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create contest');
+        throw new Error(data.error || editingContest ? 'Failed to update contest' : 'Failed to create contest');
       }
 
-      setSuccess(locale === 'es' ? 'Concurso creado con éxito' : 'Concurso criado com sucesso');
+      setSuccess(editingContest 
+        ? (locale === 'es' ? 'Concurso actualizado con éxito' : 'Concurso atualizado com sucesso')
+        : (locale === 'es' ? 'Concurso creado con éxito' : 'Concurso criado com sucesso')
+      );
       setFormData({
         title: '',
         prizeDescription: '',
@@ -146,10 +154,51 @@ export default function ContestBuilder({ userId, locale = 'pt' }: ContestBuilder
         slotPrice: '2.00',
         threadId: ''
       });
+      setEditingContest(null);
       setShowForm(false);
       fetchContests();
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred');
+    }
+  };
+
+  const handleEdit = (contest: Contest) => {
+    setEditingContest(contest);
+    setFormData({
+      title: contest.title,
+      prizeDescription: contest.prizeDescription,
+      totalSlots: contest.totalSlots.toString(),
+      slotPrice: contest.slotPrice.toString(),
+      threadId: contest.threadId || ''
+    });
+    setShowForm(true);
+    setError(null);
+    setSuccess(null);
+  };
+
+  const handleDelete = async (contestId: string) => {
+    if (!confirm(locale === 'es' ? '¿Está seguro de que desea eliminar este concurso? Esta acción no se puede deshacer.' : 'Tem certeza que deseja excluir este concurso? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    try {
+      setDeletingContest(contestId);
+      const response = await fetch(`/api/contests/${contestId}`, {
+        method: 'DELETE'
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete contest');
+      }
+
+      setSuccess(locale === 'es' ? 'Concurso eliminado' : 'Concurso excluído');
+      fetchContests();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred');
+    } finally {
+      setDeletingContest(null);
     }
   };
 
@@ -226,14 +275,17 @@ export default function ContestBuilder({ userId, locale = 'pt' }: ContestBuilder
         )}
       </div>
 
-      {/* Create Form */}
+      {/* Create/Edit Form */}
       {showForm && (
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">{t.newContest}</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {editingContest ? (locale === 'es' ? 'Editar Concurso' : 'Editar Concurso') : t.newContest}
+            </h3>
             <button
               onClick={() => {
                 setShowForm(false);
+                setEditingContest(null);
                 setFormData({
                   title: '',
                   prizeDescription: '',
@@ -410,16 +462,40 @@ export default function ContestBuilder({ userId, locale = 'pt' }: ContestBuilder
                   </div>
 
                   {/* Actions */}
-                  {contest.status === 'OPEN' && slotsSold > 0 && (
-                    <button
-                      onClick={() => handleResolve(contest.id)}
-                      disabled={resolving === contest.id}
-                      className="w-full px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      <Sparkles size={18} />
-                      {resolving === contest.id ? t.resolving : t.resolve}
-                    </button>
-                  )}
+                  <div className="flex gap-2">
+                    {contest.status === 'OPEN' && (
+                      <>
+                        <button
+                          onClick={() => handleEdit(contest)}
+                          className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors"
+                        >
+                          {locale === 'es' ? 'Editar' : 'Editar'}
+                        </button>
+                        {slotsSold === 0 && (
+                          <button
+                            onClick={() => handleDelete(contest.id)}
+                            disabled={deletingContest === contest.id}
+                            className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {deletingContest === contest.id 
+                              ? (locale === 'es' ? 'Eliminando...' : 'Excluindo...')
+                              : (locale === 'es' ? 'Eliminar' : 'Excluir')
+                            }
+                          </button>
+                        )}
+                      </>
+                    )}
+                    {contest.status === 'OPEN' && slotsSold > 0 && (
+                      <button
+                        onClick={() => handleResolve(contest.id)}
+                        disabled={resolving === contest.id}
+                        className="flex-1 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        <Sparkles size={18} />
+                        {resolving === contest.id ? t.resolving : t.resolve}
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}

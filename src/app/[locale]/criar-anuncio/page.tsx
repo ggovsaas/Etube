@@ -1135,49 +1135,6 @@ export default function CriarAnuncioPage() {
               </div>
             </div>
 
-            {/* Personality Tags - Improved */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Tags de Personalidade</label>
-              <div className="mt-1">
-                <input
-                  type="text"
-                  placeholder="Digite uma tag e pressione Enter"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      const input = e.target as HTMLInputElement;
-                      const tag = input.value.trim();
-                      if (tag && !formData.personalityTags.includes(tag)) {
-                        setFormData(prev => ({
-                          ...prev,
-                          personalityTags: [...prev.personalityTags, tag]
-                        }));
-                        input.value = '';
-                      }
-                    }
-                  }}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
-                />
-                <div className="flex flex-wrap items-center gap-2 mt-2">
-                  {formData.personalityTags.map((tag, index) => (
-                    <span key={index} className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center">
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => setFormData(prev => ({
-                          ...prev,
-                          personalityTags: prev.personalityTags.filter((_, i) => i !== index)
-                        }))}
-                        className="ml-1 text-blue-800 hover:text-blue-900 text-xs font-bold"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
             {/* Additional Physical Attributes */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
@@ -1311,9 +1268,10 @@ export default function CriarAnuncioPage() {
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
                 >
                   <option value="">Selecione</option>
-                  <option value="1 hora">1 hora</option>
-                  <option value="2 horas">2 horas</option>
-                  <option value="1 dia">1 dia</option>
+                  <option value="15 minutos">15 minutos</option>
+                  <option value="30 minutos">30 minutos</option>
+                  <option value="45 minutos">45 minutos</option>
+                  <option value="60 minutos">60 minutos</option>
                 </select>
               </div>
             </div>
@@ -1375,7 +1333,7 @@ export default function CriarAnuncioPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Desconto para regulares</label>
+              <label className="block text-sm font-medium text-gray-700">Desconto para regulares (opcional)</label>
               <select
                 value={formData.regularDiscount}
                 onChange={(e) => handleInputChange('regularDiscount', e.target.value)}

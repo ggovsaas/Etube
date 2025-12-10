@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
     // Create user and profile in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Create user
+      // Create user with multi-role architecture
       const user = await tx.user.create({
         data: {
           email,
@@ -70,6 +70,10 @@ export async function POST(request: Request) {
           emailVerified: null, // DateTime? expects null, not false
           verificationToken,
           verificationExpiry,
+          // Multi-role flags
+          isClient: true, // All registered users are clients by default
+          isContentCreator: accountType === 'cam_creator', // CAM_CREATOR activates content creator role
+          isServiceProvider: false, // Only activated when first listing is verified
         },
       });
 
