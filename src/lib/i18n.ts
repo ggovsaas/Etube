@@ -174,6 +174,12 @@ export const translations = {
     next: 'Siguiente',
     previous: 'Anterior',
     submit: 'Enviar',
+    // Auth Modal (criar-anuncio)
+    loginRequired: 'Inicio de Sesión Necesario',
+    loginRequiredMessage: 'Para publicar tu anuncio, necesitas estar conectado. Tu información ha sido guardada y estará disponible después del inicio de sesión.',
+    makeLogin: 'Iniciar Sesión',
+    createAccount: 'Crear Cuenta',
+    continueEditing: 'Continuar Editando',
   },
   'pt-AO': {
     // Angola - Portuguese variant (inherits from pt)

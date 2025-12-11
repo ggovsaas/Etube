@@ -44,7 +44,8 @@ export default function PulsePage() {
   const fetchFeed = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/feed?page=${page}&limit=15`);
+      // CRITICAL: Pass locale to API for geographic filtering
+      const response = await fetch(`/api/feed?page=${page}&limit=15&locale=${locale}`);
       if (response.ok) {
         const data = await response.json();
         if (page === 1) {

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useLocale } from '@/hooks/useLocale';
 
 interface FormData {
   // Basic Info
@@ -92,6 +93,7 @@ interface FormData {
 export default function CriarAnuncioPage() {
   const params = useParams();
   const locale = (params?.locale as 'pt' | 'es') || 'pt';
+  const { t } = useLocale();
   const [currentStep, setCurrentStep] = useState(1);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -2152,32 +2154,32 @@ export default function CriarAnuncioPage() {
             <div className="text-center">
               <div className="text-4xl mb-4">🔐</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">
-                Login Necessário
+                {t.loginRequired}
               </h3>
               <p className="text-gray-600 mb-6">
-                Para publicar seu anúncio, você precisa estar logado. Suas informações foram salvas e estarão disponíveis após o login.
+                {t.loginRequiredMessage}
               </p>
               
               <div className="space-y-3">
                 <Link
-                  href="/login"
+                  href={`/${locale}/login`}
                   className="block w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200"
                 >
-                  Fazer Login
+                  {t.makeLogin}
                 </Link>
                 
                 <Link
-                  href="/criar-perfil"
+                  href={`/${locale}/criar-perfil`}
                   className="block w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200"
                 >
-                  Criar Conta
+                  {t.createAccount}
                 </Link>
                 
                 <button
                   onClick={() => setShowAuthModal(false)}
                   className="block w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-4 rounded-lg transition duration-200"
                 >
-                  Continuar Editando
+                  {t.continueEditing}
                 </button>
               </div>
             </div>
