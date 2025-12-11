@@ -112,6 +112,9 @@ export function middleware(request: NextRequest) {
   if (!pathnameHasLocale) {
     const locale = defaultLocale;
     const newUrl = new URL(`/${locale}${pathname}`, request.url);
+    // Preserve query params and hash
+    newUrl.search = request.nextUrl.search;
+    newUrl.hash = request.nextUrl.hash;
     return NextResponse.redirect(newUrl);
   }
 
