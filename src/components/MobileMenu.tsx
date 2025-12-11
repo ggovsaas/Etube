@@ -23,23 +23,16 @@ export default function MobileMenu() {
           <LocaleLink href="/" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
             {locale === 'es' ? 'Inicio' : 'Início'}
           </LocaleLink>
-          <LocaleLink href="/feed" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-            {locale === 'es' ? 'Feed' : 'Feed'}
-          </LocaleLink>
           <LocaleLink href={locale === 'es' ? '/perfiles' : '/perfis'} className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-            {t.profiles}
-          </LocaleLink>
-          <LocaleLink href={locale === 'es' ? '/articulos' : '/artigos'} className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-            {locale === 'es' ? 'Artículos' : 'Artigos'}
+            {locale === 'es' ? 'Escorts' : 'Escorts'}
           </LocaleLink>
           <LocaleLink href="/webcam" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-            {locale === 'es' ? 'Webcam' : 'Webcam'}
+            {locale === 'es' ? 'WebCam' : 'WebCam'}
           </LocaleLink>
-          <LocaleLink href="/precos" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-            {locale === 'es' ? 'Créditos' : 'Créditos'}
-          </LocaleLink>
-          <LocaleLink href="/criar-perfil" className="block px-4 py-2 text-red-600 font-medium">{t.createProfile}</LocaleLink>
           <LocaleLink href="/login" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">{t.login}</LocaleLink>
+          <LocaleLink href="/criar-perfil" className="block px-4 py-2 text-red-600 font-medium">
+            {locale === 'es' ? 'Registrarse' : 'Registar'}
+          </LocaleLink>
         </div>
       )}
     </div>
