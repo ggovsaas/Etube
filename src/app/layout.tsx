@@ -30,16 +30,17 @@ export default async function RootLayout({
   return (
     <html lang="pt">
       <head>
-        {/* Tailwind CDN - Required for styles to load (PostCSS build may not be working in dev) */}
+        {/* Minimal critical CSS to prevent worst FOUC */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            body { margin: 0; padding: 0; font-family: ${inter.style.fontFamily}, system-ui, sans-serif; background: #f9fafb; }
+            * { box-sizing: border-box; }
+          `
+        }} />
+        {/* Tailwind CDN - Required for styles to load */}
         <Script 
           src="https://cdn.tailwindcss.com" 
           strategy="beforeInteractive"
-          onLoad={() => {
-            // Mark styles as loaded to prevent FOUC
-            if (typeof document !== 'undefined') {
-              document.documentElement.classList.add('tailwind-loaded');
-            }
-          }}
         />
         <Script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" strategy="afterInteractive" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
