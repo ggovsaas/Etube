@@ -119,7 +119,7 @@ export default function BlogsPage() {
     <DashboardLayout user={user}>
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          {locale === 'pt' ? 'Blogs & Stories' : 'Blogs & Stories'}
+          {locale === 'pt' ? 'Artigos & Stories' : 'Artículos & Stories'}
         </h1>
 
         {/* Tabs */}
@@ -133,7 +133,7 @@ export default function BlogsPage() {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              {locale === 'pt' ? 'Blog Posts' : 'Publicaciones del Blog'}
+              {locale === 'pt' ? 'Artigos Principais' : 'Artículos Principales'}
             </button>
             {canManageStories && (
               <button
@@ -156,8 +156,8 @@ export default function BlogsPage() {
             <div className="flex justify-between items-center mb-6">
               <p className="text-gray-600">
                 {locale === 'pt'
-                  ? 'Gerencie seus posts de blog. Use o CMS de administração para criar e editar posts completos.'
-                  : 'Gestiona tus publicaciones del blog. Usa el CMS de administración para crear y editar publicaciones completas.'}
+                  ? 'Gerencie seus artigos principais. Use o CMS de administração para criar e editar artigos completos.'
+                  : 'Gestiona tus artículos principales. Usa el CMS de administración para crear y editar artículos completos.'}
               </p>
               <Link
                 href="/admin/blog"
@@ -205,12 +205,12 @@ export default function BlogsPage() {
 
             {blogPosts.length === 0 && (
               <div className="text-center py-12 text-gray-500">
-                <p>{locale === 'pt' ? 'Nenhum post de blog ainda.' : 'Aún no hay publicaciones del blog.'}</p>
+                <p>{locale === 'pt' ? 'Nenhum artigo ainda.' : 'Aún no hay artículos.'}</p>
                 <Link
                   href="/admin/blog"
                   className="mt-4 inline-block text-red-600 hover:text-red-700 font-medium"
                 >
-                  {locale === 'pt' ? 'Criar primeiro post →' : 'Crear primera publicación →'}
+                  {locale === 'pt' ? 'Criar primeiro artigo →' : 'Crear primer artículo →'}
                 </Link>
               </div>
             )}

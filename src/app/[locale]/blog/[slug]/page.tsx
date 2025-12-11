@@ -69,12 +69,14 @@ export default function BlogPostPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Post Not Found</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            {locale === 'es' ? 'Artículo No Encontrado' : 'Artigo Não Encontrado'}
+          </h1>
           <Link
             href={`/${locale}/blog`}
             className="text-red-600 hover:text-red-700 underline"
           >
-            Back to Blog
+            {locale === 'es' ? 'Volver a Artículos' : 'Voltar a Artigos'}
           </Link>
         </div>
       </div>
@@ -84,7 +86,7 @@ export default function BlogPostPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Back to Blog */}
+        {/* Back to Articles */}
         <Link
           href={`/${locale}/blog`}
           className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-8"
@@ -92,7 +94,7 @@ export default function BlogPostPage() {
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Blog
+          {locale === 'es' ? 'Volver a Artículos' : 'Voltar a Artigos'}
         </Link>
 
         {/* Feature Image */}
