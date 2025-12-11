@@ -2,8 +2,40 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Supported locales
-// Portugal, Spain, Angola, Netherlands, Colombia, Brazil, Chile, Germany, Belgium (Dutch), Belgium (French)
-export const locales = ['pt', 'es', 'pt-AO', 'nl', 'es-CO', 'pt-BR', 'es-CL', 'de', 'nl-BE', 'fr-BE'] as const;
+// Core languages: Portuguese (pt), Spanish (es), English (en), German (de), Dutch (nl), French (fr)
+// Country variants:
+// - Portuguese: pt (Portugal), pt-BR (Brazil), pt-AO (Angola)
+// - Spanish: es (Spain), es-MX (Mexico), es-CO (Colombia), es-CL (Chile), es-UY (Uruguay)
+// - English: en-US (USA), en-GB (UK), en-ZA (South Africa), en-CY (Cyprus)
+// - German: de (Germany)
+// - Dutch: nl (Netherlands), nl-BE (Belgium)
+// - French: fr (France), fr-BE (Belgium)
+// - Other: el (Greece), el-CY (Cyprus Greek), it (Italy), pl (Poland), hr (Croatia)
+export const locales = [
+  'pt',      // Portugal
+  'pt-BR',   // Brazil
+  'pt-AO',   // Angola
+  'es',      // Spain
+  'es-MX',   // Mexico
+  'es-CO',   // Colombia
+  'es-CL',   // Chile
+  'es-UY',   // Uruguay
+  'en',      // English (defaults to en-US)
+  'en-US',   // USA
+  'en-GB',   // UK
+  'en-ZA',   // South Africa
+  'en-CY',   // Cyprus (English)
+  'de',      // Germany
+  'nl',      // Netherlands
+  'nl-BE',   // Belgium (Dutch)
+  'fr',      // France
+  'fr-BE',   // Belgium (French)
+  'el',      // Greece
+  'el-CY',   // Cyprus (Greek)
+  'it',      // Italy
+  'pl',      // Poland
+  'hr',      // Croatia
+] as const;
 export const defaultLocale = 'pt' as const;
 
 export type Locale = (typeof locales)[number];
