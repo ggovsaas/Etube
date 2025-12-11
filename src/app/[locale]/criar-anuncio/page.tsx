@@ -87,6 +87,9 @@ interface FormData {
   galleryMedia: File[];
   comparisonMedia: File[];
   verificationPhoto: File | null; // Selfie with ID for face verification
+  // DEV ONLY: URL uploads for quick testing
+  galleryMediaUrls: string[];
+  comparisonMediaUrls: string[];
   voiceNoteUrl: string; // Voice note URL
 }
 
