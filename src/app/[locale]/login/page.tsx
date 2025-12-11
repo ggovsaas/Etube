@@ -131,12 +131,13 @@ export default function LoginPage() {
     }
   };
 
-  const loginText = locale === 'es' ? 'Iniciar Sesión' : 'Login';
-  const emailLabel = locale === 'es' ? 'Correo electrónico' : 'Email';
-  const passwordLabel = locale === 'es' ? 'Contraseña' : 'Senha';
-  const submitText = locale === 'es' ? 'Iniciar Sesión' : 'Entrar';
-  const noAccountText = locale === 'es' ? '¿No tienes una cuenta?' : 'Não tem uma conta?';
-  const signUpText = locale === 'es' ? 'Regístrate' : 'Registe-se';
+  // Use i18n translations
+  const loginText = t.login;
+  const emailLabel = t.email;
+  const passwordLabel = t.password;
+  const submitText = t.signIn;
+  const noAccountText = t.noAccount;
+  const signUpText = t.signUp;
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

@@ -148,6 +148,32 @@ export const translations = {
     next: 'Siguiente',
     page: 'Página',
     of: 'de',
+    // Create Listing Form
+    createListing: 'Crear Anuncio',
+    photoRestrictions: 'Restricciones de Fotos',
+    videoRestrictions: 'Restricciones de Videos',
+    whatIsAllowed: 'Lo que está permitido',
+    whatIsNotAllowed: 'Lo que no está permitido',
+    basicDataProtectionInfo: 'Información Básica sobre Protección de Datos',
+    photoVerificationWithID: 'Verificación de Foto con Identificación',
+    // Login
+    login: 'Iniciar Sesión',
+    email: 'Email',
+    password: 'Contraseña',
+    rememberMe: 'Recordarme',
+    forgotPassword: '¿Olvidaste tu contraseña?',
+    signIn: 'Entrar',
+    signInWithGoogle: 'Entrar con Google',
+    noAccount: '¿No tienes cuenta?',
+    signUp: 'Registrarse',
+    // Common form
+    required: 'Obligatorio',
+    optional: 'Opcional',
+    save: 'Guardar',
+    cancel: 'Cancelar',
+    next: 'Siguiente',
+    previous: 'Anterior',
+    submit: 'Enviar',
   },
   'pt-AO': {
     // Angola - Portuguese variant (inherits from pt)
@@ -1185,8 +1211,10 @@ export function getTranslations(locale: Locale) {
   return translations[defaultLocale];
 }
 
-export function getAlternateUrls(pathname: string, baseUrl: string = process.env.NEXT_PUBLIC_BASE_URL || 'https://yourwebsite.com') {
-  const cleanPath = pathname.replace(/^\/(pt|es|pt-AO|nl|es-CO|pt-BR|es-CL|de|nl-BE|fr-BE)/, '') || '/';
+export function getAlternateUrls(pathname: string, baseUrl: string = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.escorttube.vip') {
+  // Remove any locale prefix to get clean path
+  const localePattern = new RegExp(`^/(${locales.join('|')})`, 'i');
+  const cleanPath = pathname.replace(localePattern, '') || '/';
   const currentLocale = getLocale(pathname);
 
   const alternates = locales.map((locale) => ({

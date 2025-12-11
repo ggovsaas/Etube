@@ -28,9 +28,25 @@ export async function GET(request: NextRequest) {
     }
 
     // Define cities for each locale
+    // English (en) includes tourist destinations: Cyprus, Marbella (Spain), and other popular destinations
     const localeCities: Record<string, string[]> = {
       pt: ['Lisboa', 'Porto', 'Coimbra', 'Braga', 'Aveiro', 'Faro'],
-      es: ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao', 'Málaga'],
+      es: ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao', 'Málaga', 'Marbella'],
+      en: ['Limassol', 'Nicosia', 'Paphos', 'Larnaca', 'Ayia Napa', 'Marbella', 'Ibiza', 'Mallorca', 'Barcelona', 'Madrid', 'Amsterdam', 'Lisbon', 'Porto'],
+      'en-GB': ['Limassol', 'Nicosia', 'Paphos', 'Larnaca', 'Ayia Napa', 'Marbella', 'Ibiza', 'Mallorca', 'Barcelona', 'Madrid', 'Amsterdam', 'Lisbon', 'Porto'],
+      'en-CY': ['Limassol', 'Nicosia', 'Paphos', 'Larnaca', 'Ayia Napa'],
+      'en-US': ['Marbella', 'Ibiza', 'Mallorca', 'Barcelona', 'Madrid', 'Amsterdam', 'Lisbon', 'Porto'],
+      'en-ZA': ['Cape Town', 'Johannesburg', 'Durban', 'Pretoria'],
+      de: ['Berlin', 'Munich', 'Hamburg', 'Frankfurt', 'Cologne', 'Stuttgart'],
+      nl: ['Amsterdam', 'Rotterdam', 'The Hague', 'Utrecht', 'Eindhoven'],
+      'nl-BE': ['Antwerp', 'Ghent', 'Bruges', 'Leuven'],
+      fr: ['Paris', 'Lyon', 'Marseille', 'Toulouse', 'Nice', 'Nantes'],
+      'fr-BE': ['Brussels', 'Liège', 'Charleroi', 'Namur'],
+      it: ['Rome', 'Milan', 'Naples', 'Turin', 'Palermo', 'Genoa'],
+      pl: ['Warsaw', 'Krakow', 'Gdansk', 'Wroclaw', 'Poznan'],
+      hr: ['Zagreb', 'Split', 'Rijeka', 'Osijek', 'Dubrovnik'],
+      el: ['Athens', 'Thessaloniki', 'Patras', 'Heraklion', 'Larissa'],
+      'el-CY': ['Limassol', 'Nicosia', 'Paphos', 'Larnaca', 'Ayia Napa'],
     };
 
     // Build base where clause
@@ -39,10 +55,13 @@ export async function GET(request: NextRequest) {
     };
 
     // Filter by locale (country) based on cities
-    if (locale && localeCities[locale]) {
+    // Handle English variants: en-US, en-GB, en-CY, en-ZA all fall back to 'en' cities
+    const baseLocale = locale?.startsWith('en') ? 'en' : locale;
+    
+    if (baseLocale && localeCities[baseLocale]) {
       if (city) {
         // If city is specified, verify it belongs to the locale
-        if (localeCities[locale].includes(city)) {
+        if (localeCities[baseLocale].includes(city)) {
           where.city = city;
         } else {
           // City doesn't belong to locale, return empty results
@@ -56,7 +75,7 @@ export async function GET(request: NextRequest) {
       } else {
         // No city specified, filter by all cities in the locale
         where.city = {
-          in: localeCities[locale],
+          in: localeCities[baseLocale],
         };
       }
     } else if (city) {

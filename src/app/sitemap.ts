@@ -1,9 +1,10 @@
 import { MetadataRoute } from 'next';
 import { prisma } from '@/lib/prisma';
+import { locales } from '@/middleware';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.escorttube.vip';
-  const locales = ['pt', 'es'];
+  // Use all supported locales from middleware
   
   const sitemapEntries: MetadataRoute.Sitemap = [];
 
