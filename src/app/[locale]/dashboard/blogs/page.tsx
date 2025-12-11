@@ -153,18 +153,14 @@ export default function BlogsPage() {
         {/* Blog Posts Tab */}
         {activeTab === 'blog' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
-              <p className="text-gray-600">
-                {locale === 'pt'
-                  ? 'Gerencie seus artigos principais. Use o CMS de administração para criar e editar artigos completos.'
-                  : 'Gestiona tus artículos principales. Usa el CMS de administración para crear y editar artículos completos.'}
-              </p>
-              <Link
-                href="/admin/blog"
-                className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200"
-              >
-                {locale === 'pt' ? 'Ir para CMS' : 'Ir al CMS'}
-              </Link>
+            <div className="mb-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-blue-800 text-sm">
+                  {locale === 'pt'
+                    ? 'Os artigos principais (SEO) são gerenciados exclusivamente pelos administradores através do CMS. Esta seção mostra apenas os artigos publicados.'
+                    : 'Los artículos principales (SEO) son gestionados exclusivamente por los administradores a través del CMS. Esta sección muestra solo los artículos publicados.'}
+                </p>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -192,10 +188,10 @@ export default function BlogsPage() {
                     <p className="text-sm text-gray-600 mb-4 line-clamp-3">{post.excerpt}</p>
                     <div className="flex gap-2">
                       <Link
-                        href={`/admin/blog?edit=${post.id}`}
+                        href={`/${locale}/blog/${post.slug}`}
                         className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 px-4 rounded text-center transition"
                       >
-                        {locale === 'pt' ? 'Editar' : 'Editar'}
+                        {locale === 'pt' ? 'Ver' : 'Ver'}
                       </Link>
                     </div>
                   </div>
@@ -205,13 +201,12 @@ export default function BlogsPage() {
 
             {blogPosts.length === 0 && (
               <div className="text-center py-12 text-gray-500">
-                <p>{locale === 'pt' ? 'Nenhum artigo ainda.' : 'Aún no hay artículos.'}</p>
-                <Link
-                  href="/admin/blog"
-                  className="mt-4 inline-block text-red-600 hover:text-red-700 font-medium"
-                >
-                  {locale === 'pt' ? 'Criar primeiro artigo →' : 'Crear primer artículo →'}
-                </Link>
+                <p>{locale === 'pt' ? 'Nenhum artigo publicado ainda.' : 'Aún no hay artículos publicados.'}</p>
+                <p className="text-sm mt-2">
+                  {locale === 'pt' 
+                    ? 'Os artigos são criados pelos administradores no CMS.'
+                    : 'Los artículos son creados por los administradores en el CMS.'}
+                </p>
               </div>
             )}
           </div>

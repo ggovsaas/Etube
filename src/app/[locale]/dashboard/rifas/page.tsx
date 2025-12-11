@@ -1,25 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useParams } from 'next/navigation';
+import { useLocale } from '@/hooks/useLocale';
 import DashboardLayout from '@/components/DashboardLayout';
 import ContestBuilder from '@/components/dashboard/ContestBuilder';
 
-export default function ContestsPage() {
-  const { data: session, status } = useSession();
-  const params = useParams();
-  const locale = (params?.locale as 'pt' | 'es') || 'pt';
-  const [user, setUser] = useState<any>(null);
+interface User {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+}
+
+export default function RifasPage() {
+  const { locale } = useLocale();
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      fetchUserData();
-    } else if (status === 'unauthenticated') {
-      setLoading(false);
-    }
-  }, [status, session]);
+    fetchUserData();
+  }, []);
 
   const fetchUserData = async () => {
     try {
@@ -35,7 +35,7 @@ export default function ContestsPage() {
     }
   };
 
-  if (loading || status === 'loading') {
+  if (loading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
@@ -50,7 +50,7 @@ export default function ContestsPage() {
     );
   }
 
-  if (!session || !user) {
+  if (!user) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
