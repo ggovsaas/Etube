@@ -644,23 +644,8 @@ export const translations = {
     page: 'Page',
     of: 'of',
   },
-  // English variants inherit from 'en' via fallback, but can override if needed
-  'en-US': {
-    // USA - inherits from 'en', can add US-specific overrides here if needed
-    ...({} as any), // Placeholder - will use 'en' via fallback
-  },
-  'en-GB': {
-    // UK - inherits from 'en', can add UK-specific overrides here if needed
-    ...({} as any), // Placeholder - will use 'en' via fallback
-  },
-  'en-ZA': {
-    // South Africa - inherits from 'en', can add ZA-specific overrides here if needed
-    ...({} as any), // Placeholder - will use 'en' via fallback
-  },
-  'en-CY': {
-    // Cyprus (English) - inherits from 'en', can add CY-specific overrides here if needed
-    ...({} as any), // Placeholder - will use 'en' via fallback
-  },
+  // English variants inherit from 'en' via fallback system
+  // No need to define them here - getTranslations() will automatically fallback to 'en'
   // French - Base (France)
   'fr': {
     home: 'Accueil',
@@ -748,15 +733,8 @@ export const translations = {
     page: 'Page',
     of: 'de',
   },
-  // Spanish variants
-  'es-MX': {
-    // Mexico - Spanish variant (inherits from 'es', can override)
-    ...({} as any), // Placeholder - will use 'es' via fallback
-  },
-  'es-UY': {
-    // Uruguay - Spanish variant (inherits from 'es', can override)
-    ...({} as any), // Placeholder - will use 'es' via fallback
-  },
+  // Spanish variants inherit from 'es' via fallback system
+  // No need to define es-MX, es-UY here - getTranslations() will automatically fallback to 'es'
   // Italian
   'it': {
     home: 'Home',
@@ -1105,10 +1083,8 @@ export const translations = {
     page: 'Σελίδα',
     of: 'από',
   },
-  // Greek Cyprus (inherits from el, can override)
-  'el-CY': {
-    ...({} as any), // Placeholder - will use 'el' via fallback
-  },
+  // Greek Cyprus inherits from 'el' via fallback system
+  // No need to define el-CY here - getTranslations() will automatically fallback to 'el'
 } as const;
 
 // Cities data for each locale
