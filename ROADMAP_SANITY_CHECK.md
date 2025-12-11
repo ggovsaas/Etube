@@ -20,27 +20,32 @@
 - [x] Pulse page created with Stories Bar and Post Cards
 - [x] Basic i18n system in place (23 locales supported)
 
-### ⚠️ **CRITICAL PENDING:**
+### ✅ **COMPLETED (Latest Update):**
 
-#### 1. **Pulse Feed Logic** (HIGH PRIORITY)
-**Problem**: Feed API doesn't filter listings by locale/geography
-**Solution**: 
-- Mix ALL UGC content (photos, videos, stories) - language prioritized
-- **STRICTLY FILTER** any linked listings/profiles to match URL locale geography
-- Example: `/pt/pulse` shows Portuguese listings only, but can show English content posts
+#### 1. **Pulse Feed Logic** ✅
+**Status**: IMPLEMENTED
+- Feed API now accepts `locale` parameter
+- **STRICTLY FILTERS** listings by geographic region (native market only)
+- Mixes ALL UGC content (photos, videos, stories) - language prioritized
+- Standalone creators (no listings) appear in all feeds (global content)
+- Service providers (escorts/creators with listings) only appear in their native market
 
-**Files to Update:**
-- `src/app/api/feed/route.ts` - Add locale parameter and geographic filtering
-- `src/app/[locale]/pulse/page.tsx` - Pass locale to API
+**Files Updated:**
+- ✅ `src/app/api/feed/route.ts` - Added locale parameter and geographic filtering
+- ✅ `src/app/[locale]/pulse/page.tsx` - Passes locale to API
 
-#### 2. **I18N Cleanup** (HIGH PRIORITY)
-**Problem**: Hardcoded strings in critical pages
-**Files Needing Updates:**
-- `src/app/[locale]/criar-anuncio/page.tsx` - Many hardcoded PT/ES strings
-- `src/app/[locale]/criar-perfil/page.tsx` - Uses inline translations instead of i18n.ts
-- `src/app/[locale]/login/page.tsx` - Already uses i18n (✅ verified)
+#### 2. **I18N Cleanup (Partial)** ✅
+**Status**: PARTIALLY COMPLETE
+- ✅ `src/app/[locale]/criar-anuncio/page.tsx` - Auth modal now uses i18n
+- ✅ Added missing translation keys (loginRequired, loginRequiredMessage, makeLogin, createAccount, continueEditing)
+- ⚠️ `src/app/[locale]/criar-perfil/page.tsx` - Still uses inline translations (needs update)
+- ✅ `src/app/[locale]/login/page.tsx` - Already uses i18n (verified)
 
-**Action**: Replace all hardcoded strings with `t.key` from `i18n.ts`
+### ⚠️ **REMAINING TASKS:**
+
+#### 1. **I18N Cleanup (criar-perfil)** (MEDIUM PRIORITY)
+**Problem**: `criar-perfil` uses inline translations instead of i18n.ts
+**Action**: Replace inline translation object with `useLocale()` hook and `t.key` calls
 
 #### 3. **Hreflang Verification** (MEDIUM PRIORITY)
 **Status**: Already implemented correctly ✅
