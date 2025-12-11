@@ -34,10 +34,17 @@ export default async function RootLayout({
         <style dangerouslySetInnerHTML={{
           __html: `
             /* Critical baseline styles to prevent flash */
-            body { margin: 0; padding: 0; font-family: ${inter.style.fontFamily}, system-ui, -apple-system, sans-serif; }
             * { box-sizing: border-box; }
-            /* Hide content until styles load */
-            body:not(.styles-loaded) { visibility: hidden; }
+            html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+            body { 
+              margin: 0; 
+              padding: 0; 
+              font-family: ${inter.style.fontFamily}, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              background-color: #f9fafb;
+              color: #111827;
+            }
+            /* Prevent layout shift during load */
+            img { max-width: 100%; height: auto; display: block; }
           `
         }} />
         {/* Remove Tailwind CDN - using PostCSS/Tailwind build process instead */}
@@ -65,9 +72,6 @@ export default async function RootLayout({
         )}
       </head>
       <body className={`${inter.className} font-sans antialiased bg-gray-50`}>
-        <Script id="mark-styles-loaded" strategy="afterInteractive">
-          {`document.body.classList.add('styles-loaded');`}
-        </Script>
         <SessionProvider session={session}>
           <ConditionalLayout>
             {children}
