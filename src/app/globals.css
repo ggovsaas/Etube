@@ -1,26 +1,107 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* RTL (Right-to-Left) Support */
+/* This ensures all layouts automatically flip for RTL languages */
+[dir='rtl'] {
+  direction: rtl;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+[dir='rtl'] .flex {
+  flex-direction: row-reverse;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+[dir='rtl'] .flex-row {
+  flex-direction: row-reverse;
+}
+
+[dir='rtl'] .justify-start {
+  justify-content: flex-end;
+}
+
+[dir='rtl'] .justify-end {
+  justify-content: flex-start;
+}
+
+[dir='rtl'] .text-left {
+  text-align: right;
+}
+
+[dir='rtl'] .text-right {
+  text-align: left;
+}
+
+[dir='rtl'] .ml-auto {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[dir='rtl'] .mr-auto {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+[dir='rtl'] .ml-4 {
+  margin-left: 0;
+  margin-right: 1rem;
+}
+
+[dir='rtl'] .mr-4 {
+  margin-right: 0;
+  margin-left: 1rem;
+}
+
+[dir='rtl'] .pl-4 {
+  padding-left: 0;
+  padding-right: 1rem;
+}
+
+[dir='rtl'] .pr-4 {
+  padding-right: 0;
+  padding-left: 1rem;
+}
+
+/* Stories Bar horizontal scroll direction for RTL */
+[dir='rtl'] .overflow-x-auto {
+  direction: rtl;
+}
+
+[dir='rtl'] .overflow-x-auto > * {
+  direction: ltr; /* Keep content inside readable */
+}
+
+/* Text Expansion Support - Flexible containers */
+.text-expand-safe {
+  min-width: 0; /* Allows text to shrink */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Button padding for text expansion */
+.btn-expand-safe {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  min-width: fit-content;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .btn-expand-safe {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 0.875rem;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Mobile-first responsive utilities */
+@media (max-width: 640px) {
+  .mobile-stack {
+    flex-direction: column;
+  }
+  
+  .mobile-full-width {
+    width: 100%;
+  }
 }
+
