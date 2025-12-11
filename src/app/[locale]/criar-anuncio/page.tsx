@@ -394,6 +394,42 @@ export default function CriarAnuncioPage() {
     }));
   };
 
+  // DEV ONLY: Convert URL to File for gallery
+  const addGalleryUrl = async (url: string) => {
+    if (!url.trim()) return;
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const fileName = url.split('/').pop() || 'image.jpg';
+      const file = new File([blob], fileName, { type: blob.type });
+      setFormData(prev => ({
+        ...prev,
+        galleryMedia: [...prev.galleryMedia, file].slice(0, 10),
+        galleryMediaUrls: prev.galleryMediaUrls.filter(u => u !== url)
+      }));
+    } catch (error) {
+      alert(locale === 'pt' ? 'Erro ao carregar imagem da URL' : 'Error al cargar imagen de la URL');
+    }
+  };
+
+  // DEV ONLY: Convert URL to File for comparison video
+  const addComparisonUrl = async (url: string) => {
+    if (!url.trim()) return;
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const fileName = url.split('/').pop() || 'video.mp4';
+      const file = new File([blob], fileName, { type: blob.type });
+      setFormData(prev => ({
+        ...prev,
+        comparisonMedia: [...prev.comparisonMedia, file].slice(0, 5),
+        comparisonMediaUrls: prev.comparisonMediaUrls.filter(u => u !== url)
+      }));
+    } catch (error) {
+      alert(locale === 'pt' ? 'Erro ao carregar vídeo da URL' : 'Error al cargar video de la URL');
+    }
+  };
+
   const nextStep = () => {
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
