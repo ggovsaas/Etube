@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import StoriesBarClient from '@/components/StoriesBarClient';
@@ -35,11 +36,15 @@ interface ContentItem {
 export default function PulsePage() {
   const { locale, t } = useLocale();
   const { data: session, status } = useSession();
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'feed' | 'upload'>('feed');
 
   useEffect(() => {
     fetchFeed();
@@ -88,11 +93,237 @@ export default function PulsePage() {
     }
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    try {
+      // Upload as story (can be photo or video)
+      const formData = new FormData();
+      Array.from(files).forEach((file) => {
+        formData.append('file', file);
+      });
+
+      const response = await fetch('/api/user/stories', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        // Refresh feed after upload
+        await fetchFeed();
+        setActiveTab('feed');
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || (locale === 'pt' ? 'Erro ao fazer upload' : 'Error al subir'));
+      }
+    } catch (error) {
+      console.error('Error uploading:', error);
+      alert(locale === 'pt' ? 'Erro ao fazer upload' : 'Error al subir');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const input = fileInputRef.current;
+      if (input) {
+        const dataTransfer = new DataTransfer();
+        Array.from(files).forEach(file => dataTransfer.items.add(file));
+        input.files = dataTransfer.files;
+        await handleFileSelect({ target: { files: dataTransfer.files } } as any);
+      }
+    }
+  };
+
   // Determine if locale is RTL (for future Arabic/Hebrew support)
   const isRTL = false; // Currently only pt/es, but ready for RTL
 
-  // If user is authenticated, show pulse within dashboard layout
-  const pulseContent = (
+  // If user is authenticated, show pulse as media hub within dashboard layout
+  const pulseContent = status === 'authenticated' && user ? (
+    <div className="max-w-7xl mx-auto">
+      {/* Header with Tabs */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {locale === 'es' ? 'Pulse - Centro de Medios' : 'Pulse - Centro de Mídia'}
+          </h1>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setActiveTab('upload')}
+              className={`px-4 py-2 rounded-lg font-medium transition ${
+                activeTab === 'upload'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {locale === 'es' ? '+ Subir Media' : '+ Fazer Upload'}
+            </button>
+            <button
+              onClick={() => setActiveTab('feed')}
+              className={`px-4 py-2 rounded-lg font-medium transition ${
+                activeTab === 'feed'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {locale === 'es' ? 'Ver Feed' : 'Ver Feed'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Upload Tab */}
+      {activeTab === 'upload' && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4">
+            {locale === 'es' ? 'Subir Fotos, Videos o Historias' : 'Fazer Upload de Fotos, Vídeos ou Histórias'}
+          </h2>
+          
+          <div
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-red-500 transition cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              onChange={handleFileSelect}
+              className="hidden"
+              disabled={uploading}
+            />
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              stroke="currentColor"
+              fill="none"
+              viewBox="0 0 48 48"
+            >
+              <path
+                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <p className="mt-4 text-sm text-gray-600">
+              {locale === 'es'
+                ? 'Arrasta y suelta tus fotos/videos aquí o haz clic para seleccionar'
+                : 'Arraste e solte suas fotos/vídeos aqui ou clique para selecionar'}
+            </p>
+            <p className="mt-2 text-xs text-gray-500">
+              {locale === 'es' ? 'PNG, JPG, GIF, MP4 hasta 50MB' : 'PNG, JPG, GIF, MP4 até 50MB'}
+            </p>
+            {uploading && (
+              <div className="mt-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+                <p className="mt-2 text-sm text-gray-600">
+                  {locale === 'es' ? 'Subiendo...' : 'Fazendo upload...'}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link
+              href={`/${locale}/dashboard/stories/create`}
+              className="p-4 border border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition text-center"
+            >
+              <svg className="w-8 h-8 mx-auto mb-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <p className="font-medium">{locale === 'es' ? 'Crear Historia' : 'Criar História'}</p>
+            </Link>
+            <Link
+              href={`/${locale}/dashboard/tv-tube`}
+              className="p-4 border border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition text-center"
+            >
+              <svg className="w-8 h-8 mx-auto mb-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <p className="font-medium">{locale === 'es' ? 'Subir Video' : 'Fazer Upload de Vídeo'}</p>
+            </Link>
+            <Link
+              href={`/${locale}/criar-anuncio`}
+              className="p-4 border border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition text-center"
+            >
+              <svg className="w-8 h-8 mx-auto mb-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <p className="font-medium">{locale === 'es' ? 'Crear Anuncio' : 'Criar Anúncio'}</p>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Feed Tab */}
+      {activeTab === 'feed' && (
+        <div className="min-h-screen bg-gray-50" dir={isRTL ? 'rtl' : 'ltr'}>
+          {/* Stories Bar - Above the Fold */}
+          <div className="bg-white border-b border-gray-200 sticky top-0 z-10 mb-6">
+            <StoriesBarClient locale={locale} />
+          </div>
+
+          {/* Main Feed */}
+          <div className="max-w-2xl mx-auto px-4 py-6">
+        {loading && items.length === 0 ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">{t.loadingFeed}</p>
+            </div>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">{t.noPostsFound}</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {items.map((item) => (
+              <PostCard key={item.id} item={item} locale={locale} t={t} />
+            ))}
+          </div>
+        )}
+
+        {/* Load More Button */}
+        {hasMore && !loading && (
+          <div className="text-center mt-8">
+            <button
+              onClick={handleLoadMore}
+              className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-8 rounded-lg transition duration-200 btn-expand-safe"
+            >
+              {t.viewAll}
+            </button>
+          </div>
+        )}
+
+        {loading && items.length > 0 && (
+          <div className="text-center py-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+          </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  ) : (
+    // Public view (not authenticated)
     <div className="min-h-screen bg-gray-50" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Stories Bar - Above the Fold */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
