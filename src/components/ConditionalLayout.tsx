@@ -116,6 +116,11 @@ export default function ConditionalLayout({
                     </LocaleLink>
                   </li>
                   <li>
+                    <LocaleLink href="/network" className="text-gray-300 hover:text-red-600 transition font-semibold">
+                      {locale === 'es' ? '🌍 Nuestra Red' : locale === 'en' || locale.startsWith('en') ? '🌍 Our Network' : '🌍 A Nossa Rede'}
+                    </LocaleLink>
+                  </li>
+                  <li>
                     <LocaleLink href="/faq" className="text-gray-300 hover:text-red-600 transition">
                       {locale === 'es' ? 'Preguntas Frecuentes' : 'Perguntas Frequentes'}
                     </LocaleLink>

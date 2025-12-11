@@ -27,25 +27,32 @@ export async function GET(request: NextRequest) {
       // Not authenticated or not admin, continue with public filter
     }
 
-    // Define cities for each locale
-    // English (en) includes tourist destinations: Cyprus, Marbella (Spain), and other popular destinations
+    // Define cities for each locale (native markets)
+    // Users see ONLY their native market by default
+    // To see other countries, they must manually visit /network and select a country
     const localeCities: Record<string, string[]> = {
       pt: ['Lisboa', 'Porto', 'Coimbra', 'Braga', 'Aveiro', 'Faro'],
+      'pt-BR': ['São Paulo', 'Rio de Janeiro', 'Brasília', 'Salvador', 'Fortaleza', 'Belo Horizonte'],
+      'pt-AO': ['Luanda', 'Benguela', 'Lubango', 'Huambo'],
       es: ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao', 'Málaga', 'Marbella'],
-      en: ['Limassol', 'Nicosia', 'Paphos', 'Larnaca', 'Ayia Napa', 'Marbella', 'Ibiza', 'Mallorca', 'Barcelona', 'Madrid', 'Amsterdam', 'Lisbon', 'Porto'],
-      'en-GB': ['Limassol', 'Nicosia', 'Paphos', 'Larnaca', 'Ayia Napa', 'Marbella', 'Ibiza', 'Mallorca', 'Barcelona', 'Madrid', 'Amsterdam', 'Lisbon', 'Porto'],
-      'en-CY': ['Limassol', 'Nicosia', 'Paphos', 'Larnaca', 'Ayia Napa'],
-      'en-US': ['Marbella', 'Ibiza', 'Mallorca', 'Barcelona', 'Madrid', 'Amsterdam', 'Lisbon', 'Porto'],
+      'es-MX': ['Mexico City', 'Guadalajara', 'Monterrey', 'Puebla', 'Tijuana', 'Cancún'],
+      'es-CO': ['Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena'],
+      'es-CL': ['Santiago', 'Valparaíso', 'Concepción', 'La Serena'],
+      'es-UY': ['Montevideo', 'Punta del Este', 'Salto', 'Colonia'],
+      en: ['London', 'Manchester', 'Birmingham', 'Liverpool', 'Bristol'], // Default English (UK)
+      'en-GB': ['London', 'Manchester', 'Birmingham', 'Liverpool', 'Bristol', 'Leeds'],
+      'en-US': ['New York', 'Los Angeles', 'Miami', 'Las Vegas', 'Chicago', 'Houston'],
       'en-ZA': ['Cape Town', 'Johannesburg', 'Durban', 'Pretoria'],
+      'en-CY': ['Limassol', 'Nicosia', 'Paphos', 'Larnaca', 'Ayia Napa'],
       de: ['Berlin', 'Munich', 'Hamburg', 'Frankfurt', 'Cologne', 'Stuttgart'],
       nl: ['Amsterdam', 'Rotterdam', 'The Hague', 'Utrecht', 'Eindhoven'],
-      'nl-BE': ['Antwerp', 'Ghent', 'Bruges', 'Leuven'],
+      'nl-BE': ['Brussels', 'Antwerp', 'Ghent', 'Bruges', 'Leuven'],
       fr: ['Paris', 'Lyon', 'Marseille', 'Toulouse', 'Nice', 'Nantes'],
       'fr-BE': ['Brussels', 'Liège', 'Charleroi', 'Namur'],
-      it: ['Rome', 'Milan', 'Naples', 'Turin', 'Palermo', 'Genoa'],
+      it: ['Rome', 'Milan', 'Naples', 'Turin', 'Palermo', 'Genoa', 'Florence'],
       pl: ['Warsaw', 'Krakow', 'Gdansk', 'Wroclaw', 'Poznan'],
       hr: ['Zagreb', 'Split', 'Rijeka', 'Osijek', 'Dubrovnik'],
-      el: ['Athens', 'Thessaloniki', 'Patras', 'Heraklion', 'Larissa'],
+      el: ['Athens', 'Thessaloniki', 'Patras', 'Heraklion', 'Larissa', 'Mykonos', 'Santorini'],
       'el-CY': ['Limassol', 'Nicosia', 'Paphos', 'Larnaca', 'Ayia Napa'],
     };
 
@@ -54,9 +61,15 @@ export async function GET(request: NextRequest) {
       ...(category && { category }),
     };
 
-    // Filter by locale (country) based on cities
-    // Handle English variants: en-US, en-GB, en-CY, en-ZA all fall back to 'en' cities
-    const baseLocale = locale?.startsWith('en') ? 'en' : locale;
+    // Filter by locale (native market) - users see ONLY their country by default
+    // Handle locale variants: en-US, en-GB, etc. fall back to base language
+    const baseLocale = locale?.startsWith('en') ? (locale === 'en' ? 'en-GB' : locale) : 
+                      locale?.startsWith('pt') ? (locale === 'pt' ? 'pt' : locale) :
+                      locale?.startsWith('es') ? (locale === 'es' ? 'es' : locale) :
+                      locale?.startsWith('nl') ? (locale === 'nl' ? 'nl' : locale) :
+                      locale?.startsWith('fr') ? (locale === 'fr' ? 'fr' : locale) :
+                      locale?.startsWith('el') ? (locale === 'el' ? 'el' : locale) :
+                      locale;
     
     if (baseLocale && localeCities[baseLocale]) {
       if (city) {
@@ -73,14 +86,22 @@ export async function GET(request: NextRequest) {
           });
         }
       } else {
-        // No city specified, filter by all cities in the locale
+        // No city specified, filter by all cities in the locale (native market only)
         where.city = {
           in: localeCities[baseLocale],
         };
       }
     } else if (city) {
-      // Locale not specified but city is, use city filter
+      // Locale not in our list but city is specified, use city filter
       where.city = city;
+    } else {
+      // Unknown locale and no city - return empty (shouldn't happen, but safe fallback)
+      return NextResponse.json({
+        profiles: [],
+        total: 0,
+        pages: 0,
+        currentPage: 1,
+      });
     }
     
     // Only apply basic filters for non-admin users
@@ -88,6 +109,7 @@ export async function GET(request: NextRequest) {
       where.age = {
         gt: 0
       };
+      // Ensure city filter is set (native market cities)
       if (!where.city) {
         where.city = {
           not: ''
