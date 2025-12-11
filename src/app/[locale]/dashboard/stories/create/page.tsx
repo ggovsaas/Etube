@@ -43,8 +43,8 @@ export default function CreateStoryPage() {
       if (response.ok) {
         const data = await response.json();
         setMediaUrl(data.mediaUrl);
-        // Redirect to stories list or feed
-        router.push(`/${locale}/dashboard/blogs?tab=stories`);
+        // Redirect to Pulse feed after creating story
+        router.push(`/${locale}/pulse`);
       } else {
         const errorData = await response.json();
         setError(errorData.error || (locale === 'pt' ? 'Erro ao fazer upload' : 'Error al subir'));
