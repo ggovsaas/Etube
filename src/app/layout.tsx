@@ -30,18 +30,39 @@ export default async function RootLayout({
   return (
     <html lang="pt">
       <head>
-        {/* Minimal critical CSS to prevent worst FOUC */}
+        {/* Critical CSS + Hide content until Tailwind loads */}
         <style dangerouslySetInnerHTML={{
           __html: `
-            body { margin: 0; padding: 0; font-family: ${inter.style.fontFamily}, system-ui, sans-serif; background: #f9fafb; }
+            /* Hide body until Tailwind loads */
+            body:not(.tailwind-ready) { visibility: hidden; opacity: 0; }
+            body.tailwind-ready { visibility: visible; opacity: 1; transition: opacity 0.2s ease-in; }
+            /* Baseline styles */
             * { box-sizing: border-box; }
+            body { margin: 0; padding: 0; font-family: ${inter.style.fontFamily}, system-ui, sans-serif; background: #f9fafb; }
           `
         }} />
         {/* Tailwind CDN - Required for styles to load */}
         <Script 
+          id="tailwind-loader"
           src="https://cdn.tailwindcss.com" 
           strategy="beforeInteractive"
+          onLoad={() => {
+            // Mark Tailwind as loaded
+            if (typeof document !== 'undefined') {
+              document.body.classList.add('tailwind-ready');
+            }
+          }}
         />
+        {/* Fallback: Show content after 2 seconds even if Tailwind fails */}
+        <Script id="tailwind-fallback" strategy="afterInteractive">
+          {`
+            setTimeout(function() {
+              if (typeof document !== 'undefined' && !document.body.classList.contains('tailwind-ready')) {
+                document.body.classList.add('tailwind-ready');
+              }
+            }, 2000);
+          `}
+        </Script>
         <Script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" strategy="afterInteractive" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
         <HreflangTags />
