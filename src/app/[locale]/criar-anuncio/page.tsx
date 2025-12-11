@@ -396,37 +396,83 @@ export default function CriarAnuncioPage() {
 
   // DEV ONLY: Convert URL to File for gallery
   const addGalleryUrl = async (url: string) => {
-    if (!url.trim()) return;
+    if (!url.trim()) {
+      alert(locale === 'pt' ? 'Por favor, insira uma URL' : 'Por favor, ingrese una URL');
+      return;
+    }
+    
     try {
-      const response = await fetch(url);
+      console.log('Fetching gallery URL:', url);
+      
+      // Use proxy to avoid CORS issues
+      const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(url)}`;
+      const response = await fetch(proxyUrl);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const blob = await response.blob();
-      const fileName = url.split('/').pop() || 'image.jpg';
-      const file = new File([blob], fileName, { type: blob.type });
+      const fileName = url.split('/').pop() || url.split('?')[0].split('/').pop() || 'image.jpg';
+      const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+      
       setFormData(prev => ({
         ...prev,
         galleryMedia: [...prev.galleryMedia, file].slice(0, 10),
-        galleryMediaUrls: prev.galleryMediaUrls.filter(u => u !== url)
+        galleryMediaUrls: []
       }));
+      
+      // Clear the input
+      const input = document.querySelector('input[type="url"][placeholder*="image"]') as HTMLInputElement;
+      if (input) input.value = '';
+      
+      console.log('Gallery URL added successfully');
     } catch (error) {
-      alert(locale === 'pt' ? 'Erro ao carregar imagem da URL' : 'Error al cargar imagen de la URL');
+      console.error('Error adding gallery URL:', error);
+      alert(locale === 'pt' 
+        ? `Erro ao carregar imagem da URL: ${error instanceof Error ? error.message : 'Erro desconhecido'}` 
+        : `Error al cargar imagen de la URL: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
 
   // DEV ONLY: Convert URL to File for comparison video
   const addComparisonUrl = async (url: string) => {
-    if (!url.trim()) return;
+    if (!url.trim()) {
+      alert(locale === 'pt' ? 'Por favor, insira uma URL' : 'Por favor, ingrese una URL');
+      return;
+    }
+    
     try {
-      const response = await fetch(url);
+      console.log('Fetching comparison URL:', url);
+      
+      // Use proxy to avoid CORS issues
+      const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(url)}`;
+      const response = await fetch(proxyUrl);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const blob = await response.blob();
-      const fileName = url.split('/').pop() || 'video.mp4';
-      const file = new File([blob], fileName, { type: blob.type });
+      const fileName = url.split('/').pop() || url.split('?')[0].split('/').pop() || 'video.mp4';
+      const file = new File([blob], fileName, { type: blob.type || 'video/mp4' });
+      
       setFormData(prev => ({
         ...prev,
         comparisonMedia: [...prev.comparisonMedia, file].slice(0, 5),
-        comparisonMediaUrls: prev.comparisonMediaUrls.filter(u => u !== url)
+        comparisonMediaUrls: []
       }));
+      
+      // Clear the input
+      const input = document.querySelector('input[type="url"][placeholder*="video"]') as HTMLInputElement;
+      if (input) input.value = '';
+      
+      console.log('Comparison URL added successfully');
     } catch (error) {
-      alert(locale === 'pt' ? 'Erro ao carregar vídeo da URL' : 'Error al cargar video de la URL');
+      console.error('Error adding comparison URL:', error);
+      alert(locale === 'pt' 
+        ? `Erro ao carregar vídeo da URL: ${error instanceof Error ? error.message : 'Erro desconhecido'}` 
+        : `Error al cargar video de la URL: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
 
