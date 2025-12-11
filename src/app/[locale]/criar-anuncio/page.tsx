@@ -151,6 +151,8 @@ export default function CriarAnuncioPage() {
     galleryMedia: [],
     comparisonMedia: [],
     verificationPhoto: null,
+    galleryMediaUrls: [],
+    comparisonMediaUrls: [],
     voiceNoteUrl: ''
   });
   
@@ -1919,7 +1921,7 @@ export default function CriarAnuncioPage() {
                       <div className="text-2xl">📸</div>
                       <h4 className="text-sm font-medium text-blue-900">Adicionar à Galeria</h4>
                       <p className="text-xs text-blue-600">Fotos e vídeos para o perfil público</p>
-                      <div className="flex justify-center">
+                      <div className="flex justify-center gap-2">
                         <label 
                           htmlFor="gallery-upload"
                           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg cursor-pointer transition duration-200 text-sm inline-block"
@@ -1944,6 +1946,35 @@ export default function CriarAnuncioPage() {
                           />
                           Escolher Arquivos
                         </label>
+                      </div>
+                      {/* DEV ONLY: URL Upload */}
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <p className="text-xs text-gray-500 mb-2">DEV: Adicionar por URL</p>
+                        <div className="flex gap-2">
+                          <input
+                            type="url"
+                            placeholder="https://example.com/image.jpg"
+                            value={formData.galleryMediaUrls[0] || ''}
+                            onChange={(e) => {
+                              const url = e.target.value;
+                              setFormData(prev => ({
+                                ...prev,
+                                galleryMediaUrls: url ? [url] : []
+                              }));
+                            }}
+                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const url = formData.galleryMediaUrls[0];
+                              if (url) addGalleryUrl(url);
+                            }}
+                            className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg text-sm transition"
+                          >
+                            Adicionar URL
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2036,6 +2067,35 @@ export default function CriarAnuncioPage() {
                           />
                           Escolher Vídeos
                         </label>
+                      </div>
+                      {/* DEV ONLY: URL Upload */}
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <p className="text-xs text-gray-500 mb-2">DEV: Adicionar por URL</p>
+                        <div className="flex gap-2">
+                          <input
+                            type="url"
+                            placeholder="https://example.com/video.mp4"
+                            value={formData.comparisonMediaUrls[0] || ''}
+                            onChange={(e) => {
+                              const url = e.target.value;
+                              setFormData(prev => ({
+                                ...prev,
+                                comparisonMediaUrls: url ? [url] : []
+                              }));
+                            }}
+                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const url = formData.comparisonMediaUrls[0];
+                              if (url) addComparisonUrl(url);
+                            }}
+                            className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg text-sm transition"
+                          >
+                            Adicionar URL
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
