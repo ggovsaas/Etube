@@ -138,3 +138,4 @@ Modify profile/listing queries to:
 - Existing active boosts need to be migrated to `ListingBoost` records if needed
 - Subscription data remains intact
 
+

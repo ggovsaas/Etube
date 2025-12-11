@@ -32,18 +32,60 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({
   children,
-  user,
+  user: propUser,
   isAdmin = false,
   sidebarItems = [],
 }: DashboardLayoutProps) {
   const { locale, getLocalizedPath } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  // Persist sidebar state in localStorage to prevent collapse when navigating
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebarOpen');
+      return saved !== null ? saved === 'true' : true;
+    }
+    return true;
+  });
+
+  // Save sidebar state to localStorage when it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sidebarOpen', String(isSidebarOpen));
+    }
+  }, [isSidebarOpen]);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isHelpDropdownOpen, setIsHelpDropdownOpen] = useState(false);
+  const [user, setUser] = useState(propUser || null);
+  const [userLoading, setUserLoading] = useState(!propUser);
 
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
+
+  // Fetch user data if not provided and session is available
+  useEffect(() => {
+    if (!propUser && sessionStatus === 'authenticated' && session?.user?.email) {
+      fetchUserData();
+    } else if (propUser) {
+      setUser(propUser);
+      setUserLoading(false);
+    } else if (sessionStatus === 'unauthenticated') {
+      setUserLoading(false);
+    }
+  }, [propUser, sessionStatus, session]);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch('/api/user/profile');
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setUserLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     // If logging out from user dashboard, check if user is also an admin
@@ -51,7 +93,7 @@ export default function DashboardLayout({
     if (!isAdmin && (user || session?.user)) {
       const adminEmails = ['jwfcarvalho1989@gmail.com', 'ggovsaas@gmail.com'];
       const userEmail = (user?.email || session?.user?.email)?.toLowerCase();
-      const userRole = user?.role || session?.user?.role;
+      const userRole = (user as any)?.role || session?.user?.role;
       const isUserAdmin = userEmail && (adminEmails.includes(userEmail) || userRole === 'ADMIN');
       
       if (isUserAdmin) {
@@ -90,7 +132,8 @@ export default function DashboardLayout({
   // Dynamic sidebar items based on user roles
   const getDynamicSidebarItems = () => {
     const isContentCreator = user?.isContentCreator || false;
-    const isServiceProvider = user?.isServiceProvider || false;
+    // CRITICAL FIX: Escorts with role='ESCORT' should be treated as service providers even if isServiceProvider is false initially
+    const isServiceProvider = user?.isServiceProvider || user?.role === 'ESCORT' || false;
     const isClient = user?.isClient !== false; // Default to true
 
     // Client-only users get a restricted consumer sidebar
@@ -346,6 +389,18 @@ export default function DashboardLayout({
     }
     return pathname?.startsWith(href);
   };
+
+  // Show loading state while fetching user data to prevent sidebar flash
+  if (userLoading && !propUser) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">{locale === 'es' ? 'Cargando...' : 'Carregando...'}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

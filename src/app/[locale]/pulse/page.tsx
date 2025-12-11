@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import StoriesBarClient from '@/components/StoriesBarClient';
+import DashboardLayout from '@/components/DashboardLayout';
 
 interface ContentItem {
   id: string;
@@ -32,14 +34,32 @@ interface ContentItem {
 
 export default function PulsePage() {
   const { locale, t } = useLocale();
+  const { data: session, status } = useSession();
   const [items, setItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     fetchFeed();
-  }, [page]);
+    // Fetch user data if authenticated to show dashboard layout
+    if (status === 'authenticated' && session?.user?.email) {
+      fetchUserData();
+    }
+  }, [page, status, session]);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch('/api/user/profile');
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
 
   const fetchFeed = async () => {
     try {
@@ -71,7 +91,8 @@ export default function PulsePage() {
   // Determine if locale is RTL (for future Arabic/Hebrew support)
   const isRTL = false; // Currently only pt/es, but ready for RTL
 
-  return (
+  // If user is authenticated, show pulse within dashboard layout
+  const pulseContent = (
     <div className="min-h-screen bg-gray-50" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Stories Bar - Above the Fold */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
@@ -119,6 +140,17 @@ export default function PulsePage() {
       </div>
     </div>
   );
+
+  // If authenticated, wrap in DashboardLayout; otherwise show standalone
+  if (status === 'authenticated' && user) {
+    return (
+      <DashboardLayout user={user}>
+        {pulseContent}
+      </DashboardLayout>
+    );
+  }
+
+  return pulseContent;
 }
 
 function PostCard({ item, locale, t }: { item: ContentItem; locale: string; t: any }) {

@@ -186,3 +186,4 @@ PAYMENT_PROCESSOR_BASE_URL=https://api.processor.com
 - Webhook handler automatically stores tokens when received from payment processor
 - All credit additions use atomic database transactions for data integrity
 
+

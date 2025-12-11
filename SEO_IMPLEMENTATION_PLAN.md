@@ -143,3 +143,4 @@
 - Google Search Console: Monitor indexing
 - Screaming Frog: Crawl site for SEO issues
 
+
