@@ -30,28 +30,19 @@ export default async function RootLayout({
   return (
     <html lang="pt">
       <head>
-        {/* Critical CSS inline to prevent FOUC */}
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            /* Critical baseline styles to prevent flash */
-            * { box-sizing: border-box; }
-            html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-            body { 
-              margin: 0; 
-              padding: 0; 
-              font-family: ${inter.style.fontFamily}, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              background-color: #f9fafb;
-              color: #111827;
+        {/* Tailwind CDN - Required for styles to load (PostCSS build may not be working in dev) */}
+        <Script 
+          src="https://cdn.tailwindcss.com" 
+          strategy="beforeInteractive"
+          onLoad={() => {
+            // Mark styles as loaded to prevent FOUC
+            if (typeof document !== 'undefined') {
+              document.documentElement.classList.add('tailwind-loaded');
             }
-            /* Prevent layout shift during load */
-            img { max-width: 100%; height: auto; display: block; }
-          `
-        }} />
-        {/* Remove Tailwind CDN - using PostCSS/Tailwind build process instead */}
-        {/* <Script src="https://cdn.tailwindcss.com" strategy="beforeInteractive" /> */}
+          }}
+        />
         <Script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" strategy="afterInteractive" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-        <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" />
         <HreflangTags />
         {/* Google Analytics 4 */}
         {process.env.NEXT_PUBLIC_GA_TRACKING_ID && (

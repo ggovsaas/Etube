@@ -2,29 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Critical CSS for preventing FOUC */
-@layer base {
-  /* Ensure body has baseline styles immediately */
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  
-  /* Prevent layout shift */
-  html {
-    scroll-behavior: smooth;
-  }
-  
-  /* Ensure images don't cause layout shift */
-  img {
-    max-width: 100%;
-    height: auto;
-  }
-}
-
 /* RTL (Right-to-Left) Support */
 /* This ensures all layouts automatically flip for RTL languages */
 [dir='rtl'] {
