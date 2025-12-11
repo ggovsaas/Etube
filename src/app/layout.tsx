@@ -8,7 +8,12 @@ import SessionProvider from "@/components/SessionProvider";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 
-const inter = Inter({ subsets: ["latin"] });
+// Optimize font loading to prevent FOUT (Flash of Unstyled Text)
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: 'swap', // Prevents invisible text during font load
+  preload: true, // Preloads font for faster rendering
+});
 
 export const metadata: Metadata = {
   title: "Portal de Acompanhantes - Portugal",
@@ -25,9 +30,21 @@ export default async function RootLayout({
   return (
     <html lang="pt">
       <head>
-        <Script src="https://cdn.tailwindcss.com" strategy="beforeInteractive" />
-        <Script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" strategy="beforeInteractive" />
+        {/* Critical CSS inline to prevent FOUC */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            /* Critical baseline styles to prevent flash */
+            body { margin: 0; padding: 0; font-family: ${inter.style.fontFamily}, system-ui, -apple-system, sans-serif; }
+            * { box-sizing: border-box; }
+            /* Hide content until styles load */
+            body:not(.styles-loaded) { visibility: hidden; }
+          `
+        }} />
+        {/* Remove Tailwind CDN - using PostCSS/Tailwind build process instead */}
+        {/* <Script src="https://cdn.tailwindcss.com" strategy="beforeInteractive" /> */}
+        <Script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" strategy="afterInteractive" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+        <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" />
         <HreflangTags />
         {/* Google Analytics 4 */}
         {process.env.NEXT_PUBLIC_GA_TRACKING_ID && (
@@ -48,6 +65,9 @@ export default async function RootLayout({
         )}
       </head>
       <body className={`${inter.className} font-sans antialiased bg-gray-50`}>
+        <Script id="mark-styles-loaded" strategy="afterInteractive">
+          {`document.body.classList.add('styles-loaded');`}
+        </Script>
         <SessionProvider session={session}>
           <ConditionalLayout>
             {children}
