@@ -179,13 +179,13 @@ export default function DashboardHomePage() {
 
         {/* Creator CTA Banner - Only show for creators who are not service providers */}
         {user && user.isContentCreator && !user.isServiceProvider && (
-          <div className="bg-gradient-to-r from-red-600 to-pink-600 rounded-lg shadow-lg p-6 mb-8">
+          <div className="bg-gradient-to-r from-red-600 to-pink-600 rounded-lg shadow-lg p-6 mb-8" style={{ background: 'linear-gradient(to right, #dc2626, #db2777)' }}>
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex-1">
-                <h2 className="text-2xl font-bold mb-2 text-white">
+                <h2 className="text-2xl font-bold mb-2 text-white" style={{ color: '#ffffff' }}>
                   {locale === 'pt' ? 'Triplique sua Renda!' : '¡Triplica tus Ingresos!'}
                 </h2>
-                <p className="text-white mb-4 opacity-95">
+                <p className="text-white mb-4 opacity-95" style={{ color: '#ffffff' }}>
                   {locale === 'pt' 
                     ? 'Como criador de conteúdo, você pode expandir seus negócios criando anúncios de acompanhante. Aventure-se no mundo dos acompanhantes e aumente significativamente sua receita!'
                     : 'Como creador de contenido, puedes expandir tus negocios creando anuncios de acompañante. ¡Aventúrate en el mundo de las acompañantes y aumenta significativamente tus ingresos!'}
@@ -193,11 +193,12 @@ export default function DashboardHomePage() {
                 <Link
                   href={`/${locale}/criar-anuncio`}
                   className="inline-block bg-white text-red-600 font-semibold py-3 px-6 rounded-lg hover:bg-red-50 transition duration-200"
+                  style={{ backgroundColor: '#ffffff', color: '#dc2626' }}
                 >
                   {locale === 'pt' ? 'Criar Anúncio Agora' : 'Crear Anuncio Ahora'}
                 </Link>
               </div>
-              <div className="text-6xl">💰</div>
+              <div className="text-6xl" style={{ color: '#ffffff' }}>💰</div>
             </div>
           </div>
         )}
