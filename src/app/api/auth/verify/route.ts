@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendWelcomeEmail } from '@/lib/email';
 
 export async function GET(request: NextRequest) {
   try {
@@ -44,6 +45,14 @@ export async function GET(request: NextRequest) {
         verificationExpiry: null,
       },
     });
+
+    // Send welcome email after successful verification
+    try {
+      await sendWelcomeEmail(user.email!, user.name || undefined);
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // Don't fail verification if email fails
+    }
 
     // Redirect to success page
     return NextResponse.redirect(

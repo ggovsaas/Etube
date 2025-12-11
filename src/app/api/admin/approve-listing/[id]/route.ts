@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminSession } from '@/lib/adminCheck';
+import { sendListingApprovedEmail } from '@/lib/email';
 
 export async function POST(
   request: NextRequest,
@@ -51,6 +52,18 @@ export async function POST(
           isServiceProvider: true,
         },
       });
+    }
+
+    // Send approval email notification
+    try {
+      await sendListingApprovedEmail(
+        listing.user.email!,
+        listing.title || 'Seu anúncio',
+        listing.user.name || undefined
+      );
+    } catch (emailError) {
+      console.error('Failed to send listing approval email:', emailError);
+      // Don't fail the approval if email fails
     }
 
     return NextResponse.json({

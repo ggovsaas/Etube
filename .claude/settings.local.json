@@ -5,7 +5,10 @@
       "Bash(git commit:*)",
       "Bash(timeout 15 bash:*)",
       "Bash(node test-register.js:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(node test-mailgun.js:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npx prisma generate:*)"
     ],
     "deny": [],
     "ask": []

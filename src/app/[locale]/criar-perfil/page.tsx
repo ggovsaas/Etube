@@ -119,8 +119,22 @@ export default function CriarPerfilPage() {
 
       const result = await response.json();
 
-      // Redirect to login page directly (no alert needed)
-      router.push(`/${locale}/login`);
+      // Auto-login the user after successful registration
+      const signInResult = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        // If auto-login fails, redirect to login page
+        router.push(`/${locale}/login`);
+        return;
+      }
+
+      // Successfully logged in, redirect to dashboard
+      router.push(`/${locale}/dashboard`);
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : t.registrationFailed);
       console.error('Registration error:', err);

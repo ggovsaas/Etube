@@ -7,6 +7,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import formData from 'form-data';
 import Mailgun from 'mailgun.js';
+import { sendWelcomeEmail, sendVerificationEmail } from '@/lib/email';
 
 // Initialize Mailgun client for email sending
 let mailgun: any = null;
@@ -213,7 +214,7 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile, isNewUser }) {
       // Allow email/password login for all users
       if (account?.provider === "credentials") {
         return true;
@@ -222,6 +223,17 @@ export const authOptions: NextAuthOptions = {
       // For OAuth providers (Google), allow any user to sign in/sign up
       if (account?.provider === "google") {
         console.log(`Google OAuth sign in: ${user.email}`);
+
+        // Send welcome email for new Google users
+        if (isNewUser && user.email) {
+          try {
+            await sendWelcomeEmail(user.email, user.name || undefined);
+          } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError);
+            // Don't fail sign-in if email fails
+          }
+        }
+
         return true;
       }
 

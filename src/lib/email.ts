@@ -277,6 +277,151 @@ export async function sendWelcomeEmail(
 }
 
 /**
+ * Send pending listing notification to admin
+ */
+export async function sendPendingListingNotification(
+  listingId: string,
+  listingTitle: string,
+  userName: string,
+  userEmail: string
+): Promise<void> {
+  const { fromEmail, domain, baseUrl, siteName } = getEmailConfig();
+
+  if (!process.env.MAILGUN_API_KEY || !domain) {
+    console.error('MAILGUN_API_KEY or MAILGUN_DOMAIN is not set. Email not sent.');
+    return;
+  }
+
+  // Get admin emails from environment
+  const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
+  const adminEmails = adminEmailsEnv
+    .split(',')
+    .map(email => email.trim())
+    .filter(email => email.length > 0);
+
+  if (adminEmails.length === 0) {
+    console.error('No admin emails configured');
+    return;
+  }
+
+  const reviewLink = `${baseUrl}/admin/listings`;
+
+  const htmlContent = getEmailTemplate(`
+    <h2 style="color: #111827; margin-top: 0;">Novo Anúncio Pendente</h2>
+    <p style="color: #4b5563; font-size: 16px;">
+      Um novo anúncio foi criado e está aguardando aprovação.
+    </p>
+    <div style="background-color: #fef3c7; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+      <p style="margin: 5px 0; color: #92400e;"><strong>Título:</strong> ${listingTitle}</p>
+      <p style="margin: 5px 0; color: #92400e;"><strong>Criado por:</strong> ${userName}</p>
+      <p style="margin: 5px 0; color: #92400e;"><strong>Email:</strong> ${userEmail}</p>
+      <p style="margin: 5px 0; color: #92400e;"><strong>ID:</strong> ${listingId}</p>
+    </div>
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${reviewLink}"
+         style="background-color: #dc2626; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; font-size: 16px;">
+        Revisar Anúncios Pendentes
+      </a>
+    </div>
+    <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+      Por favor, revise e aprove ou rejeite este anúncio o mais rápido possível.
+    </p>
+  `, siteName);
+
+  const textContent = `
+    Novo Anúncio Pendente
+
+    Um novo anúncio foi criado e está aguardando aprovação.
+
+    Título: ${listingTitle}
+    Criado por: ${userName}
+    Email: ${userEmail}
+    ID: ${listingId}
+
+    Revisar anúncios: ${reviewLink}
+
+    © ${new Date().getFullYear()} ${siteName}. Todos os direitos reservados.
+  `;
+
+  // Send to all admin emails
+  for (const adminEmail of adminEmails) {
+    try {
+      await sendEmail({
+        from: fromEmail,
+        to: adminEmail,
+        subject: `Novo Anúncio Pendente - ${siteName}`,
+        text: textContent,
+        html: htmlContent,
+      });
+    } catch (error) {
+      console.error(`Failed to send pending listing email to ${adminEmail}:`, error);
+    }
+  }
+}
+
+/**
+ * Send listing approval notification email
+ */
+export async function sendListingApprovedEmail(
+  email: string,
+  listingTitle: string,
+  username?: string
+): Promise<void> {
+  const { fromEmail, domain, baseUrl, siteName } = getEmailConfig();
+
+  if (!process.env.MAILGUN_API_KEY || !domain) {
+    console.error('MAILGUN_API_KEY or MAILGUN_DOMAIN is not set. Email not sent.');
+    return;
+  }
+
+  const listingsLink = `${baseUrl}/dashboard/meus-anuncios`;
+
+  const htmlContent = getEmailTemplate(`
+    <h2 style="color: #111827; margin-top: 0;">Parabéns${username ? `, ${username}` : ''}!</h2>
+    <p style="color: #4b5563; font-size: 16px;">
+      Seu anúncio <strong>"${listingTitle}"</strong> foi aprovado e agora está ativo na plataforma!
+    </p>
+    <p style="color: #4b5563; font-size: 16px;">
+      Seu anúncio já está visível para todos os usuários e você pode começar a receber contatos.
+    </p>
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${listingsLink}"
+         style="background-color: #dc2626; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; font-size: 16px;">
+        Ver Meus Anúncios
+      </a>
+    </div>
+    <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+      Continue atualizando seu perfil e anúncio para obter mais visualizações e contatos.
+    </p>
+    <p style="color: #10b981; font-size: 13px; margin-top: 20px; padding: 12px; background-color: #d1fae5; border-radius: 4px; border-left: 4px solid #10b981;">
+      <strong>✅ Dica:</strong> Mantenha suas fotos atualizadas e responda rapidamente aos contatos para aumentar suas chances de sucesso!
+    </p>
+  `, siteName);
+
+  const textContent = `
+    Parabéns${username ? `, ${username}` : ''}!
+
+    Seu anúncio "${listingTitle}" foi aprovado e agora está ativo na plataforma!
+
+    Seu anúncio já está visível para todos os usuários e você pode começar a receber contatos.
+
+    Ver seus anúncios: ${listingsLink}
+
+    Continue atualizando seu perfil e anúncio para obter mais visualizações e contatos.
+
+    © ${new Date().getFullYear()} ${siteName}. Todos os direitos reservados.
+  `;
+
+  await sendEmail({
+    from: fromEmail,
+    to: email,
+    subject: `Anúncio Aprovado - ${siteName}`,
+    text: textContent,
+    html: htmlContent,
+  });
+}
+
+/**
  * Generic email sending function
  */
 async function sendEmail(messageData: {

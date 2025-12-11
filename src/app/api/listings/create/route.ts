@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verify } from 'jsonwebtoken';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
+import { sendPendingListingNotification } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -365,6 +366,19 @@ export async function POST(request: NextRequest) {
       pricingInfo += `Deslocação: 1h €${pricing.travel?.oneHour || 'N/A'}, 2h €${pricing.travel?.twoHours || 'N/A'}, Pernoite €${pricing.travel?.overnight || 'N/A'}`;
       
       await prisma.listing.update({ where: { id: listing.id }, data: { description: listing.description + pricingInfo } });
+    }
+
+    // Send pending listing notification to admin
+    try {
+      await sendPendingListingNotification(
+        listing.id,
+        listing.title,
+        user.name || 'Unnamed User',
+        user.email!
+      );
+    } catch (emailError) {
+      console.error('Failed to send pending listing notification:', emailError);
+      // Don't fail listing creation if email fails
     }
 
     return NextResponse.json({

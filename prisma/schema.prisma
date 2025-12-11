@@ -27,6 +27,8 @@ model User {
   credits                     Int                   @default(0)
   verificationToken           String? // Legacy verification token (can be removed later)
   verificationExpiry          DateTime? // Legacy verification expiry (can be removed later)
+  resetToken                  String? // Password reset token
+  resetExpiry                 DateTime? // Password reset token expiry
   // Multi-role architecture flags
   isClient                    Boolean               @default(true) // All registered users are clients by default
   isContentCreator            Boolean               @default(false) // Activated when user creates content
