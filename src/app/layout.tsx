@@ -46,21 +46,36 @@ export default async function RootLayout({
           id="tailwind-loader"
           src="https://cdn.tailwindcss.com" 
           strategy="beforeInteractive"
-          onLoad={() => {
-            // Mark Tailwind as loaded
-            if (typeof document !== 'undefined') {
-              document.body.classList.add('tailwind-ready');
-            }
-          }}
         />
-        {/* Fallback: Show content after 2 seconds even if Tailwind fails */}
-        <Script id="tailwind-fallback" strategy="afterInteractive">
+        {/* Client-side script to show content when Tailwind loads */}
+        <Script id="tailwind-ready" strategy="afterInteractive">
           {`
-            setTimeout(function() {
-              if (typeof document !== 'undefined' && !document.body.classList.contains('tailwind-ready')) {
-                document.body.classList.add('tailwind-ready');
+            (function() {
+              function markTailwindReady() {
+                if (typeof document !== 'undefined' && document.body) {
+                  document.body.classList.add('tailwind-ready');
+                }
               }
-            }, 2000);
+              
+              // Check if Tailwind is already loaded
+              if (typeof window !== 'undefined' && window.tailwind) {
+                markTailwindReady();
+              } else {
+                // Wait for Tailwind to load
+                var checkTailwind = setInterval(function() {
+                  if (typeof window !== 'undefined' && window.tailwind) {
+                    clearInterval(checkTailwind);
+                    markTailwindReady();
+                  }
+                }, 50);
+                
+                // Fallback: Show content after 2 seconds even if Tailwind fails
+                setTimeout(function() {
+                  clearInterval(checkTailwind);
+                  markTailwindReady();
+                }, 2000);
+              }
+            })();
           `}
         </Script>
         <Script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" strategy="afterInteractive" />
