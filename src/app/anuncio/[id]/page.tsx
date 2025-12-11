@@ -40,6 +40,7 @@ interface ListingData {
   userId?: string;
   user: {
     id?: string;
+    isOnline?: boolean;
     profile: {
       name: string;
       age: number;
@@ -435,6 +436,7 @@ export default function ListingPage() {
               isContentCreator: listing.user?.isContentCreator || false,
               isServiceProvider: listing.user?.isServiceProvider || false,
             }}
+            isOnline={listing.user?.isOnline || false}
           />
 
           <div className="px-4 md:px-0 grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6 md:mt-0">
@@ -551,14 +553,17 @@ export default function ListingPage() {
                   <ContactCard
                     profile={profile}
                     creatorId={listing.userId}
+                    locale="pt"
                     userRoles={{
                       isContentCreator: listing.user?.isContentCreator || false,
                       isServiceProvider: listing.user?.isServiceProvider || false,
-                    }} 
-                    profile={profile} 
-                    creatorId={listing?.userId || listing?.user?.id} 
-                    locale="pt"
-                  />
+                    }}
+                  contactSettings={{
+                    publicPhoneVisibility: listing.user?.profile?.publicPhoneVisibility ?? false,
+                    whatsappVisibility: listing.user?.profile?.whatsappVisibility ?? false,
+                  }}
+                  isOnline={listing.user?.isOnline || false}
+                />
             </div>
 
                 {/* Pricing Card */}

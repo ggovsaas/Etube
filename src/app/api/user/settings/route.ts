@@ -70,7 +70,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { section, settings } = body;
+    const { section, settings, storySettings } = body;
 
     // Get user
     const user = await prisma.user.findUnique({
@@ -84,17 +84,19 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // For now, just acknowledge the save
+    // Handle story settings (content section)
+    if (section === 'content' && storySettings) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          storiesEnabledInProfiles: storySettings.storiesEnabledInProfiles ?? true,
+          storiesEnabledInCreatorFeed: storySettings.storiesEnabledInCreatorFeed ?? true,
+        },
+      });
+    }
+
+    // For other settings, acknowledge the save
     // In the future, you can add settings fields to the User model or create a UserSettings model
-    // Example:
-    // await prisma.user.update({
-    //   where: { id: user.id },
-    //   data: {
-    //     preferredLanguage: settings.preferredLanguage,
-    //     timezone: settings.timezone,
-    //     // ... other settings
-    //   },
-    // });
 
     return NextResponse.json({
       message: 'Settings saved successfully',

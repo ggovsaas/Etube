@@ -8,6 +8,7 @@ import Link from 'next/link';
 import WishlistWidget from '@/components/WishlistWidget';
 import FavoriteButton from '@/components/FavoriteButton';
 import VoiceWaveVisualizer from '@/components/VoiceWaveVisualizer';
+import GreenDotIndicator from '@/components/GreenDotIndicator';
 
 // Helper to get safe image URL
 const getImageUrl = (url: string | undefined): string => {
@@ -32,7 +33,8 @@ export const ProfileHero: React.FC<{
     isContentCreator?: boolean;
     isServiceProvider?: boolean;
   };
-}> = ({ profile, creatorId, userRoles }) => {
+  isOnline?: boolean;
+}> = ({ profile, creatorId, userRoles, isOnline = false }) => {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.currentTarget;
     target.src = 'https://via.placeholder.com/400x600?text=Profile+Image';
@@ -56,6 +58,12 @@ export const ProfileHero: React.FC<{
         <div className="absolute top-4 right-4 z-20">
           <FavoriteButton profileId={profile.id} />
         </div>
+        {/* Green Dot - Mobile */}
+        {isOnline && (
+          <div className="absolute top-4 left-4 z-20">
+            <GreenDotIndicator isOnline={isOnline} size="md" />
+          </div>
+        )}
         {/* Voice Wave - Mobile */}
         {(profile as any).voiceNoteUrl && (
           <div className="absolute bottom-20 left-4 z-20">
@@ -108,6 +116,12 @@ export const ProfileHero: React.FC<{
           <div className="absolute top-4 right-4 z-10">
             <FavoriteButton profileId={profile.id} />
           </div>
+          {/* Green Dot - Desktop */}
+          {isOnline && (
+            <div className="absolute top-4 left-4 z-10">
+              <GreenDotIndicator isOnline={isOnline} size="md" />
+            </div>
+          )}
           {/* Voice Wave - Desktop */}
           {(profile as any).voiceNoteUrl && (
             <div className="absolute bottom-4 left-4 z-20">
@@ -470,7 +484,20 @@ export const ContactCard: React.FC<{
     isContentCreator?: boolean;
     isServiceProvider?: boolean;
   };
-}> = ({ profile, creatorId, locale = 'pt', userRoles }) => {
+  contactSettings?: {
+    publicPhoneVisibility?: boolean;
+    whatsappVisibility?: boolean;
+  };
+  isOnline?: boolean;
+}> = ({ profile, creatorId, locale = 'pt', userRoles, contactSettings, isOnline = false }) => {
+  // For creators, check visibility settings; for escorts, use defaults
+  const showPhone = userRoles?.isContentCreator 
+    ? (contactSettings?.publicPhoneVisibility ?? false)
+    : true; // Escorts always show phone
+  const showWhatsApp = userRoles?.isContentCreator
+    ? (contactSettings?.whatsappVisibility ?? false)
+    : (profile.whatsappEnabled ?? false); // Escorts use profile setting
+
   return (
     <div className="bg-white border border-red-100 rounded-xl shadow-lg shadow-red-900/5 p-6">
       <div className="text-center mb-6">
@@ -480,49 +507,116 @@ export const ContactCard: React.FC<{
         <h3 className="text-xl font-bold text-gray-900">Interessado?</h3>
         <p className="text-gray-500 text-sm">Entre em contato agora</p>
       </div>
+      
+      {/* Contact Buttons - Unified height (py-3.5) and width (w-full) */}
       <div className="space-y-3">
-        {profile.whatsappEnabled && (
+        {showWhatsApp && (
           <a 
-            href={`https://wa.me/${profile.phone.replace(/\D/g, '')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-bold transition-all shadow-md shadow-green-900/10"
+            href={isOnline ? `https://wa.me/${profile.phone.replace(/\D/g, '')}` : '#'}
+            target={isOnline ? "_blank" : undefined}
+            rel={isOnline ? "noopener noreferrer" : undefined}
+            onClick={(e) => {
+              if (!isOnline) {
+                e.preventDefault();
+                alert(locale === 'pt' ? 'Usuário está offline. Tente mais tarde.' : 'Usuario está offline. Intenta más tarde.');
+              }
+            }}
+            className={`flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold transition-all shadow-md active:scale-95 ${
+              isOnline
+                ? 'bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-green-900/10'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
           >
             <Icons.WhatsApp size={20} /> WhatsApp
           </a>
         )}
         {profile.telegramEnabled && (
           <a 
-            href={`https://t.me/${profile.phone.replace(/\D/g, '')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#0088cc] hover:bg-[#007ebd] text-white rounded-xl font-bold transition-all shadow-md shadow-sky-900/10"
+            href={isOnline ? `https://t.me/${profile.phone.replace(/\D/g, '')}` : '#'}
+            target={isOnline ? "_blank" : undefined}
+            rel={isOnline ? "noopener noreferrer" : undefined}
+            onClick={(e) => {
+              if (!isOnline) {
+                e.preventDefault();
+                alert(locale === 'pt' ? 'Usuário está offline. Tente mais tarde.' : 'Usuario está offline. Intenta más tarde.');
+              }
+            }}
+            className={`flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold transition-all shadow-md active:scale-95 ${
+              isOnline
+                ? 'bg-[#0088cc] hover:bg-[#007ebd] text-white shadow-sky-900/10'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
           >
             <Icons.Telegram size={20} /> Telegram
           </a>
         )}
-        <a 
-          href={`tel:${profile.phone}`}
-          className="flex items-center justify-center gap-2 w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-xl font-bold transition-colors border border-gray-200"
-        >
-          <Icons.Phone size={18} /> {profile.phone}
-        </a>
+        {showPhone && (
+          <a 
+            href={isOnline ? `tel:${profile.phone}` : '#'}
+            onClick={(e) => {
+              if (!isOnline) {
+                e.preventDefault();
+                alert(locale === 'pt' ? 'Usuário está offline. Tente mais tarde.' : 'Usuario está offline. Intenta más tarde.');
+              }
+            }}
+            className={`flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold transition-all border active:scale-95 ${
+              isOnline
+                ? 'bg-gray-100 hover:bg-gray-200 text-gray-900 border-gray-200'
+                : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed'
+            }`}
+          >
+            <Icons.Phone size={18} /> {profile.phone}
+          </a>
+        )}
       </div>
-      {/* Action Buttons: Wishlist, Tip Me, Contests */}
-      <div className="flex flex-wrap gap-3">
-        <WishlistWidget creatorId={creatorId} locale={locale} />
-        
-        {/* Tip Me Button */}
+
+      {/* Separator */}
+      {(showPhone || showWhatsApp || profile.telegramEnabled) && (
+        <div className="border-t border-gray-200 my-4"></div>
+      )}
+
+      {/* Action Buttons: Gift Me, Tip Me - Unified styling with motion effects */}
+      <div className="space-y-3">
+        {/* Gift Me Button - Full width with motion effect */}
+        {creatorId && (
+          <Link
+            href={`/${locale}/wishlist/${creatorId}`}
+            className="group flex items-center justify-between w-full py-3.5 px-4 bg-white border-2 border-red-200 hover:border-red-400 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-red-900/10 active:scale-[0.98] hover:-translate-y-0.5"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-red-50 group-hover:bg-red-100 rounded-full flex items-center justify-center transition-colors">
+                <svg className="w-5 h-5 text-red-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">
+                  {locale === 'es' ? 'Comprar Regalo' : 'Comprar Presente'}
+                </p>
+                <p className="text-sm font-bold text-gray-900 group-hover:text-red-600 transition-colors">
+                  {locale === 'es' ? 'Lista de deseos' : 'Lista de desejos'}
+                </p>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-red-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        )}
+
+        {/* Tip Me Button - Full width with motion effect */}
         <button
           onClick={() => {
             // TODO: Open tip modal
             alert(locale === 'es' ? 'Función de propina próximamente' : 'Função de gorjeta em breve');
           }}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition-colors"
+          className="group flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-xl font-bold shadow-md shadow-yellow-900/20 transition-all duration-300 hover:shadow-lg hover:shadow-yellow-900/30 active:scale-[0.98] hover:-translate-y-0.5 hover:scale-105"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <div className="w-8 h-8 bg-white/20 group-hover:bg-white/30 rounded-full flex items-center justify-center transition-all group-hover:rotate-12">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
           {locale === 'es' ? 'Propina' : 'Gorjeta'}
         </button>
 
@@ -533,7 +627,7 @@ export const ContactCard: React.FC<{
               // TODO: Open contest/poll modal
               alert(locale === 'es' ? 'Función de concursos próximamente' : 'Função de concursos em breve');
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors"
+            className="flex items-center justify-center gap-2 w-full py-3.5 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-bold transition-all shadow-md shadow-purple-900/10 active:scale-95"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />

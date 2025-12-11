@@ -30,6 +30,7 @@ export async function GET(
             isClient: true,
             isContentCreator: true,
             isServiceProvider: true,
+            isOnline: true,
             profile: {
               include: {
                 media: {

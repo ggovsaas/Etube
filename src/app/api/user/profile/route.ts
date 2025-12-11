@@ -45,6 +45,12 @@ export async function GET(request: NextRequest) {
         isClient: user.isClient ?? true,
         isContentCreator: user.isContentCreator ?? false,
         isServiceProvider: user.isServiceProvider ?? false,
+        storiesEnabledInProfiles: user.storiesEnabledInProfiles ?? true,
+        storiesEnabledInCreatorFeed: user.storiesEnabledInCreatorFeed ?? true,
+        credits: user.credits ?? 0,
+        isPro: user.isPro ?? false,
+        proUntil: user.proUntil,
+        paymentToken: user.paymentToken ? '***' : null, // Don't expose actual token, just indicate if exists
         nif: user.nif,
         address: user.address,
         phone: user.phone,

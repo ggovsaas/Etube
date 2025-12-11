@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '@/hooks/useLocale';
 import DashboardLayout from '@/components/DashboardLayout';
+import OnlineStatusToggle from '@/components/OnlineStatusToggle';
 
 interface User {
   id: string;
@@ -164,19 +165,27 @@ export default function DashboardHomePage() {
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          {locale === 'pt' ? 'Dashboard' : 'Panel de Control'}
-        </h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {locale === 'pt' ? 'Dashboard' : 'Panel de Control'}
+          </h1>
+          {/* Online Status Toggle - Only for service providers and creators */}
+          {(user?.isServiceProvider || user?.isContentCreator) && (
+            <div className="bg-white rounded-lg shadow px-6 py-4">
+              <OnlineStatusToggle />
+            </div>
+          )}
+        </div>
 
         {/* Creator CTA Banner - Only show for creators who are not service providers */}
         {user && user.isContentCreator && !user.isServiceProvider && (
-          <div className="bg-gradient-to-r from-red-600 to-pink-600 rounded-lg shadow-lg p-6 mb-8 text-white">
+          <div className="bg-gradient-to-r from-red-600 to-pink-600 rounded-lg shadow-lg p-6 mb-8">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex-1">
-                <h2 className="text-2xl font-bold mb-2">
+                <h2 className="text-2xl font-bold mb-2 text-white">
                   {locale === 'pt' ? 'Triplique sua Renda!' : '¡Triplica tus Ingresos!'}
                 </h2>
-                <p className="text-red-50 mb-4">
+                <p className="text-white mb-4 opacity-95">
                   {locale === 'pt' 
                     ? 'Como criador de conteúdo, você pode expandir seus negócios criando anúncios de acompanhante. Aventure-se no mundo dos acompanhantes e aumente significativamente sua receita!'
                     : 'Como creador de contenido, puedes expandir tus negocios creando anuncios de acompañante. ¡Aventúrate en el mundo de las acompañantes y aumenta significativamente tus ingresos!'}

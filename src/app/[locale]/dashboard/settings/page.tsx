@@ -45,7 +45,11 @@ export default function SettingsPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'account' | 'privacy' | 'notifications' | 'language'>('account');
+  const [activeTab, setActiveTab] = useState<'account' | 'privacy' | 'notifications' | 'language' | 'content'>('account');
+  const [storySettings, setStorySettings] = useState({
+    storiesEnabledInProfiles: true,
+    storiesEnabledInCreatorFeed: true,
+  });
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
@@ -77,8 +81,13 @@ export default function SettingsPage() {
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
-        // Load saved settings if available
-        // For now, using defaults
+        // Load story settings if user is escort or creator
+        if (data.user.isServiceProvider || data.user.isContentCreator) {
+          setStorySettings({
+            storiesEnabledInProfiles: data.user.storiesEnabledInProfiles ?? true,
+            storiesEnabledInCreatorFeed: data.user.storiesEnabledInCreatorFeed ?? true,
+          });
+        }
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -229,6 +238,9 @@ export default function SettingsPage() {
                 { id: 'privacy', label: locale === 'pt' ? 'Privacidade' : 'Privacidad', icon: '🔒' },
                 { id: 'notifications', label: locale === 'pt' ? 'Notificações' : 'Notificaciones', icon: '🔔' },
                 { id: 'language', label: locale === 'pt' ? 'Idioma' : 'Idioma', icon: '🌐' },
+                ...((user?.isServiceProvider || user?.isContentCreator) ? [
+                  { id: 'content', label: locale === 'pt' ? 'Conteúdo' : 'Contenido', icon: '📱' }
+                ] : []),
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -560,6 +572,109 @@ export default function SettingsPage() {
                       ? (locale === 'pt' ? 'Salvando...' : 'Guardando...')
                       : (locale === 'pt' ? 'Salvar' : 'Guardar')
                     }
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Content Settings Tab (for Escorts and Creators) */}
+            {activeTab === 'content' && (user?.isServiceProvider || user?.isContentCreator) && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {locale === 'pt' ? 'Configurações de Stories' : 'Configuración de Stories'}
+                </h2>
+                <p className="text-sm text-gray-600 mb-6">
+                  {locale === 'pt'
+                    ? 'Controle onde suas stories aparecem. Você pode ativar ou desativar stories em diferentes canais.'
+                    : 'Controla dónde aparecen tus stories. Puedes activar o desactivar stories en diferentes canales.'}
+                </p>
+                <div className="space-y-4">
+                  {user.isServiceProvider && (
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900 mb-1">
+                          {locale === 'pt' ? 'Stories em /profiles' : 'Stories en /profiles'}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {locale === 'pt'
+                            ? 'Mostrar suas stories no feed de perfis de acompanhantes'
+                            : 'Mostrar tus stories en el feed de perfiles de acompañantes'}
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={storySettings.storiesEnabledInProfiles}
+                          onChange={(e) => {
+                            setStorySettings({
+                              ...storySettings,
+                              storiesEnabledInProfiles: e.target.checked,
+                            });
+                          }}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                      </label>
+                    </div>
+                  )}
+                  {user.isContentCreator && (
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900 mb-1">
+                          {locale === 'pt' ? 'Stories no Feed de Criadores' : 'Stories en el Feed de Creadores'}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {locale === 'pt'
+                            ? 'Mostrar suas stories no feed unificado de criadores de conteúdo'
+                            : 'Mostrar tus stories en el feed unificado de creadores de contenido'}
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={storySettings.storiesEnabledInCreatorFeed}
+                          onChange={(e) => {
+                            setStorySettings({
+                              ...storySettings,
+                              storiesEnabledInCreatorFeed: e.target.checked,
+                            });
+                          }}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                      </label>
+                    </div>
+                  )}
+                  <button
+                    onClick={async () => {
+                      setSaving(true);
+                      try {
+                        const response = await fetch('/api/user/settings', {
+                          method: 'PUT',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            section: 'content',
+                            storySettings,
+                          }),
+                        });
+                        if (response.ok) {
+                          setSuccessMessage(locale === 'pt' ? 'Configurações salvas!' : '¡Configuración guardada!');
+                          setTimeout(() => setSuccessMessage(''), 3000);
+                        }
+                      } catch (error) {
+                        setErrorMessage(locale === 'pt' ? 'Erro ao salvar.' : 'Error al guardar.');
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                    disabled={saving}
+                    className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {saving
+                      ? (locale === 'pt' ? 'Salvando...' : 'Guardando...')
+                      : (locale === 'pt' ? 'Salvar' : 'Guardar')}
                   </button>
                 </div>
               </div>

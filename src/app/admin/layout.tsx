@@ -297,6 +297,16 @@ export default function AdminLayout({
         ),
       },
       {
+        href: '/admin/payouts',
+        label: 'Payouts',
+        requiresPermission: null, // Master Admin only (can be restricted later)
+        icon: (
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM8 0a.5.5 0 0 1 .5.5v.518A7.001 7.001 0 0 1 15 7a.5.5 0 0 1-1 0 6 6 0 1 0-6 6v.5a.5.5 0 0 1-1 0v-.518A7.001 7.001 0 0 1 1 7a.5.5 0 0 1 1 0 6 6 0 1 0 6-6V.5A.5.5 0 0 1 8 0z" />
+          </svg>
+        ),
+      },
+      {
         href: '/admin/settings',
         label: 'Settings',
         requiresPermission: 'canManageSettings',

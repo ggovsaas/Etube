@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from '@/hooks/useLocale';
+import { useSession } from 'next-auth/react';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -42,7 +43,29 @@ export default function DashboardLayout({
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isHelpDropdownOpen, setIsHelpDropdownOpen] = useState(false);
 
+  const { data: session } = useSession();
+
   const handleLogout = async () => {
+    // If logging out from user dashboard, check if user is also an admin
+    // If so, warn them that it will log them out of admin too
+    if (!isAdmin && (user || session?.user)) {
+      const adminEmails = ['jwfcarvalho1989@gmail.com', 'ggovsaas@gmail.com'];
+      const userEmail = (user?.email || session?.user?.email)?.toLowerCase();
+      const userRole = user?.role || session?.user?.role;
+      const isUserAdmin = userEmail && (adminEmails.includes(userEmail) || userRole === 'ADMIN');
+      
+      if (isUserAdmin) {
+        const confirmLogout = window.confirm(
+          locale === 'pt' 
+            ? 'Você está logado como administrador. Fazer logout aqui também irá desconectá-lo do painel de administração. Deseja continuar?'
+            : 'Estás conectado como administrador. Cerrar sesión aquí también te desconectará del panel de administración. ¿Deseas continuar?'
+        );
+        if (!confirmLogout) {
+          return; // User cancelled logout
+        }
+      }
+    }
+
     try {
       const { signOut } = await import('next-auth/react');
       const callbackUrl = isAdmin ? '/login' : getLocalizedPath('/');
@@ -202,8 +225,8 @@ export default function DashboardLayout({
         },
       ] : []),
       
-      // Content Creator OR Service Provider items
-      ...((isContentCreator || isServiceProvider) ? [
+      // Content Creator only items (NOT service providers, as they already have these above)
+      ...(isContentCreator && !isServiceProvider ? [
         {
           href: `/${locale}/dashboard/media`,
           label: locale === 'es' ? 'Media' : 'Media',
@@ -263,6 +286,18 @@ export default function DashboardLayout({
           </svg>
         ),
       },
+      // Earnings & Payouts - Only for service providers and creators
+      ...((isServiceProvider || isContentCreator) ? [
+        {
+          href: `/${locale}/dashboard/earnings`,
+          label: locale === 'es' ? 'Ganancias' : 'Ganhos',
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ),
+        },
+      ] : []),
       {
         href: `/${locale}/dashboard/dados-faturacao`,
         label: locale === 'es' ? 'Datos de Facturación' : 'Dados de Faturação',
@@ -288,15 +323,6 @@ export default function DashboardLayout({
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-          </svg>
-        ),
-      },
-      {
-        href: `/${locale}/dashboard/webcam`,
-        label: locale === 'es' ? 'Webcam Studio' : 'Webcam Studio',
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
         ),
       },

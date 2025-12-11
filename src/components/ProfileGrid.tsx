@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import FavoriteButton from './FavoriteButton';
 import VoiceWaveVisualizer from './VoiceWaveVisualizer';
+import GreenDotIndicator from './GreenDotIndicator';
 
 export interface Profile {
   id: string | number; // Can be string (from database) or number

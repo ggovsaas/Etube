@@ -28,12 +28,19 @@ export default function WebcamStudioPage() {
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
-        // TODO: Check if user has completed Age/ID Verification
-        // For now, we'll assume they need to verify
-        setIsVerified(false);
+        
+        // Check verification status
+        const verificationResponse = await fetch('/api/user/verification-status');
+        if (verificationResponse.ok) {
+          const verificationData = await verificationResponse.json();
+          setIsVerified(verificationData.isVerified === true);
+        } else {
+          setIsVerified(false);
+        }
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
+      setIsVerified(false);
     } finally {
       setLoading(false);
     }
@@ -117,7 +124,10 @@ export default function WebcamStudioPage() {
     );
   }
 
-  // Main webcam studio interface (to be implemented)
+  // Main webcam studio interface
+  const [streamTitle, setStreamTitle] = useState('');
+  const [pricePerMinute, setPricePerMinute] = useState(0);
+
   return (
     <DashboardLayout user={user}>
       <div className="max-w-7xl mx-auto">
@@ -132,11 +142,70 @@ export default function WebcamStudioPage() {
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <p className="text-gray-600">
+        {/* Verification Status */}
+        <div className="bg-green-50 border-2 border-green-400 rounded-lg p-6 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl">✅</div>
+            <div>
+              <h3 className="font-semibold text-green-900 mb-1">
+                {locale === 'es' ? 'Estado de Verificación: Verificado' : 'Status de Verificação: Verificado'}
+              </h3>
+              <p className="text-sm text-green-700">
+                {locale === 'es' 
+                  ? 'Tu identidad ha sido verificada. Puedes transmitir en vivo.' 
+                  : 'Sua identidade foi verificada. Você pode transmitir ao vivo.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Setup Form */}
+        <div className="bg-white rounded-lg shadow p-8 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            {locale === 'es' ? 'Configuración de Transmisión' : 'Configuração de Transmissão'}
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {locale === 'es' ? 'Título de la Transmisión' : 'Título da Transmissão'} *
+              </label>
+              <input
+                type="text"
+                value={streamTitle}
+                onChange={(e) => setStreamTitle(e.target.value)}
+                placeholder={locale === 'es' ? 'Ej: Sesión en vivo' : 'Ex: Sessão ao vivo'}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {locale === 'es' ? 'Precio por Minuto (Créditos)' : 'Preço por Minuto (Créditos)'} *
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={pricePerMinute}
+                onChange={(e) => setPricePerMinute(parseInt(e.target.value) || 0)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white"
+              />
+            </div>
+            <button
+              disabled={!streamTitle || pricePerMinute <= 0}
+              className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition duration-200"
+            >
+              {locale === 'es' ? 'Ir en Vivo' : 'Ir ao Vivo'}
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="font-semibold text-blue-900 mb-2">
+            {locale === 'es' ? 'Nota sobre Transmisión en Vivo' : 'Nota sobre Transmissão ao Vivo'}
+          </h3>
+          <p className="text-sm text-blue-700">
             {locale === 'es' 
-              ? 'La funcionalidad de transmisión en vivo estará disponible próximamente.' 
-              : 'A funcionalidade de transmissão ao vivo estará disponível em breve.'}
+              ? 'La funcionalidad de transmisión en vivo estará disponible próximamente. Esta interfaz te permitirá configurar tus sesiones y comenzar a transmitir.' 
+              : 'A funcionalidade de transmissão ao vivo estará disponível em breve. Esta interface permitirá que você configure suas sessões e comece a transmitir.'}
           </p>
         </div>
       </div>

@@ -93,9 +93,17 @@ export async function GET(request: NextRequest) {
       ],
       include: {
         user: {
-          include: {
+          select: {
+            id: true,
+            isOnline: true,
+            isProfileHidden: true,
+            isContentCreator: true,
+            isServiceProvider: true,
             listings: {
-              where: userIsAdmin ? {} : { status: 'ACTIVE' },
+              where: userIsAdmin ? {} : { 
+                status: 'ACTIVE',
+                isPaused: false, // Filter out paused listings
+              },
               take: 1,
               orderBy: {
                 createdAt: 'desc'
@@ -121,7 +129,27 @@ export async function GET(request: NextRequest) {
     const profilesArray = Array.isArray(profiles) ? profiles : [];
     const filteredProfiles = userIsAdmin 
       ? profilesArray 
-      : profilesArray.filter(profile => profile && profile.user && profile.user.listings && Array.isArray(profile.user.listings) && profile.user.listings.length > 0);
+      : profilesArray.filter(profile => {
+          if (!profile || !profile.user) return false;
+          
+          // Filter out hidden creator profiles
+          if (profile.user.isProfileHidden === true) return false;
+          
+          // For escorts: must have active, non-paused listings
+          if (profile.user.isServiceProvider) {
+            const listings = Array.isArray(profile.user.listings) ? profile.user.listings : [];
+            return listings.length > 0 && listings.some(listing => 
+              listing.status === 'ACTIVE' && listing.isPaused === false
+            );
+          }
+          
+          // For creators: just check if not hidden (already checked above)
+          if (profile.user.isContentCreator) {
+            return true; // Already filtered by isProfileHidden
+          }
+          
+          return false;
+        });
 
     // Apply pagination to filtered results for non-admin
     const paginatedProfiles = userIsAdmin 
@@ -162,7 +190,7 @@ export async function GET(request: NextRequest) {
         pricePerHour: firstListing?.price || 0,
         rating: profile.rating || 0,
         reviews: profile._count?.reviews || 0,
-        isOnline: profile.isOnline || false,
+        isOnline: profile.user?.isOnline || false,
         isVerified: profile.isVerified || false,
         imageUrl: firstMedia?.url || '/placeholder-profile.jpg',
         description: profile.description || '',

@@ -80,7 +80,7 @@ export default function PricingPage() {
         setError(data.error || 'Erro ao iniciar pagamento.');
       }
     } catch (err) {
-      setError('Erro ao conectar ao Stripe.');
+      setError('Erro ao conectar ao processador de pagamento.');
     } finally {
       setLoading(false);
     }
@@ -373,23 +373,26 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* Credit System */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Sistema de Créditos</h2>
-            <p className="text-gray-600">Compre créditos para usar em TURBO e outras funcionalidades</p>
+        {/* Credit Packages - Updated with new pricing strategy */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg p-8 mb-8">
+          <div className="text-center text-white mb-8">
+            <h2 className="text-3xl font-bold mb-2">Pacotes de Créditos</h2>
+            <p className="text-blue-100 mb-6">Compre créditos para usar na plataforma (1 Crédito = $0.10)</p>
+            <p className="text-blue-200 text-sm">Quanto mais você compra, mais você economiza!</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="border rounded-lg p-6 text-center">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">10 Créditos</h3>
-              <div className="text-3xl font-bold text-purple-600 mb-2">8€</div>
-              <p className="text-sm text-gray-500 mb-4">(vs 10€ da concorrência)</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* Starter Package */}
+            <div className="bg-white rounded-lg p-6 text-center">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Starter</h3>
+              <div className="text-3xl font-bold text-blue-600 mb-2">$25</div>
+              <p className="text-lg font-semibold text-gray-700 mb-1">250 Créditos</p>
+              <p className="text-sm text-gray-500 mb-4">$0.10 por crédito</p>
               <button
-                onClick={() => setSelectedCredits('credits_10')}
+                onClick={() => setSelectedCredits('credits_starter')}
                 className={`w-full py-2 rounded-lg font-semibold transition ${
-                  selectedCredits === 'credits_10' 
-                    ? 'bg-purple-600 text-white' 
+                  selectedCredits === 'credits_starter' 
+                    ? 'bg-blue-600 text-white' 
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
@@ -397,18 +400,20 @@ export default function PricingPage() {
               </button>
             </div>
 
-            <div className="border rounded-lg p-6 text-center">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">25 Créditos</h3>
-              <div className="text-3xl font-bold text-purple-600 mb-2">18€</div>
-              <p className="text-sm text-gray-500 mb-4">(vs 22€ da concorrência)</p>
+            {/* Standard Package */}
+            <div className="bg-white rounded-lg p-6 text-center border-2 border-green-400">
               <div className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded mb-2">
-                Mais Popular
+                8.8% Desconto
               </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Standard</h3>
+              <div className="text-3xl font-bold text-blue-600 mb-2">$50</div>
+              <p className="text-lg font-semibold text-gray-700 mb-1">550 Créditos</p>
+              <p className="text-sm text-gray-500 mb-4">$0.091 por crédito</p>
               <button
-                onClick={() => setSelectedCredits('credits_25')}
+                onClick={() => setSelectedCredits('credits_standard')}
                 className={`w-full py-2 rounded-lg font-semibold transition ${
-                  selectedCredits === 'credits_25' 
-                    ? 'bg-purple-600 text-white' 
+                  selectedCredits === 'credits_standard' 
+                    ? 'bg-blue-600 text-white' 
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
@@ -416,18 +421,41 @@ export default function PricingPage() {
               </button>
             </div>
 
-            <div className="border rounded-lg p-6 text-center">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">50 Créditos</h3>
-              <div className="text-3xl font-bold text-purple-600 mb-2">32€</div>
-              <p className="text-sm text-gray-500 mb-4">(vs 40€ da concorrência)</p>
-              <div className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded mb-2">
-                Melhor Valor
+            {/* Pro Pack */}
+            <div className="bg-white rounded-lg p-6 text-center border-2 border-purple-400">
+              <div className="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded mb-2">
+                17% Desconto
               </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Pro Pack</h3>
+              <div className="text-3xl font-bold text-blue-600 mb-2">$100</div>
+              <p className="text-lg font-semibold text-gray-700 mb-1">1,200 Créditos</p>
+              <p className="text-sm text-gray-500 mb-4">$0.083 por crédito</p>
               <button
-                onClick={() => setSelectedCredits('credits_50')}
+                onClick={() => setSelectedCredits('credits_pro')}
                 className={`w-full py-2 rounded-lg font-semibold transition ${
-                  selectedCredits === 'credits_50' 
-                    ? 'bg-purple-600 text-white' 
+                  selectedCredits === 'credits_pro' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Selecionar
+              </button>
+            </div>
+
+            {/* VIP Bulk */}
+            <div className="bg-white rounded-lg p-6 text-center border-2 border-yellow-400">
+              <div className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded mb-2">
+                23% Desconto
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">VIP Bulk</h3>
+              <div className="text-3xl font-bold text-blue-600 mb-2">$250</div>
+              <p className="text-lg font-semibold text-gray-700 mb-1">3,250 Créditos</p>
+              <p className="text-sm text-gray-500 mb-4">$0.077 por crédito</p>
+              <button
+                onClick={() => setSelectedCredits('credits_vip')}
+                className={`w-full py-2 rounded-lg font-semibold transition ${
+                  selectedCredits === 'credits_vip' 
+                    ? 'bg-blue-600 text-white' 
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
@@ -440,7 +468,7 @@ export default function PricingPage() {
             <button
               onClick={handleCreditsCheckout}
               disabled={loading || !selectedCredits}
-              className="bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-50"
+              className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition disabled:opacity-50"
             >
               {loading ? 'Aguarde...' : 'Comprar Créditos'}
             </button>
@@ -482,7 +510,7 @@ export default function PricingPage() {
           
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-500">
-              Todos os pagamentos são processados de forma segura pela Stripe
+              Todos os pagamentos são processados de forma segura por processadores de pagamento especializados
             </p>
           </div>
         </div>
