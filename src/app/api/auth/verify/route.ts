@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        emailVerified: true,
+        emailVerified: new Date(), // Set to current date/time
         verificationToken: null, // Clear the token after verification
         verificationExpiry: null,
       },
