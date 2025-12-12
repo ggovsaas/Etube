@@ -30,6 +30,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [searchCity, setSearchCity] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
   
   // Get cities based on locale
   const cities = getCities(locale);
@@ -59,17 +60,13 @@ export default function Home() {
   // Handle search form submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchCity || searchCategory) {
-      const params = new URLSearchParams();
-      if (searchCity) params.set('cidade', searchCity);
-      if (searchCategory) params.set('categoria', searchCategory);
-      // Use correct route name based on locale
-      const profilesRoute = locale === 'es' ? '/perfiles' : '/perfis';
-      window.location.href = getLocalizedPath(`${profilesRoute}?${params.toString()}`);
-    } else {
-      const profilesRoute = locale === 'es' ? '/perfiles' : '/perfis';
-      window.location.href = getLocalizedPath(profilesRoute);
-    }
+    const params = new URLSearchParams();
+    if (searchKeyword) params.set('search', searchKeyword);
+    if (searchCity) params.set('cidade', searchCity);
+    if (searchCategory) params.set('categoria', searchCategory);
+    // Use correct route name based on locale
+    const profilesRoute = locale === 'es' ? '/perfiles' : '/perfis';
+    window.location.href = getLocalizedPath(`${profilesRoute}?${params.toString()}`);
   };
 
   const categories = [
@@ -131,13 +128,20 @@ export default function Home() {
               
               {/* Search Bar */}
               <div className="bg-white bg-opacity-95 rounded-lg p-4 backdrop-blur-sm shadow-lg">
-                <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <input
+                    type="text"
+                    placeholder={locale === 'es' ? 'Buscar por nombre, teléfono, precio...' : 'Buscar por nome, telefone, preço...'}
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
+                  />
                   <select 
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                     value={searchCity}
                     onChange={(e) => setSearchCity(e.target.value)}
                   >
-                    <option value="" disabled>{t.selectCity}</option>
+                    <option value="">{t.selectCity}</option>
                     {cities.map((city) => (
                       <option key={city.name} value={city.name.toLowerCase()}>{city.name}</option>
                     ))}
@@ -147,7 +151,7 @@ export default function Home() {
                     value={searchCategory}
                     onChange={(e) => setSearchCategory(e.target.value)}
                   >
-                    <option value="" disabled>{t.category}</option>
+                    <option value="">{t.category}</option>
                     <option value="feminino">Feminino</option>
                     <option value="masculino">Masculino</option>
                     <option value="trans">Trans</option>

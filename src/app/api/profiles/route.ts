@@ -148,12 +148,23 @@ export async function GET(request: NextRequest) {
               take: 1,
               orderBy: {
                 createdAt: 'desc'
+              },
+              include: {
+                media: {
+                  orderBy: {
+                    createdAt: 'desc'
+                  }
+                },
+                images: {
+                  orderBy: {
+                    createdAt: 'desc'
+                  }
+                }
               }
             }
           }
         },
         media: {
-          take: 1,
           orderBy: {
             createdAt: 'desc',
           },
@@ -209,15 +220,32 @@ export async function GET(request: NextRequest) {
       .filter(profile => profile != null) // Filter out null/undefined profiles first
       .map(profile => {
       if (!profile) return null;
-      // Get all gallery images
+      // Get all gallery images - include IMAGE, image, and null/undefined types
+      // Also check listing.media and listing.images for URL-uploaded media
       const mediaArray = Array.isArray(profile.media) ? profile.media : [];
-      const galleryImages = mediaArray
-        .filter(m => m && (m.type === 'image' || !m.type) && m.url)
-        .map(m => m.url);
-      
       const listingsArray = Array.isArray(profile.user?.listings) ? profile.user.listings : [];
       const firstListing = listingsArray[0] || null;
-      const firstMedia = mediaArray[0] || null;
+      const listingMediaArray = firstListing?.media ? firstListing.media : [];
+      const listingImagesArray = firstListing?.images ? firstListing.images : [];
+      
+      // Combine all media sources
+      const allMedia = [
+        ...mediaArray,
+        ...listingMediaArray.map((m: any) => ({ ...m, url: m.url || m })),
+        ...listingImagesArray.map((img: any) => ({ url: img.url || img, type: 'IMAGE' }))
+      ];
+      
+      const galleryImages = allMedia
+        .filter(m => {
+          if (!m || !m.url) return false;
+          const type = (m.type || '').toUpperCase();
+          // Include IMAGE, image, and any media without type (assumed to be images)
+          return type === 'IMAGE' || type === '' || !m.type;
+        })
+        .map(m => m.url)
+        .filter((url, index, self) => self.indexOf(url) === index); // Remove duplicates
+      
+      const firstMedia = allMedia.find(m => m && m.url) || null;
       
       return {
         id: profile.id || '',
@@ -237,6 +265,7 @@ export async function GET(request: NextRequest) {
         description: profile.description || '',
         gallery: galleryImages.length > 0 ? galleryImages : [firstMedia?.url || '/placeholder-profile.jpg'],
         voiceNoteUrl: profile.voiceNoteUrl || null,
+        phone: profile.phone || firstListing?.phone || '', // Include phone for search
         createdAt: profile.createdAt
       };
     }).filter(p => p !== null); // Remove any null entries

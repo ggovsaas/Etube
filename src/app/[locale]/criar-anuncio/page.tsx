@@ -639,6 +639,10 @@ export default function CriarAnuncioPage() {
                   <option value="Aveiro">Aveiro</option>
                   <option value="Leiria">Leiria</option>
                   <option value="Setúbal">Setúbal</option>
+                  <option value="Évora">Évora</option>
+                  <option value="Funchal">Funchal</option>
+                  <option value="Viseu">Viseu</option>
+                  <option value="Santarém">Santarém</option>
                 </select>
               </div>
             </div>

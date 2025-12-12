@@ -18,6 +18,7 @@ function PerfisContent() {
   const searchParams = useSearchParams();
   const params = useParams();
   const locale = (params?.locale as 'pt' | 'es') || 'pt';
+  const { getCities } = require('@/lib/i18n');
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
@@ -74,7 +75,8 @@ function PerfisContent() {
           image: profile.imageUrl || '/placeholder-profile.jpg',
           description: profile.description || 'No description available',
           gallery: galleryArray,
-          voiceNoteUrl: profile.voiceNoteUrl || null
+          voiceNoteUrl: profile.voiceNoteUrl || null,
+          phone: profile.phone || '' // Include phone for search
         };
       });
       
@@ -164,14 +166,34 @@ function PerfisContent() {
     { label: 'Curvilínea', checked: false },
     { label: 'Plus Size', checked: false },
   ]);
-  const [cities, setCities] = useState(['Lisboa', 'Porto', 'Coimbra', 'Braga', 'Aveiro', 'Faro']);
+  // Get cities from i18n to match hero and form
+  const [cities, setCities] = useState<string[]>([]);
+  
+  useEffect(() => {
+    const loadCities = async () => {
+      const { getCities } = await import('@/lib/i18n');
+      const cityData = getCities(locale as any);
+      setCities(cityData.map((c: any) => c.name));
+    };
+    loadCities();
+  }, [locale]);
 
   // Filtering logic
   const filteredProfiles = (Array.isArray(allProfiles) ? allProfiles : []).filter(profile => {
     if (!profile) return false;
-    // Search
-    if (search && profile.name && profile.city && !profile.name.toLowerCase().includes(search.toLowerCase()) && !profile.city.toLowerCase().includes(search.toLowerCase())) {
-      return false;
+    // Enhanced search - name, city, phone, price
+    if (search) {
+      const searchLower = search.toLowerCase();
+      const matchesName = profile.name?.toLowerCase().includes(searchLower);
+      const matchesCity = profile.city?.toLowerCase().includes(searchLower);
+      const matchesPhone = (profile as any).phone?.includes(search);
+      // Extract numbers from search (e.g., "20€" -> "20")
+      const priceMatch = search.match(/\d+/);
+      const matchesPrice = priceMatch && profile.price && profile.price.toString().includes(priceMatch[0]);
+      
+      if (!matchesName && !matchesCity && !matchesPhone && !matchesPrice) {
+        return false;
+      }
     }
     // City
     if (city && profile.city && profile.city.toLowerCase() !== city.toLowerCase()) {

@@ -552,20 +552,10 @@ export const ContactCard: React.FC<{
         )}
         {showPhone && (
           <a 
-            href={isOnline ? `tel:${profile.phone}` : '#'}
-            onClick={(e) => {
-              if (!isOnline) {
-                e.preventDefault();
-                alert(locale === 'pt' ? 'Usuário está offline. Tente mais tarde.' : 'Usuario está offline. Intenta más tarde.');
-              }
-            }}
-            className={`flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold transition-all border active:scale-95 ${
-              isOnline
-                ? 'bg-gray-100 hover:bg-gray-200 text-gray-900 border-gray-200'
-                : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed'
-            }`}
+            href={`tel:${profile.phone}`}
+            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold transition-all shadow-md active:scale-95 bg-red-600 hover:bg-red-700 text-white shadow-red-900/10"
           >
-            <Icons.Phone size={18} /> {profile.phone}
+            <Icons.Phone size={20} /> {locale === 'es' ? 'Ver Teléfono' : 'Ver Telefone'}
           </a>
         )}
       </div>

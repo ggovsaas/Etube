@@ -22,6 +22,7 @@ export interface Profile {
   image: string;
   gallery?: string[]; // Array of gallery image URLs
   voiceNoteUrl?: string | null; // Voice note URL
+  phone?: string; // Phone number for search
 }
 
 export default function ProfileGrid({ profiles }: { profiles: Profile[] }) {

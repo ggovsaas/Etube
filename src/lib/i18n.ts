@@ -1128,6 +1128,12 @@ export const citiesData = {
     { name: 'Braga', image: 'photo-1555881400-92d7acaacd6f' },
     { name: 'Aveiro', image: 'photo-1555881400-91d7acaacd7b' },
     { name: 'Faro', image: 'photo-1555881400-90d7acaacd7c' },
+    { name: 'Leiria', image: 'photo-1555881400-89d7acaacd7d' },
+    { name: 'Setúbal', image: 'photo-1555881400-88d7acaacd7e' },
+    { name: 'Évora', image: 'photo-1555881400-87d7acaacd7f' },
+    { name: 'Funchal', image: 'photo-1555881400-86d7acaacd80' },
+    { name: 'Viseu', image: 'photo-1555881400-85d7acaacd81' },
+    { name: 'Santarém', image: 'photo-1555881400-84d7acaacd82' },
   ],
   es: [
     { name: 'Madrid', image: 'photo-1555881400-74d7acaacd8b' },
