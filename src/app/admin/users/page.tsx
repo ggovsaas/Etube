@@ -315,7 +315,12 @@ export default function AdminUsersPage() {
                     {user._count?.listings || 0} listings
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(user.createdAt).toLocaleDateString()}
+                    <div className="flex flex-col">
+                      <span>{new Date(user.createdAt).toLocaleDateString()}</span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(user.createdAt).toLocaleTimeString()}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
