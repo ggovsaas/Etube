@@ -1,28 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verify } from 'jsonwebtoken';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/auth';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { sendPendingListingNotification } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
-    // Get token from cookies
-    const token = request.cookies.get('auth-token')?.value;
+    // Get session using NextAuth
+    const session = await getServerSession(authOptions);
 
-    if (!token) {
+    if (!session?.user?.email) {
       return NextResponse.json(
         { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    // Verify token
-    const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
-    
-    if (!decoded || !decoded.userId) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
         { status: 401 }
       );
     }
@@ -127,9 +118,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user
+    // Get user by email from session
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { email: session.user.email },
       include: { profile: true }
     });
 
