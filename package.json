@@ -26,6 +26,7 @@
     "@types/mongoose": "^5.11.96",
     "alpinejs": "^3.14.9",
     "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.8.0",
     "form-data": "^4.0.5",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.548.0",

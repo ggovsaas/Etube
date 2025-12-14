@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 import { sendPendingListingNotification } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
@@ -246,7 +245,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Handle voice note file upload if provided
+    // Handle voice note file upload to Cloudinary
     if (voiceNoteFile && voiceNoteFile.size > 0) {
       try {
         console.log('Processing voice note file:', {
@@ -255,40 +254,22 @@ export async function POST(request: NextRequest) {
           size: voiceNoteFile.size
         });
 
-        // Get file extension from original filename
-        const originalExtension = voiceNoteFile.name.split('.').pop()?.toLowerCase() || 'mp3';
-        const extension = originalExtension.startsWith('.') ? originalExtension : `.${originalExtension}`;
-        const filename = `voice-${profile.id}-${Date.now()}${extension}`;
+        // Upload audio file to Cloudinary
+        const url = await uploadToCloudinary(voiceNoteFile, 'audio', 'raw');
 
-        console.log(`Saving voice note: ${filename}`);
+        console.log(`Voice note uploaded to Cloudinary: ${url}`);
 
-        // Ensure uploads directory exists
-        const uploadsDir = join(process.cwd(), 'public', 'uploads');
-        try {
-          await mkdir(uploadsDir, { recursive: true });
-        } catch (error) {
-          console.log('Uploads directory check:', error);
-        }
-
-        // Convert File to Buffer and save to disk
-        const bytes = await voiceNoteFile.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const filePath = join(uploadsDir, filename);
-        await writeFile(filePath, buffer);
-
-        console.log(`Voice note saved to: ${filePath}`);
-
-        // Update profile with saved audio file path
+        // Update profile with Cloudinary URL
         profile = await prisma.profile.update({
           where: { id: profile.id },
           data: {
-            voiceNoteUrl: `/uploads/${filename}`
+            voiceNoteUrl: url
           }
         });
 
         console.log('Profile updated with voice note URL');
       } catch (error) {
-        console.error('Error saving voice note file:', error);
+        console.error('Error uploading voice note to Cloudinary:', error);
         // Don't fail listing creation if voice note upload fails
       }
     }
@@ -338,46 +319,30 @@ export async function POST(request: NextRequest) {
           // Determine media type based on file type
           const isVideo = file.type.startsWith('video/');
           const mediaType = isVideo ? 'VIDEO' : 'IMAGE';
-          
-          // Get file extension from original filename or default
-          const originalExtension = file.name.split('.').pop()?.toLowerCase() || (isVideo ? 'mp4' : 'jpg');
-          const extension = originalExtension.startsWith('.') ? originalExtension : `.${originalExtension}`;
-          const filename = `profile-${profile.id}-${type}-${index}-${Date.now()}${extension}`;
-          
-          console.log(`Saving file: ${filename}`);
-          
-          // Ensure uploads directory exists
-          const uploadsDir = join(process.cwd(), 'public', 'uploads');
-          try {
-            await mkdir(uploadsDir, { recursive: true });
-          } catch (error) {
-            // Directory might already exist, that's fine
-            console.log('Uploads directory check:', error);
-          }
-          
-          // Convert File to Buffer and save to disk
-          const bytes = await file.arrayBuffer();
-          const buffer = Buffer.from(bytes);
-          const filePath = join(uploadsDir, filename);
-          await writeFile(filePath, buffer);
-          
-          console.log(`File saved to: ${filePath}`);
-          console.log(`Creating media record for: ${filename}`);
-          
+          const resourceType = isVideo ? 'video' : 'image';
+
+          console.log(`Uploading file to Cloudinary: ${file.name}`);
+
+          // Upload to Cloudinary
+          const url = await uploadToCloudinary(file, 'listings/media', resourceType);
+
+          console.log(`File uploaded to Cloudinary: ${url}`);
+          console.log(`Creating media record for: ${file.name}`);
+
           // Create media record for both profile and listing
           const mediaRecord = await prisma.media.create({
             data: {
-              url: `/uploads/${filename}`,
+              url: url,
               type: mediaType,
               profileId: profile.id,
               listingId: listing.id // Link to listing so it shows up
             }
           });
-          
+
           // Also create Image record for listing.images
           await prisma.image.create({
             data: {
-              url: `/uploads/${filename}`,
+              url: url,
               listingId: listing.id
             }
           });

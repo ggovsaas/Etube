@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminSession } from '@/lib/adminCheck';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 
 export async function POST(
   request: NextRequest,
@@ -143,58 +142,51 @@ export async function POST(
     const uploadedGalleryUrls: string[] = [];
     const uploadedComparisonUrls: string[] = [];
     
-    // Upload photos
+    // Upload photos to Cloudinary
     if (photos.length > 0) {
-      const uploadDir = join(process.cwd(), 'public', 'uploads');
-      await mkdir(uploadDir, { recursive: true });
-
       for (const photo of photos) {
         if (photo.size > 0) {
-          const bytes = await photo.arrayBuffer();
-          const buffer = Buffer.from(bytes);
-          const filename = `listing-${id}-photo-${Date.now()}-${photo.name}`;
-          const filepath = join(uploadDir, filename);
-          await writeFile(filepath, buffer);
-          uploadedPhotoUrls.push(`/uploads/${filename}`);
+          try {
+            const url = await uploadToCloudinary(photo, 'listings/photos', 'image');
+            uploadedPhotoUrls.push(url);
+          } catch (error) {
+            console.error('Error uploading photo:', error);
+          }
         }
       }
     }
     
-    // Upload gallery media
+    // Upload gallery media to Cloudinary
     if (galleryMedia.length > 0) {
-      const uploadDir = join(process.cwd(), 'public', 'uploads');
-      await mkdir(uploadDir, { recursive: true });
-
       for (const media of galleryMedia) {
         if (media.size > 0) {
-          const bytes = await media.arrayBuffer();
-          const buffer = Buffer.from(bytes);
-          const filename = `listing-${id}-gallery-${Date.now()}-${media.name}`;
-          const filepath = join(uploadDir, filename);
-          await writeFile(filepath, buffer);
-          uploadedGalleryUrls.push(`/uploads/${filename}`);
+          try {
+            const resourceType = media.type.startsWith('video/') ? 'video' : 'image';
+            const url = await uploadToCloudinary(media, 'listings/gallery', resourceType);
+            uploadedGalleryUrls.push(url);
+          } catch (error) {
+            console.error('Error uploading gallery media:', error);
+          }
         }
       }
     }
     
-    // Upload comparison media
+    // Upload comparison media to Cloudinary
     if (comparisonMedia.length > 0) {
-      const uploadDir = join(process.cwd(), 'public', 'uploads');
-      await mkdir(uploadDir, { recursive: true });
-
       for (const media of comparisonMedia) {
         if (media.size > 0) {
-          const bytes = await media.arrayBuffer();
-          const buffer = Buffer.from(bytes);
-          const filename = `listing-${id}-comparison-${Date.now()}-${media.name}`;
-          const filepath = join(uploadDir, filename);
-          await writeFile(filepath, buffer);
-          uploadedComparisonUrls.push(`/uploads/${filename}`);
+          try {
+            const resourceType = media.type.startsWith('video/') ? 'video' : 'image';
+            const url = await uploadToCloudinary(media, 'listings/comparison', resourceType);
+            uploadedComparisonUrls.push(url);
+          } catch (error) {
+            console.error('Error uploading comparison media:', error);
+          }
         }
       }
     }
 
-    // Handle voice note file upload if provided
+    // Handle voice note file upload to Cloudinary
     let savedVoiceNoteUrl = voiceNoteUrl;
     if (voiceNoteFile && typeof voiceNoteFile === 'object' && voiceNoteFile.size > 0) {
       try {
@@ -204,34 +196,13 @@ export async function POST(
           size: voiceNoteFile.size
         });
 
-        // Get file extension from original filename
-        const originalExtension = voiceNoteFile.name.split('.').pop()?.toLowerCase() || 'mp3';
-        const extension = originalExtension.startsWith('.') ? originalExtension : `.${originalExtension}`;
-        const filename = `voice-${existingListing.userId}-${Date.now()}${extension}`;
+        // Upload audio file to Cloudinary
+        const url = await uploadToCloudinary(voiceNoteFile, 'audio', 'raw');
+        savedVoiceNoteUrl = url;
 
-        console.log(`Saving voice note: ${filename}`);
-
-        // Ensure uploads directory exists
-        const uploadsDir = join(process.cwd(), 'public', 'uploads');
-        try {
-          await mkdir(uploadsDir, { recursive: true });
-        } catch (error) {
-          console.log('Uploads directory check:', error);
-        }
-
-        // Convert File to Buffer and save to disk
-        const bytes = await voiceNoteFile.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const filePath = join(uploadsDir, filename);
-        await writeFile(filePath, buffer);
-
-        console.log(`Voice note saved to: ${filePath}`);
-
-        // Update the URL to use the saved file path
-        savedVoiceNoteUrl = `/uploads/${filename}`;
-        console.log('Voice note URL updated to:', savedVoiceNoteUrl);
+        console.log('Voice note uploaded to Cloudinary:', savedVoiceNoteUrl);
       } catch (error) {
-        console.error('Error saving voice note file:', error);
+        console.error('Error uploading voice note to Cloudinary:', error);
         // Continue with existing URL if upload fails
       }
     }
