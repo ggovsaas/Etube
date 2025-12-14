@@ -131,6 +131,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if email is verified
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { error: 'Email verification required. Please verify your email before creating a listing.' },
+        { status: 403 }
+      );
+    }
+
     // Create or update profile
     let profile = user.profile;
     if (!profile) {
