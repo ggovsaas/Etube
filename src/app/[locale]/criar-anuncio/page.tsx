@@ -90,7 +90,8 @@ interface FormData {
   // DEV ONLY: URL uploads for quick testing
   galleryMediaUrls: string[];
   comparisonMediaUrls: string[];
-  voiceNoteUrl: string; // Voice note URL
+  voiceNoteUrl: string; // Voice note URL (for display/preview)
+  voiceNoteFile: File | null; // Voice note file to upload
 }
 
 export default function CriarAnuncioPage() {
@@ -156,7 +157,8 @@ export default function CriarAnuncioPage() {
     verificationPhoto: null,
     galleryMediaUrls: [],
     comparisonMediaUrls: [],
-    voiceNoteUrl: ''
+    voiceNoteUrl: '',
+    voiceNoteFile: null
   });
   
   const [loading, setLoading] = useState(false);
@@ -549,6 +551,10 @@ export default function CriarAnuncioPage() {
         } else if (key === 'verificationPhoto') {
           if (value) {
             formDataToSend.append('verificationPhoto', value as File);
+          }
+        } else if (key === 'voiceNoteFile') {
+          if (value) {
+            formDataToSend.append('voiceNoteFile', value as File);
           }
         } else if (key === 'pricing') {
           formDataToSend.append('pricing', JSON.stringify(value));
@@ -1406,8 +1412,9 @@ export default function CriarAnuncioPage() {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      // In a real app, you would upload this to a storage service
-                      // For now, we'll create a local URL
+                      // Save the file to upload to server
+                      setFormData(prev => ({ ...prev, voiceNoteFile: file }));
+                      // Create a preview URL for display
                       const url = URL.createObjectURL(file);
                       handleInputChange('voiceNoteUrl', url);
                     }

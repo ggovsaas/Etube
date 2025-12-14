@@ -45,7 +45,11 @@ export async function POST(request: NextRequest) {
     const myfreecams = formData.get('myfreecams') as string;
     const livejasmin = formData.get('livejasmin') as string;
     const linkHubUrl = formData.get('linkHubUrl') as string;
-    
+
+    // Voice note - handle both URL and file upload
+    const voiceNoteUrl = formData.get('voiceNoteUrl') as string || '';
+    const voiceNoteFile = formData.get('voiceNoteFile') as File | null;
+
     // Physical details
     const gender = formData.get('gender') as string;
     const preference = formData.get('preference') as string;
@@ -186,6 +190,8 @@ export async function POST(request: NextRequest) {
           // Contact preferences
           whatsappEnabled,
           telegramEnabled,
+          // Voice note
+          voiceNoteUrl: voiceNoteUrl || null,
         }
       });
     } else {
@@ -234,8 +240,57 @@ export async function POST(request: NextRequest) {
           // Contact preferences
           whatsappEnabled,
           telegramEnabled,
+          // Voice note
+          voiceNoteUrl: voiceNoteUrl || null,
         }
       });
+    }
+
+    // Handle voice note file upload if provided
+    if (voiceNoteFile && voiceNoteFile.size > 0) {
+      try {
+        console.log('Processing voice note file:', {
+          name: voiceNoteFile.name,
+          type: voiceNoteFile.type,
+          size: voiceNoteFile.size
+        });
+
+        // Get file extension from original filename
+        const originalExtension = voiceNoteFile.name.split('.').pop()?.toLowerCase() || 'mp3';
+        const extension = originalExtension.startsWith('.') ? originalExtension : `.${originalExtension}`;
+        const filename = `voice-${profile.id}-${Date.now()}${extension}`;
+
+        console.log(`Saving voice note: ${filename}`);
+
+        // Ensure uploads directory exists
+        const uploadsDir = join(process.cwd(), 'public', 'uploads');
+        try {
+          await mkdir(uploadsDir, { recursive: true });
+        } catch (error) {
+          console.log('Uploads directory check:', error);
+        }
+
+        // Convert File to Buffer and save to disk
+        const bytes = await voiceNoteFile.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const filePath = join(uploadsDir, filename);
+        await writeFile(filePath, buffer);
+
+        console.log(`Voice note saved to: ${filePath}`);
+
+        // Update profile with saved audio file path
+        profile = await prisma.profile.update({
+          where: { id: profile.id },
+          data: {
+            voiceNoteUrl: `/uploads/${filename}`
+          }
+        });
+
+        console.log('Profile updated with voice note URL');
+      } catch (error) {
+        console.error('Error saving voice note file:', error);
+        // Don't fail listing creation if voice note upload fails
+      }
     }
 
     // Create listing

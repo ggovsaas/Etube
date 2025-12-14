@@ -82,7 +82,8 @@ interface FormData {
   galleryMedia: File[];
   comparisonMedia: File[];
   voiceNoteUrl: string;
-  
+  voiceNoteFile: File | null;
+
   // Listing specific
   status: string;
   price: string;
@@ -149,6 +150,7 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
     galleryMedia: [],
     comparisonMedia: [],
     voiceNoteUrl: '',
+    voiceNoteFile: null,
     status: 'ACTIVE',
     price: '',
   });
@@ -284,6 +286,10 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
           (value as File[]).forEach((file) => {
             formDataToSend.append(key, file);
           });
+        } else if (key === 'voiceNoteFile') {
+          if (value) {
+            formDataToSend.append('voiceNoteFile', value as File);
+          }
         } else if (key === 'pricing') {
           formDataToSend.append('pricing', JSON.stringify(value));
         } else if (key === 'services') {
@@ -873,15 +879,40 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
                   Nota de Voz (Opcional)
                 </label>
                 <p className="text-xs text-gray-500 mb-3">
-                  URL da nota de voz existente: {formData.voiceNoteUrl || 'Nenhuma'}
+                  Adicione uma gravação de voz para que os clientes possam ouvir você. Isso ajuda a criar mais confiança.
                 </p>
-                <input
-                  type="text"
-                  value={formData.voiceNoteUrl}
-                  onChange={(e) => handleInputChange('voiceNoteUrl', e.target.value)}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-                  placeholder="https://..."
-                />
+                <div className="flex items-center gap-4">
+                  <input
+                    type="url"
+                    value={formData.voiceNoteUrl}
+                    onChange={(e) => handleInputChange('voiceNoteUrl', e.target.value)}
+                    className="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                    placeholder="URL do arquivo de áudio (ou faça upload abaixo)"
+                  />
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        // Save the file to upload to server
+                        setFormData(prev => ({ ...prev, voiceNoteFile: file }));
+                        // Create a preview URL for display
+                        const url = URL.createObjectURL(file);
+                        handleInputChange('voiceNoteUrl', url);
+                      }
+                    }}
+                    className="text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                  />
+                </div>
+                {formData.voiceNoteUrl && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
+                    <p className="text-sm text-green-700">
+                      <i className="fas fa-check-circle mr-2"></i>
+                      Nota de voz configurada
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -121,9 +121,10 @@ export async function POST(
     const status = formData.get('status') as string;
     const price = formData.get('price') ? parseFloat(formData.get('price') as string) : null;
     
-    // Voice note URL
+    // Voice note - handle both URL and file upload
     const voiceNoteUrl = formData.get('voiceNoteUrl') as string || '';
-    
+    const voiceNoteFile = formData.get('voiceNoteFile') as File | null;
+
     // Handle file uploads
     const photos = (formData.getAll('photos') || []) as File[];
     const galleryMedia = (formData.getAll('galleryMedia') || []) as File[];
@@ -183,7 +184,49 @@ export async function POST(
         }
       }
     }
-    
+
+    // Handle voice note file upload if provided
+    let savedVoiceNoteUrl = voiceNoteUrl;
+    if (voiceNoteFile && voiceNoteFile.size > 0) {
+      try {
+        console.log('Processing voice note file:', {
+          name: voiceNoteFile.name,
+          type: voiceNoteFile.type,
+          size: voiceNoteFile.size
+        });
+
+        // Get file extension from original filename
+        const originalExtension = voiceNoteFile.name.split('.').pop()?.toLowerCase() || 'mp3';
+        const extension = originalExtension.startsWith('.') ? originalExtension : `.${originalExtension}`;
+        const filename = `voice-${existingListing.userId}-${Date.now()}${extension}`;
+
+        console.log(`Saving voice note: ${filename}`);
+
+        // Ensure uploads directory exists
+        const uploadsDir = join(process.cwd(), 'public', 'uploads');
+        try {
+          await mkdir(uploadsDir, { recursive: true });
+        } catch (error) {
+          console.log('Uploads directory check:', error);
+        }
+
+        // Convert File to Buffer and save to disk
+        const bytes = await voiceNoteFile.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const filePath = join(uploadsDir, filename);
+        await writeFile(filePath, buffer);
+
+        console.log(`Voice note saved to: ${filePath}`);
+
+        // Update the URL to use the saved file path
+        savedVoiceNoteUrl = `/uploads/${filename}`;
+        console.log('Voice note URL updated to:', savedVoiceNoteUrl);
+      } catch (error) {
+        console.error('Error saving voice note file:', error);
+        // Continue with existing URL if upload fails
+      }
+    }
+
     // Update Profile
     const profile = existingListing.user.profile;
     if (profile) {
@@ -226,7 +269,7 @@ export async function POST(
           hairColor: hairColor || null,
           breastSize: breastSize || null,
           breastType: breastType || null,
-          voiceNoteUrl: voiceNoteUrl || null,
+          voiceNoteUrl: savedVoiceNoteUrl || null,
         },
       });
     } else {
@@ -270,11 +313,11 @@ export async function POST(
           hairColor: hairColor || null,
           breastSize: breastSize || null,
           breastType: breastType || null,
-          voiceNoteUrl: voiceNoteUrl || null,
+          voiceNoteUrl: savedVoiceNoteUrl || null,
         },
       });
     }
-    
+
     // Update Listing
     const updatedListing = await prisma.listing.update({
       where: { id },
