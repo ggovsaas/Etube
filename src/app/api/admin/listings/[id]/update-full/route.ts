@@ -44,14 +44,23 @@ export async function POST(
     const formData = await request.formData();
     
     // Basic info
-    const name = formData.get('name') as string;
-    const age = parseInt(formData.get('age') as string);
-    const city = formData.get('city') as string;
-    const neighborhood = formData.get('neighborhood') as string;
-    const phone = formData.get('phone') as string;
-    const description = formData.get('description') as string;
+    const name = formData.get('name') as string || '';
+    const ageStr = formData.get('age') as string;
+    const age = ageStr && !isNaN(parseInt(ageStr)) ? parseInt(ageStr) : 0;
+    const city = formData.get('city') as string || '';
+    const neighborhood = formData.get('neighborhood') as string || '';
+    const phone = formData.get('phone') as string || '';
+    const description = formData.get('description') as string || '';
     const whatsappEnabled = formData.get('whatsappEnabled') === 'true';
     const telegramEnabled = formData.get('telegramEnabled') === 'true';
+
+    // Validate required fields
+    if (!name || !city) {
+      return NextResponse.json(
+        { error: 'Name and city are required' },
+        { status: 400 }
+      );
+    }
     
     // Social Media Links
     const onlyfans = formData.get('onlyfans') as string;
@@ -187,7 +196,7 @@ export async function POST(
 
     // Handle voice note file upload if provided
     let savedVoiceNoteUrl = voiceNoteUrl;
-    if (voiceNoteFile && voiceNoteFile.size > 0) {
+    if (voiceNoteFile && typeof voiceNoteFile === 'object' && voiceNoteFile.size > 0) {
       try {
         console.log('Processing voice note file:', {
           name: voiceNoteFile.name,
@@ -369,8 +378,18 @@ export async function POST(
     });
   } catch (error) {
     console.error('Error updating listing:', error);
+
+    // Log more details about the error
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+
     return NextResponse.json(
-      { error: 'Failed to update listing' },
+      {
+        error: 'Failed to update listing',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
