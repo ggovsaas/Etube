@@ -9,7 +9,9 @@
       "Bash(node test-mailgun.js:*)",
       "Bash(npx prisma db push:*)",
       "Bash(npx prisma generate:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(python3:*)",
+      "Bash(git diff:*)"
     ],
     "deny": [],
     "ask": []

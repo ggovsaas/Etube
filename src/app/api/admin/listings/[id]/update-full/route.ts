@@ -145,51 +145,51 @@ export async function POST(
     
     // Upload photos
     if (photos.length > 0) {
-      const uploadDir = join(process.cwd(), 'public', 'uploads', 'listings', id);
+      const uploadDir = join(process.cwd(), 'public', 'uploads');
       await mkdir(uploadDir, { recursive: true });
-      
+
       for (const photo of photos) {
         if (photo.size > 0) {
           const bytes = await photo.arrayBuffer();
           const buffer = Buffer.from(bytes);
-          const filename = `${Date.now()}-${photo.name}`;
+          const filename = `listing-${id}-photo-${Date.now()}-${photo.name}`;
           const filepath = join(uploadDir, filename);
           await writeFile(filepath, buffer);
-          uploadedPhotoUrls.push(`/uploads/listings/${id}/${filename}`);
+          uploadedPhotoUrls.push(`/uploads/${filename}`);
         }
       }
     }
     
     // Upload gallery media
     if (galleryMedia.length > 0) {
-      const uploadDir = join(process.cwd(), 'public', 'uploads', 'listings', id, 'gallery');
+      const uploadDir = join(process.cwd(), 'public', 'uploads');
       await mkdir(uploadDir, { recursive: true });
-      
+
       for (const media of galleryMedia) {
         if (media.size > 0) {
           const bytes = await media.arrayBuffer();
           const buffer = Buffer.from(bytes);
-          const filename = `${Date.now()}-${media.name}`;
+          const filename = `listing-${id}-gallery-${Date.now()}-${media.name}`;
           const filepath = join(uploadDir, filename);
           await writeFile(filepath, buffer);
-          uploadedGalleryUrls.push(`/uploads/listings/${id}/gallery/${filename}`);
+          uploadedGalleryUrls.push(`/uploads/${filename}`);
         }
       }
     }
     
     // Upload comparison media
     if (comparisonMedia.length > 0) {
-      const uploadDir = join(process.cwd(), 'public', 'uploads', 'listings', id, 'comparison');
+      const uploadDir = join(process.cwd(), 'public', 'uploads');
       await mkdir(uploadDir, { recursive: true });
-      
+
       for (const media of comparisonMedia) {
         if (media.size > 0) {
           const bytes = await media.arrayBuffer();
           const buffer = Buffer.from(bytes);
-          const filename = `${Date.now()}-${media.name}`;
+          const filename = `listing-${id}-comparison-${Date.now()}-${media.name}`;
           const filepath = join(uploadDir, filename);
           await writeFile(filepath, buffer);
-          uploadedComparisonUrls.push(`/uploads/listings/${id}/comparison/${filename}`);
+          uploadedComparisonUrls.push(`/uploads/${filename}`);
         }
       }
     }
@@ -349,27 +349,48 @@ export async function POST(
     
     // Create Media entries for uploaded files
     if (uploadedPhotoUrls.length > 0 || uploadedGalleryUrls.length > 0 || uploadedComparisonUrls.length > 0) {
+      const profileId = profile?.id || null;
+
       const mediaData = [
         ...uploadedPhotoUrls.map(url => ({
           url,
           type: 'IMAGE' as const,
           listingId: id,
+          profileId: profileId, // Link to profile so images show in profile
         })),
         ...uploadedGalleryUrls.map(url => ({
           url,
           type: 'IMAGE' as const,
           listingId: id,
+          profileId: profileId,
         })),
         ...uploadedComparisonUrls.map(url => ({
           url,
           type: 'VIDEO' as const,
           listingId: id,
+          profileId: profileId,
         })),
       ];
-      
+
       await prisma.media.createMany({
         data: mediaData,
       });
+
+      // Also create Image records for listing.images relationship
+      const imageData = [
+        ...uploadedPhotoUrls,
+        ...uploadedGalleryUrls,
+        ...uploadedComparisonUrls
+      ].map(url => ({
+        url,
+        listingId: id,
+      }));
+
+      if (imageData.length > 0) {
+        await prisma.image.createMany({
+          data: imageData,
+        });
+      }
     }
     
     return NextResponse.json({
