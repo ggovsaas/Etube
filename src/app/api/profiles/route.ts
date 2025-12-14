@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import { isAdminEmail, isAdminRole } from '@/lib/adminCheck';
+import { getCityNames } from '@/lib/i18n';
 
 // GET /api/profiles - Get all profiles
 export async function GET(request: NextRequest) {
@@ -27,34 +28,10 @@ export async function GET(request: NextRequest) {
       // Not authenticated or not admin, continue with public filter
     }
 
-    // Define cities for each locale (native markets)
+    // Get cities for the locale from centralized i18n config
     // Users see ONLY their native market by default
     // To see other countries, they must manually visit /network and select a country
-    const localeCities: Record<string, string[]> = {
-      pt: ['Lisboa', 'Porto', 'Coimbra', 'Braga', 'Aveiro', 'Faro'],
-      'pt-BR': ['São Paulo', 'Rio de Janeiro', 'Brasília', 'Salvador', 'Fortaleza', 'Belo Horizonte'],
-      'pt-AO': ['Luanda', 'Benguela', 'Lubango', 'Huambo'],
-      es: ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao', 'Málaga', 'Marbella'],
-      'es-MX': ['Mexico City', 'Guadalajara', 'Monterrey', 'Puebla', 'Tijuana', 'Cancún'],
-      'es-CO': ['Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena'],
-      'es-CL': ['Santiago', 'Valparaíso', 'Concepción', 'La Serena'],
-      'es-UY': ['Montevideo', 'Punta del Este', 'Salto', 'Colonia'],
-      en: ['London', 'Manchester', 'Birmingham', 'Liverpool', 'Bristol'], // Default English (UK)
-      'en-GB': ['London', 'Manchester', 'Birmingham', 'Liverpool', 'Bristol', 'Leeds'],
-      'en-US': ['New York', 'Los Angeles', 'Miami', 'Las Vegas', 'Chicago', 'Houston'],
-      'en-ZA': ['Cape Town', 'Johannesburg', 'Durban', 'Pretoria'],
-      'en-CY': ['Limassol', 'Nicosia', 'Paphos', 'Larnaca', 'Ayia Napa'],
-      de: ['Berlin', 'Munich', 'Hamburg', 'Frankfurt', 'Cologne', 'Stuttgart'],
-      nl: ['Amsterdam', 'Rotterdam', 'The Hague', 'Utrecht', 'Eindhoven'],
-      'nl-BE': ['Brussels', 'Antwerp', 'Ghent', 'Bruges', 'Leuven'],
-      fr: ['Paris', 'Lyon', 'Marseille', 'Toulouse', 'Nice', 'Nantes'],
-      'fr-BE': ['Brussels', 'Liège', 'Charleroi', 'Namur'],
-      it: ['Rome', 'Milan', 'Naples', 'Turin', 'Palermo', 'Genoa', 'Florence'],
-      pl: ['Warsaw', 'Krakow', 'Gdansk', 'Wroclaw', 'Poznan'],
-      hr: ['Zagreb', 'Split', 'Rijeka', 'Osijek', 'Dubrovnik'],
-      el: ['Athens', 'Thessaloniki', 'Patras', 'Heraklion', 'Larissa', 'Mykonos', 'Santorini'],
-      'el-CY': ['Limassol', 'Nicosia', 'Paphos', 'Larnaca', 'Ayia Napa'],
-    };
+    const localeCities = getCityNames(locale);
 
     // Build base where clause
     const where: any = {
@@ -62,19 +39,10 @@ export async function GET(request: NextRequest) {
     };
 
     // Filter by locale (native market) - users see ONLY their country by default
-    // Handle locale variants: en-US, en-GB, etc. fall back to base language
-    const baseLocale = locale?.startsWith('en') ? (locale === 'en' ? 'en-GB' : locale) : 
-                      locale?.startsWith('pt') ? (locale === 'pt' ? 'pt' : locale) :
-                      locale?.startsWith('es') ? (locale === 'es' ? 'es' : locale) :
-                      locale?.startsWith('nl') ? (locale === 'nl' ? 'nl' : locale) :
-                      locale?.startsWith('fr') ? (locale === 'fr' ? 'fr' : locale) :
-                      locale?.startsWith('el') ? (locale === 'el' ? 'el' : locale) :
-                      locale;
-    
-    if (baseLocale && localeCities[baseLocale]) {
+    if (localeCities && localeCities.length > 0) {
       if (city) {
         // If city is specified, verify it belongs to the locale
-        if (localeCities[baseLocale].includes(city)) {
+        if (localeCities.includes(city)) {
           where.city = city;
         } else {
           // City doesn't belong to locale, return empty results
@@ -88,7 +56,7 @@ export async function GET(request: NextRequest) {
       } else {
         // No city specified, filter by all cities in the locale (native market only)
         where.city = {
-          in: localeCities[baseLocale],
+          in: localeCities,
         };
       }
     } else if (city) {

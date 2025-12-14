@@ -1142,17 +1142,18 @@ export const citiesData = {
     { name: 'Sevilla', image: 'photo-1555881400-92d7acaacd6f' },
     { name: 'Bilbao', image: 'photo-1555881400-91d7acaacd7b' },
     { name: 'Málaga', image: 'photo-1555881400-90d7acaacd7c' },
+    { name: 'Marbella', image: 'photo-1555881400-89d7acaacd7d' },
   ],
   'pt-AO': [
     { name: 'Luanda', image: 'photo-1555881400-74d7acaacd8b' },
     { name: 'Benguela', image: 'photo-1555881400-69d7acaacd9c' },
-    { name: 'Huambo', image: 'photo-1555881400-83d7acaacd7a' },
-    { name: 'Lobito', image: 'photo-1555881400-92d7acaacd6f' },
+    { name: 'Lubango', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Huambo', image: 'photo-1555881400-92d7acaacd6f' },
   ],
   'nl': [
     { name: 'Amsterdam', image: 'photo-1555881400-74d7acaacd8b' },
     { name: 'Rotterdam', image: 'photo-1555881400-69d7acaacd9c' },
-    { name: 'Den Haag', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'The Hague', image: 'photo-1555881400-83d7acaacd7a' },
     { name: 'Utrecht', image: 'photo-1555881400-92d7acaacd6f' },
     { name: 'Eindhoven', image: 'photo-1555881400-91d7acaacd7b' },
   ],
@@ -1169,6 +1170,7 @@ export const citiesData = {
     { name: 'Brasília', image: 'photo-1555881400-83d7acaacd7a' },
     { name: 'Salvador', image: 'photo-1555881400-92d7acaacd6f' },
     { name: 'Fortaleza', image: 'photo-1555881400-91d7acaacd7b' },
+    { name: 'Belo Horizonte', image: 'photo-1555881400-90d7acaacd7c' },
   ],
   'es-CL': [
     { name: 'Santiago', image: 'photo-1555881400-74d7acaacd8b' },
@@ -1178,27 +1180,137 @@ export const citiesData = {
   ],
   'de': [
     { name: 'Berlin', image: 'photo-1555881400-74d7acaacd8b' },
-    { name: 'München', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Munich', image: 'photo-1555881400-69d7acaacd9c' },
     { name: 'Hamburg', image: 'photo-1555881400-83d7acaacd7a' },
     { name: 'Frankfurt', image: 'photo-1555881400-92d7acaacd6f' },
-    { name: 'Köln', image: 'photo-1555881400-91d7acaacd7b' },
+    { name: 'Cologne', image: 'photo-1555881400-91d7acaacd7b' },
+    { name: 'Stuttgart', image: 'photo-1555881400-90d7acaacd7c' },
   ],
   'nl-BE': [
-    { name: 'Antwerpen', image: 'photo-1555881400-74d7acaacd8b' },
-    { name: 'Gent', image: 'photo-1555881400-69d7acaacd9c' },
-    { name: 'Brugge', image: 'photo-1555881400-83d7acaacd7a' },
-    { name: 'Leuven', image: 'photo-1555881400-92d7acaacd6f' },
+    { name: 'Brussels', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Antwerp', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Ghent', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Bruges', image: 'photo-1555881400-92d7acaacd6f' },
+    { name: 'Leuven', image: 'photo-1555881400-91d7acaacd7b' },
   ],
   'fr-BE': [
-    { name: 'Bruxelles', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Brussels', image: 'photo-1555881400-74d7acaacd8b' },
     { name: 'Liège', image: 'photo-1555881400-69d7acaacd9c' },
     { name: 'Charleroi', image: 'photo-1555881400-83d7acaacd7a' },
     { name: 'Namur', image: 'photo-1555881400-92d7acaacd6f' },
+  ],
+  'es-MX': [
+    { name: 'Mexico City', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Guadalajara', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Monterrey', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Puebla', image: 'photo-1555881400-92d7acaacd6f' },
+    { name: 'Tijuana', image: 'photo-1555881400-91d7acaacd7b' },
+    { name: 'Cancún', image: 'photo-1555881400-90d7acaacd7c' },
+  ],
+  'es-UY': [
+    { name: 'Montevideo', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Punta del Este', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Salto', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Colonia', image: 'photo-1555881400-92d7acaacd6f' },
+  ],
+  'en-GB': [
+    { name: 'London', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Manchester', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Birmingham', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Liverpool', image: 'photo-1555881400-92d7acaacd6f' },
+    { name: 'Bristol', image: 'photo-1555881400-91d7acaacd7b' },
+    { name: 'Leeds', image: 'photo-1555881400-90d7acaacd7c' },
+  ],
+  'en-US': [
+    { name: 'New York', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Los Angeles', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Miami', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Las Vegas', image: 'photo-1555881400-92d7acaacd6f' },
+    { name: 'Chicago', image: 'photo-1555881400-91d7acaacd7b' },
+    { name: 'Houston', image: 'photo-1555881400-90d7acaacd7c' },
+  ],
+  'en-ZA': [
+    { name: 'Cape Town', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Johannesburg', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Durban', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Pretoria', image: 'photo-1555881400-92d7acaacd6f' },
+  ],
+  'en-CY': [
+    { name: 'Limassol', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Nicosia', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Paphos', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Larnaca', image: 'photo-1555881400-92d7acaacd6f' },
+    { name: 'Ayia Napa', image: 'photo-1555881400-91d7acaacd7b' },
+  ],
+  'fr': [
+    { name: 'Paris', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Lyon', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Marseille', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Toulouse', image: 'photo-1555881400-92d7acaacd6f' },
+    { name: 'Nice', image: 'photo-1555881400-91d7acaacd7b' },
+    { name: 'Nantes', image: 'photo-1555881400-90d7acaacd7c' },
+  ],
+  'it': [
+    { name: 'Rome', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Milan', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Naples', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Turin', image: 'photo-1555881400-92d7acaacd6f' },
+    { name: 'Palermo', image: 'photo-1555881400-91d7acaacd7b' },
+    { name: 'Genoa', image: 'photo-1555881400-90d7acaacd7c' },
+    { name: 'Florence', image: 'photo-1555881400-89d7acaacd7d' },
+  ],
+  'pl': [
+    { name: 'Warsaw', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Krakow', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Gdansk', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Wroclaw', image: 'photo-1555881400-92d7acaacd6f' },
+    { name: 'Poznan', image: 'photo-1555881400-91d7acaacd7b' },
+  ],
+  'hr': [
+    { name: 'Zagreb', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Split', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Rijeka', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Osijek', image: 'photo-1555881400-92d7acaacd6f' },
+    { name: 'Dubrovnik', image: 'photo-1555881400-91d7acaacd7b' },
+  ],
+  'el': [
+    { name: 'Athens', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Thessaloniki', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Patras', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Heraklion', image: 'photo-1555881400-92d7acaacd6f' },
+    { name: 'Larissa', image: 'photo-1555881400-91d7acaacd7b' },
+    { name: 'Mykonos', image: 'photo-1555881400-90d7acaacd7c' },
+    { name: 'Santorini', image: 'photo-1555881400-89d7acaacd7d' },
+  ],
+  'el-CY': [
+    { name: 'Limassol', image: 'photo-1555881400-74d7acaacd8b' },
+    { name: 'Nicosia', image: 'photo-1555881400-69d7acaacd9c' },
+    { name: 'Paphos', image: 'photo-1555881400-83d7acaacd7a' },
+    { name: 'Larnaca', image: 'photo-1555881400-92d7acaacd6f' },
+    { name: 'Ayia Napa', image: 'photo-1555881400-91d7acaacd7b' },
   ],
 } as const;
 
 export function getCities(locale: Locale) {
   return citiesData[locale] || citiesData[defaultLocale];
+}
+
+// Get city names only (for API filtering)
+export function getCityNames(locale: string): string[] {
+  const cities = citiesData[locale as Locale];
+  if (cities) {
+    return cities.map(city => city.name);
+  }
+
+  // Fallback to base language if locale variant not found
+  const baseLang = locale.split('-')[0];
+  const baseCities = citiesData[baseLang as Locale];
+  if (baseCities) {
+    return baseCities.map(city => city.name);
+  }
+
+  // Final fallback to default locale
+  return citiesData[defaultLocale].map(city => city.name);
 }
 
 // Helper function to get base language from locale (e.g., en-US -> en, es-MX -> es)
