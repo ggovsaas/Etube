@@ -99,6 +99,7 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [listingData, setListingData] = useState<any>(null);
+  const [intentionalSubmit, setIntentionalSubmit] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: '',
     age: '',
@@ -269,8 +270,9 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (currentStep !== steps.length) {
-      setCurrentStep(currentStep + 1);
+
+    // Only submit if we're on the last step AND user intentionally clicked save
+    if (currentStep !== steps.length || !intentionalSubmit) {
       return;
     }
 
@@ -320,6 +322,7 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update listing');
       setSaving(false);
+      setIntentionalSubmit(false); // Reset flag on error
     }
   };
 
@@ -1146,6 +1149,7 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
               <button
                 type="submit"
                 disabled={saving}
+                onClick={() => setIntentionalSubmit(true)}
                 className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
               >
                 {saving ? 'Salvando...' : 'Salvar Alterações'}
