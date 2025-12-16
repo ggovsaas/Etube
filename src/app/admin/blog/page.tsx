@@ -178,14 +178,22 @@ export default function AdminBlogPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Blog Management</h1>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-        >
-          + Create New Post
-        </button>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Blog Management</h1>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="bg-red-600 text-white px-3 py-2 text-sm sm:px-4 rounded-lg hover:bg-red-700"
+          >
+            + Create Post
+          </button>
+          <Link
+            href="/admin"
+            className="bg-gray-600 text-white px-3 py-2 text-sm sm:px-4 rounded-lg hover:bg-gray-700 text-center"
+          >
+            ← Back
+          </Link>
+        </div>
       </div>
 
       {/* Create/Edit Form */}
@@ -326,7 +334,7 @@ export default function AdminBlogPage() {
             <div className="space-y-4">
               {posts.map((post) => (
                 <div key={post.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
                         <h3 className="text-lg font-semibold text-gray-900">{post.title}</h3>
@@ -352,16 +360,16 @@ export default function AdminBlogPage() {
                         )}
                       </div>
                     </div>
-                    <div className="flex space-x-2 ml-4">
+                    <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 ml-0 sm:ml-4 mt-3 sm:mt-0">
                       <button
                         onClick={() => handleEdit(post)}
-                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                        className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(post.slug)}
-                        className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                        className="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700"
                       >
                         Delete
                       </button>

@@ -125,36 +125,42 @@ export default function AdminListings() {
   if (error) return <div className="p-8 text-red-600">Error: {error}</div>;
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-black">Manage Listings</h1>
-        <Link
-          href="/admin/listings/new/edit"
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-        >
-          Add New Listing
-        </Link>
-      </div>
-
-      {/* Search Section */}
-      <div className="mb-8 bg-white rounded-lg shadow p-6">
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Search by title, city, or description..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-          />
+    <div className="p-4 sm:p-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
+        <h1 className="text-xl md:text-3xl font-bold text-black">Manage Listings</h1>
+        <div className="flex gap-2">
+          <Link
+            href="/admin/listings/new/edit"
+            className="bg-red-600 text-white px-3 py-2 text-sm sm:px-4 rounded hover:bg-red-700 text-center"
+          >
+            + Add Listing
+          </Link>
+          <Link
+            href="/admin"
+            className="bg-gray-600 text-white px-3 py-2 text-sm sm:px-4 rounded hover:bg-gray-700 text-center"
+          >
+            ← Back
+          </Link>
         </div>
       </div>
 
+      {/* Search Section */}
+      <div className="mb-6 sm:mb-8 bg-white rounded-lg shadow p-4 sm:p-6">
+        <input
+          type="text"
+          placeholder="Search by title, city, or description..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+        />
+      </div>
+
       {/* Listings Grid */}
-      <div className="grid gap-6">
+      <div className="grid gap-4 sm:gap-6">
         {filteredListings.map((listing) => (
-          <div 
+          <div
             key={listing.id}
-            className="bg-white rounded-lg shadow p-6"
+            className="bg-white rounded-lg shadow p-4 sm:p-6"
           >
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -183,18 +189,18 @@ export default function AdminListings() {
               <p className="text-sm text-gray-600">{listing.services || 'No services listed'}</p>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               {listing.status === 'PENDING' && (
                 <>
                   <button
                     onClick={() => handleApproveListing(listing.id)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
                   >
                     Approve
                   </button>
                   <button
                     onClick={() => handleRejectListing(listing.id)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
                   >
                     Reject
                   </button>
@@ -202,14 +208,14 @@ export default function AdminListings() {
               )}
               <button
                 onClick={() => router.push(`/admin/listings/${listing.id}/edit`)}
-                className="text-blue-600 hover:text-blue-800"
+                className="text-blue-600 hover:text-blue-800 text-sm font-semibold text-left sm:text-center"
               >
                 Edit
               </button>
               <button
                 onClick={() => handleDeleteListing(listing.id)}
                 disabled={deleting === listing.id}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {deleting === listing.id ? 'Deleting...' : 'Delete'}
               </button>

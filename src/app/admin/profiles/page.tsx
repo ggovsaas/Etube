@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import ResponsiveTable, { Column } from '@/components/admin/ResponsiveTable';
 
 interface User {
   id: string;
@@ -124,6 +125,110 @@ export default function AdminProfilesPage() {
     );
   };
 
+  // Define columns for ResponsiveTable
+  const columns: Column<User>[] = [
+    // HIGH PRIORITY
+    {
+      key: 'user',
+      label: 'User',
+      priority: 'high',
+      render: (user) => (
+        <div>
+          <div className="text-sm font-medium text-gray-900">{user.email}</div>
+          {user.profile && (
+            <div className="text-xs text-gray-500 mt-1">
+              {user.profile.name || 'No name'} • {user.profile.age || 0} yrs • {user.profile.city || 'No city'}
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'role',
+      label: 'Role',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (user) => getRoleBadge(user.role)
+    },
+    {
+      key: 'badges',
+      label: 'Status',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (user) => (
+        <div className="flex flex-wrap gap-1">
+          {user.profile?.isVerified && (
+            <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+              ✓ Verified
+            </span>
+          )}
+          {user.profile?.isOnline && (
+            <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+              ● Online
+            </span>
+          )}
+          {user.profile && (
+            <span className="text-xs text-gray-600">
+              ⭐ {(user.profile.rating || 0).toFixed(1)}
+            </span>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      mobileLabel: '',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (user) => (
+        <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+          <Link
+            href={`/admin/profiles/${user.id}`}
+            className="text-pink-600 hover:text-pink-900 text-sm font-semibold"
+          >
+            View
+          </Link>
+          {user.profile && (
+            <button
+              onClick={() => handleDeleteProfile(user.profile!.id)}
+              disabled={deleting === user.profile.id}
+              className="text-orange-600 hover:text-orange-900 text-xs font-medium disabled:opacity-50"
+            >
+              {deleting === user.profile.id ? 'Deleting...' : 'Del Profile'}
+            </button>
+          )}
+        </div>
+      )
+    },
+    // MEDIUM PRIORITY
+    {
+      key: 'created',
+      label: 'Joined',
+      mobileLabel: 'Joined Date',
+      priority: 'medium',
+      className: 'whitespace-nowrap',
+      render: (user) => <span className="text-sm">{new Date(user.createdAt).toLocaleDateString()}</span>
+    },
+    // LOW PRIORITY
+    {
+      key: 'deleteUser',
+      label: 'Delete User',
+      mobileLabel: 'Delete',
+      priority: 'low',
+      className: 'whitespace-nowrap',
+      render: (user) => (
+        <button
+          onClick={() => handleDeleteUser(user.id)}
+          disabled={deletingUser === user.id}
+          className="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50"
+        >
+          {deletingUser === user.id ? 'Deleting...' : 'Delete User'}
+        </button>
+      )
+    }
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -142,96 +247,31 @@ export default function AdminProfilesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">All Users & Profiles</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">All Users & Profiles</h1>
         <Link
-          href="/admin" 
-          className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+          href="/admin"
+          className="bg-gray-600 text-white px-3 py-2 text-sm sm:px-4 rounded-lg hover:bg-gray-700 text-center"
         >
-          Back to Dashboard
+          ← Back to Dashboard
         </Link>
       </div>
 
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        <ul className="divide-y divide-gray-200">
-          {users.map((user) => (
-            <li key={user.id} className="px-6 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                      <span className="text-sm font-medium text-gray-700">
-                        {user.email ? user.email.charAt(0).toUpperCase() : '?'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">
-                      {user.email || 'No email'}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Joined: {new Date(user.createdAt).toLocaleDateString()}
-                    </div>
-                    {user.profile && (
-                      <div className="text-sm text-gray-500">
-                        Profile: {user.profile.name || 'No name'} ({user.profile.age || 0} years, {user.profile.city || 'No city'})
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {getRoleBadge(user.role)}
-                  {user.profile && (
-                    <>
-                      {user.profile.isVerified && (
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                          Verified
-                        </span>
-                      )}
-                      {user.profile.isOnline && (
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                          Online
-                        </span>
-                      )}
-                      <span className="text-sm text-gray-500">
-                        ⭐ {(user.profile.rating || 0).toFixed(1)}
-                      </span>
-                    </>
-                  )}
-                  <Link
-                    href={`/admin/profiles/${user.id}`}
-                    className="text-pink-600 hover:text-pink-900 text-sm font-medium"
-                  >
-                    View Details
-                  </Link>
-                  {user.profile && (
-                    <button
-                      onClick={() => handleDeleteProfile(user.profile!.id)}
-                      disabled={deleting === user.profile.id}
-                      className="text-orange-600 hover:text-orange-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {deleting === user.profile.id ? 'Deleting...' : 'Delete Profile'}
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleDeleteUser(user.id)}
-                    disabled={deletingUser === user.id}
-                    className="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {deletingUser === user.id ? 'Deleting...' : 'Delete User'}
-                  </button>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {users.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-500">No users found</div>
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Users ({users.length})
+          </h2>
         </div>
-      )}
+        <div className="p-4">
+          <ResponsiveTable
+            data={users}
+            columns={columns}
+            keyExtractor={(user) => user.id}
+            emptyMessage="No users found"
+          />
+        </div>
+      </div>
     </div>
   );
 } 
