@@ -275,25 +275,36 @@ function PerfisContent() {
   const totalPages = Math.max(1, Math.ceil(safeFilteredProfiles.length / profilesPerPage));
   const paginatedProfiles = safeFilteredProfiles.slice((currentPage - 1) * profilesPerPage, currentPage * profilesPerPage);
 
-  // Sync filter state with URL
+  // Sync filter state to URL (one direction only: state → URL)
   useEffect(() => {
     const params = new URLSearchParams();
     if (search) params.set('search', search);
-    if (city) params.set('cidade', city.toLowerCase());
+    if (city) params.set('city', city); // Use 'city' and keep original case
     categories.forEach(cat => { if (cat.checked) params.append('categoria', cat.name.toLowerCase()); });
     if (priceRange.min) params.set('preco-min', priceRange.min);
     if (priceRange.max) params.set('preco-max', priceRange.max);
     ages.forEach(age => { if (age.checked) params.append('idade', age.label); });
     availability.forEach(a => { if (a.checked) params.append('disponibilidade', a.label.toLowerCase().replace(' ', '-')); });
-    router.replace(`?${params.toString()}`);
-  }, [search, city, categories, priceRange, ages, availability]);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [search, city, categories, priceRange, ages, availability, router]);
 
-  // Sync state from URL on load or URL change
+  // Sync state from URL ONLY on mount (one direction: URL → state)
   useEffect(() => {
     const params = searchParams;
-    setSearch(params.get('search') || '');
-    setCity(params.get('cidade') || '');
-    setCategories(categories.map(cat => ({
+    const urlSearch = params.get('search') || '';
+    const urlCity = params.get('city') || params.get('cidade') || '';
+
+    // Normalize city: find case-insensitive match in cities array
+    let normalizedCity = '';
+    if (urlCity && cities.length > 0) {
+      const match = cities.find(c => c.toLowerCase() === urlCity.toLowerCase());
+      normalizedCity = match || urlCity;
+    }
+
+    setSearch(urlSearch);
+    setCity(normalizedCity);
+
+    setCategories(prev => prev.map(cat => ({
       ...cat,
       checked: params.getAll('categoria').includes(cat.name.toLowerCase())
     })));
@@ -301,15 +312,15 @@ function PerfisContent() {
       min: params.get('preco-min') || '',
       max: params.get('preco-max') || ''
     });
-    setAges(ages.map(age => ({
+    setAges(prev => prev.map(age => ({
       ...age,
       checked: params.getAll('idade').includes(age.label)
     })));
-    setAvailability(availability.map(a => ({
+    setAvailability(prev => prev.map(a => ({
       ...a,
       checked: params.getAll('disponibilidade').includes(a.label.toLowerCase().replace(' ', '-'))
     })));
-  }, [searchParams]);
+  }, []); // EMPTY DEPS - only run on mount
 
   // Handlers
   const handleCategoryChange = (name: string) => {
@@ -432,7 +443,7 @@ function PerfisContent() {
               search={search}
               onSearchChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
               city={city}
-              onCityChange={(e: ChangeEvent<HTMLSelectElement>) => setCity(e.target.value)}
+              onCityChange={setCity}
               cities={cities}
               categories={categories}
               onCategoryChange={handleCategoryChange}

@@ -11,7 +11,15 @@
       "Bash(npx prisma generate:*)",
       "Bash(npm run dev:*)",
       "Bash(python3:*)",
-      "Bash(git diff:*)"
+      "Bash(git diff:*)",
+      "Bash(grep:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(if exist .next rmdir /s /q .next)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

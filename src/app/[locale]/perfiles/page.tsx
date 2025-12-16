@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState, useEffect, ChangeEvent } from 'react';
+import React, { Suspense, useState, useEffect, useMemo, useCallback, ChangeEvent } from 'react';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -143,7 +143,9 @@ function PerfisContent() {
     { label: 'Plus Size', checked: false },
     { label: 'Voluptuosa', checked: false },
   ]);
-  const [cities, setCities] = useState(localeCities.map(c => c.name));
+
+  // Cities should be memoized, not stateful
+  const cities = useMemo(() => localeCities.map(c => c.name), [localeCities]);
 
   // Filtering logic
   const filteredProfiles = allProfiles.filter(profile => {
@@ -227,41 +229,87 @@ function PerfisContent() {
   const totalPages = Math.ceil(filteredProfiles.length / profilesPerPage);
   const paginatedProfiles = filteredProfiles.slice((currentPage - 1) * profilesPerPage, currentPage * profilesPerPage);
 
-  // Sync filter state with URL
+  // Sync filters to URL
   useEffect(() => {
     const params = new URLSearchParams();
+
     if (search) params.set('search', search);
-    if (city) params.set('cidade', city.toLowerCase());
+    if (city) params.set('city', city);
+
     categories.forEach(cat => { if (cat.checked) params.append('categoria', cat.name.toLowerCase()); });
     if (priceRange.min) params.set('preco-min', priceRange.min);
     if (priceRange.max) params.set('preco-max', priceRange.max);
     ages.forEach(age => { if (age.checked) params.append('idade', age.label); });
     availability.forEach(a => { if (a.checked) params.append('disponibilidade', a.label.toLowerCase().replace(' ', '-')); });
-    router.replace(`?${params.toString()}`);
-  }, [search, city, categories, priceRange, ages, availability]);
+    hairColors.forEach(hair => { if (hair.checked) params.append('cabelo', hair.label.toLowerCase()); });
+    eyeColors.forEach(eye => { if (eye.checked) params.append('olhos', eye.label.toLowerCase()); });
+    ethnicities.forEach(ethnicity => { if (ethnicity.checked) params.append('etnia', ethnicity.label.toLowerCase()); });
+    bodyTypes.forEach(bodyType => { if (bodyType.checked) params.append('corpo', bodyType.label.toLowerCase()); });
 
-  // Sync state from URL on load or URL change
+    router.replace(`?${params.toString()}`);
+  }, [search, city, categories, priceRange, ages, availability, hairColors, eyeColors, ethnicities, bodyTypes, router]);
+
+  // Sync state from URL on mount
   useEffect(() => {
     const params = searchParams;
+
     setSearch(params.get('search') || '');
-    setCity(params.get('cidade') || '');
-    setCategories(categories.map(cat => ({
+
+    // Read and normalize city from URL (support legacy 'cidade' param)
+    const urlCity = params.get('city') || params.get('cidade') || '';
+    if (urlCity) {
+      // Normalize: find matching city from available cities (case-insensitive)
+      const matchingCity = cities.find(c => c.toLowerCase() === urlCity.toLowerCase());
+      setCity(matchingCity || urlCity);
+    }
+
+    const categoriaParams = params.getAll('categoria');
+    setCategories(prev => prev.map(cat => ({
       ...cat,
-      checked: params.getAll('categoria').includes(cat.name.toLowerCase())
+      checked: categoriaParams.includes(cat.name.toLowerCase())
     })));
+
     setPriceRange({
       min: params.get('preco-min') || '',
       max: params.get('preco-max') || ''
     });
-    setAges(ages.map(age => ({
+
+    const idadeParams = params.getAll('idade');
+    setAges(prev => prev.map(age => ({
       ...age,
-      checked: params.getAll('idade').includes(age.label)
+      checked: idadeParams.includes(age.label)
     })));
-    setAvailability(availability.map(a => ({
+
+    const disponibilidadeParams = params.getAll('disponibilidade');
+    setAvailability(prev => prev.map(a => ({
       ...a,
-      checked: params.getAll('disponibilidade').includes(a.label.toLowerCase().replace(' ', '-'))
+      checked: disponibilidadeParams.includes(a.label.toLowerCase().replace(' ', '-'))
     })));
-  }, [searchParams]);
+
+    const cabeloParams = params.getAll('cabelo');
+    setHairColors(prev => prev.map(hair => ({
+      ...hair,
+      checked: cabeloParams.includes(hair.label.toLowerCase())
+    })));
+
+    const olhosParams = params.getAll('olhos');
+    setEyeColors(prev => prev.map(eye => ({
+      ...eye,
+      checked: olhosParams.includes(eye.label.toLowerCase())
+    })));
+
+    const etniaParams = params.getAll('etnia');
+    setEthnicities(prev => prev.map(ethnicity => ({
+      ...ethnicity,
+      checked: etniaParams.includes(ethnicity.label.toLowerCase())
+    })));
+
+    const corpoParams = params.getAll('corpo');
+    setBodyTypes(prev => prev.map(bodyType => ({
+      ...bodyType,
+      checked: corpoParams.includes(bodyType.label.toLowerCase())
+    })));
+  }, [searchParams, cities]);
 
   // Handlers
   const handleCategoryChange = (name: string) => {
@@ -282,7 +330,16 @@ function PerfisContent() {
   const handleEthnicityChange = (label: string) => {
     setEthnicities(ethnicities.map(ethnicity => ethnicity.label === label ? { ...ethnicity, checked: !ethnicity.checked } : ethnicity));
   };
-  const handleClear = () => {
+  const handleBodyTypeChange = (label: string) => {
+    setBodyTypes(bodyTypes.map(bodyType => bodyType.label === label ? { ...bodyType, checked: !bodyType.checked } : bodyType));
+  };
+
+  // City change handler - receives city string directly from CityFilter
+  const handleCityChange = useCallback((newCity: string) => {
+    setCity(newCity);
+  }, []);
+
+  const handleClear = useCallback(() => {
     setSearch('');
     setCity('');
     setCategories(categories.map(cat => ({ ...cat, checked: false })));
@@ -293,7 +350,7 @@ function PerfisContent() {
     setEyeColors(eyeColors.map(eye => ({ ...eye, checked: false })));
     setEthnicities(ethnicities.map(ethnicity => ({ ...ethnicity, checked: false })));
     setBodyTypes(bodyTypes.map(bodyType => ({ ...bodyType, checked: false })));
-  };
+  }, [categories, ages, availability, hairColors, eyeColors, ethnicities, bodyTypes]);
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -368,8 +425,8 @@ function PerfisContent() {
               search={search}
               onSearchChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
               city={city}
-              onCityChange={(e: ChangeEvent<HTMLSelectElement>) => setCity(e.target.value)}
-              cities={localeCities.map(c => c.name)}
+              onCityChange={handleCityChange}
+              cities={cities}
               categories={categories}
               onCategoryChange={handleCategoryChange}
               priceRange={priceRange}

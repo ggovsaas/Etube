@@ -1,12 +1,13 @@
 import React from 'react';
 import { ChangeEvent } from 'react';
+import CityFilter from './CityFilter';
 
 interface FilterSidebarProps {
   showFilters: boolean;
   search: string;
   onSearchChange: (e: ChangeEvent<HTMLInputElement>) => void;
   city: string;
-  onCityChange: (e: ChangeEvent<HTMLSelectElement>) => void;
+  onCityChange: (city: string) => void;
   cities: string[];
   categories: { name: string; count: number; checked: boolean }[];
   onCategoryChange: (category: string) => void;
@@ -27,7 +28,7 @@ interface FilterSidebarProps {
   onClear: () => void;
 }
 
-export default function FilterSidebar({
+const FilterSidebar = React.memo(function FilterSidebar({
   showFilters,
   search,
   onSearchChange,
@@ -72,20 +73,12 @@ export default function FilterSidebar({
           </div>
         </div>
 
-        {/* City Filter */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Cidade</label>
-          <select
-            value={city}
-            onChange={onCityChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-700"
-          >
-            <option value="">Todas as cidades</option>
-            {(Array.isArray(cities) ? cities : []).map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
+        {/* City Filter - Isolated component */}
+        <CityFilter
+          cities={cities}
+          initialCity={city}
+          onChange={onCityChange}
+        />
 
         {/* Category Filter */}
         <div className="mb-6">
@@ -250,4 +243,6 @@ export default function FilterSidebar({
       </div>
     </div>
   );
-} 
+});
+
+export default FilterSidebar;
