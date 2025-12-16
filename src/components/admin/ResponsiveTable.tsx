@@ -83,7 +83,7 @@ export default function ResponsiveTable<T = any>({
       </div>
 
       {/* Mobile Card View (< lg) */}
-      <div className="lg:hidden space-y-4">
+      <div className="lg:hidden space-y-3">
         {data.map((item) => {
           const itemKey = keyExtractor(item);
           const isExpanded = expandedRows.has(itemKey);
@@ -91,18 +91,18 @@ export default function ResponsiveTable<T = any>({
           return (
             <div
               key={itemKey}
-              className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+              className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
             >
               {/* High Priority Fields - Always Visible */}
-              <div className="space-y-3">
-                {highPriorityColumns.map((column) => (
-                  <div key={column.key} className="flex flex-col">
+              <div className="p-4 space-y-3">
+                {highPriorityColumns.map((column, idx) => (
+                  <div key={column.key}>
                     {column.mobileLabel !== '' && (
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                         {column.mobileLabel || column.label}
-                      </span>
+                      </div>
                     )}
-                    <div className="text-sm text-gray-900">
+                    <div className={idx === 0 ? "text-sm font-medium text-gray-900" : "text-sm text-gray-700"}>
                       {column.render(item)}
                     </div>
                   </div>
@@ -113,15 +113,15 @@ export default function ResponsiveTable<T = any>({
               {mediumLowColumns.length > 0 && (
                 <>
                   {isExpanded && (
-                    <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                    <div className="px-4 pb-4 pt-2 border-t border-gray-100 bg-gray-50 space-y-3">
                       {mediumLowColumns.map((column) => (
-                        <div key={column.key} className="flex flex-col">
+                        <div key={column.key}>
                           {column.mobileLabel !== '' && (
-                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                               {column.mobileLabel || column.label}
-                            </span>
+                            </div>
                           )}
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-gray-700">
                             {column.render(item)}
                           </div>
                         </div>
@@ -132,19 +132,19 @@ export default function ResponsiveTable<T = any>({
                   {/* Expand/Collapse Button */}
                   <button
                     onClick={() => toggleRowExpansion(itemKey)}
-                    className="mt-3 w-full text-sm text-red-600 hover:text-red-700 font-medium flex items-center justify-center gap-1"
+                    className="w-full py-2.5 px-4 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 border-t border-gray-200 flex items-center justify-center gap-1.5 transition-colors"
                   >
                     {isExpanded ? (
                       <>
                         <span>Show Less</span>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                         </svg>
                       </>
                     ) : (
                       <>
                         <span>View Details</span>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                       </>
