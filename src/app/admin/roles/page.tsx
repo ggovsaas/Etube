@@ -220,13 +220,13 @@ export default function AdminRolesPage() {
   if (!permissions?.canManageRoles) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Roles & Permissions (RBAC)</h1>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Roles & Permissions (RBAC)</h1>
           <Link
-            href="/admin" 
-            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+            href="/admin"
+            className="bg-gray-600 text-white px-3 py-2 text-sm sm:px-4 rounded-lg hover:bg-gray-700 text-center"
           >
-            Back to Dashboard
+            ← Back to Dashboard
           </Link>
         </div>
         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
@@ -241,20 +241,20 @@ export default function AdminRolesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Roles & Permissions (RBAC)</h1>
-        <div className="flex items-center space-x-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Roles & Permissions (RBAC)</h1>
+        <div className="flex items-center gap-2">
           <button
             onClick={handleCreateRole}
-            className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg"
+            className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-3 text-sm sm:px-4 rounded-lg"
           >
             Create Role
           </button>
           <Link
-            href="/admin" 
-            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+            href="/admin"
+            className="bg-gray-600 text-white px-3 py-2 text-sm sm:px-4 rounded-lg hover:bg-gray-700 text-center"
           >
-            Back to Dashboard
+            ← Back
           </Link>
         </div>
       </div>

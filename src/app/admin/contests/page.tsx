@@ -182,13 +182,13 @@ export default function AdminContestsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Contest Management</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Contest Management</h1>
         <Link
-          href="/admin" 
-          className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+          href="/admin"
+          className="bg-gray-600 text-white px-3 py-2 text-sm sm:px-4 rounded-lg hover:bg-gray-700 text-center"
         >
-          Back to Dashboard
+          ← Back to Dashboard
         </Link>
       </div>
 
@@ -200,12 +200,12 @@ export default function AdminContestsPage() {
 
       {/* Status Filter */}
       <div className="bg-white p-4 rounded-lg shadow">
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <label className="text-sm font-medium text-gray-700">Filter by Status:</label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            className="w-full sm:w-auto border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
           >
             <option value="all">All Statuses</option>
             <option value="OPEN">Open</option>

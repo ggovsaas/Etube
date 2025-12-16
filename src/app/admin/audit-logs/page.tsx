@@ -132,13 +132,13 @@ export default function AdminAuditLogsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Audit Logs</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Audit Logs</h1>
         <Link
-          href="/admin" 
-          className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+          href="/admin"
+          className="bg-gray-600 text-white px-3 py-2 text-sm sm:px-4 rounded-lg hover:bg-gray-700 text-center"
         >
-          Back to Dashboard
+          ← Back to Dashboard
         </Link>
       </div>
 

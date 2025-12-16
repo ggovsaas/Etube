@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import ResponsiveTable, { Column } from '@/components/admin/ResponsiveTable';
 
 interface PayoutRequest {
@@ -232,9 +233,36 @@ export default function AdminPayoutsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Payout Management</h1>
-        <div className="flex gap-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl md:text-3xl font-bold text-gray-900">Payout Management</h1>
+        <Link
+          href="/admin"
+          className="bg-gray-600 text-white px-3 py-2 text-sm sm:px-4 rounded-lg hover:bg-gray-700 text-center"
+        >
+          ← Back to Dashboard
+        </Link>
+      </div>
+
+      {/* Status Filter */}
+      <div className="bg-white p-4 rounded-lg shadow">
+        {/* Mobile: Dropdown */}
+        <div className="lg:hidden">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Status:</label>
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as any)}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+          >
+            <option value="ALL">All Statuses</option>
+            <option value="REQUESTED">Requested</option>
+            <option value="PROCESSING">Processing</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+        </div>
+
+        {/* Desktop: Buttons */}
+        <div className="hidden lg:flex gap-2">
           {(['ALL', 'REQUESTED', 'PROCESSING', 'COMPLETED', 'REJECTED'] as const).map((status) => (
             <button
               key={status}
