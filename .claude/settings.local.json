@@ -20,7 +20,8 @@
       "Bash(if exist .next rmdir /s /q .next)",
       "Bash(npx tsc:*)",
       "Bash(npm run build:*)",
-      "Bash(node -c:*)"
+      "Bash(node -c:*)",
+      "Bash(dir /s /b \"C:\\xampp\\htdocs\\Etube\\src\\app\\admin\\listings\\*.tsx\")"
     ],
     "deny": [],
     "ask": []

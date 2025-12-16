@@ -352,26 +352,26 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
   );
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Edit Listing</h1>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Edit Listing</h1>
           <Link
             href="/admin/listings"
-            className="text-gray-600 hover:text-gray-800"
+            className="bg-gray-600 text-white px-3 py-2 text-sm sm:px-4 rounded-lg hover:bg-gray-700 text-center"
           >
-            Back to Listings
+            ← Back to Listings
           </Link>
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
+        <div className="mb-6 sm:mb-8 overflow-x-auto">
+          <div className="flex items-center justify-between min-w-max sm:min-w-0">
             {steps.map((step, index) => (
               <div key={step.number} className="flex items-center flex-1">
                 <div className="flex flex-col items-center">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-semibold ${
                       currentStep >= step.number
                         ? 'bg-red-600 text-white'
                         : 'bg-gray-300 text-gray-600'
@@ -379,13 +379,13 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
                   >
                     {step.number}
                   </div>
-                  <span className="mt-2 text-xs text-center text-gray-600 max-w-[100px]">
+                  <span className="mt-1 sm:mt-2 text-[10px] sm:text-xs text-center text-gray-600 max-w-[60px] sm:max-w-[100px] leading-tight">
                     {step.title}
                   </span>
                 </div>
                 {index < steps.length - 1 && (
                   <div
-                    className={`flex-1 h-1 mx-2 ${
+                    className={`flex-1 h-1 mx-1 sm:mx-2 ${
                       currentStep > step.number ? 'bg-red-600' : 'bg-gray-300'
                     }`}
                   />
@@ -395,7 +395,7 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8">
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8">
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md text-red-700">
               {error}
@@ -404,8 +404,8 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
 
           {/* Step 1: Basic Information */}
           {currentStep === 1 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-6">Informações Básicas</h2>
+            <div className="space-y-4 sm:space-y-6">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-4 sm:mb-6">Informações Básicas</h2>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700">Nome *</label>
@@ -558,8 +558,8 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
 
           {/* Step 2: Physical Details */}
           {currentStep === 2 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-6">Detalhes Físicos</h2>
+            <div className="space-y-4 sm:space-y-6">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-4 sm:mb-6">Detalhes Físicos</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
@@ -762,8 +762,8 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
 
           {/* Step 3: Services */}
           {currentStep === 3 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-6">Serviços</h2>
+            <div className="space-y-4 sm:space-y-6">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-4 sm:mb-6">Serviços</h2>
               
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Serviços Oferecidos</h3>
@@ -922,8 +922,8 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
 
           {/* Step 4: Pricing */}
           {currentStep === 4 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-6">Preços (Opcional)</h2>
+            <div className="space-y-4 sm:space-y-6">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-4 sm:mb-6">Preços (Opcional)</h2>
               
               <div className="flex items-center space-x-3 mb-6">
                 <input
@@ -1062,8 +1062,8 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
 
           {/* Step 5: Photos */}
           {currentStep === 5 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-6">Fotos</h2>
+            <div className="space-y-4 sm:space-y-6">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-4 sm:mb-6">Fotos</h2>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Fotos Principais</label>
@@ -1128,29 +1128,29 @@ export default function EditListing({ params }: { params: Promise<{ id: string }
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8 pt-6 border-t">
+          <div className="flex flex-col sm:flex-row justify-between gap-3 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t">
             <button
               type="button"
               onClick={prevStep}
               disabled={currentStep === 1}
-              className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-4 sm:px-6 py-2 border border-gray-300 rounded-md text-sm sm:text-base text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Anterior
+              ← Anterior
             </button>
             {currentStep < steps.length ? (
               <button
                 type="button"
                 onClick={nextStep}
-                className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-red-600 text-white text-sm sm:text-base rounded-md hover:bg-red-700"
               >
-                Próximo
+                Próximo →
               </button>
             ) : (
               <button
                 type="submit"
                 disabled={saving}
                 onClick={() => setIntentionalSubmit(true)}
-                className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-red-600 text-white text-sm sm:text-base rounded-md hover:bg-red-700 disabled:opacity-50"
               >
                 {saving ? 'Salvando...' : 'Salvar Alterações'}
               </button>
