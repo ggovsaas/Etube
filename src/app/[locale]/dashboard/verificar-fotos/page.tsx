@@ -158,8 +158,8 @@ export default function VerificarFotosPage() {
 
   return (
     <DashboardLayout user={user}>
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-purple-600 mb-8">
+      <div className="max-w-4xl mx-auto px-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-purple-600 mb-6 sm:mb-8">
           {locale === 'pt' ? 'Verificar Fotos' : 'Verificar fotos'}
         </h1>
         
@@ -206,29 +206,29 @@ export default function VerificarFotosPage() {
           </button>
           
           {beneficiosOpen && (
-            <div className="px-6 pb-6 space-y-6">
+            <div className="px-4 sm:px-6 pb-6 space-y-6">
               {/* Benefit 1 */}
-              <div className="flex gap-6">
+              <div className="flex flex-col md:flex-row gap-4 md:gap-6">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {locale === 'pt' 
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                    {locale === 'pt'
                       ? '1. Gera confiança e seu post se destaca no listado'
                       : '1. Generas confianza y tu post destaca en el listado'}
                   </h3>
-                  <p className="text-gray-700 mb-2">
-                    {locale === 'pt' 
+                  <p className="text-sm sm:text-base text-gray-700 mb-2">
+                    {locale === 'pt'
                       ? 'Seus clientes saberão que suas fotos são reais.'
                       : 'Tus clientes sabrán que tus fotos son reales.'}
                   </p>
-                  <p className="text-gray-700">
-                    {locale === 'pt' 
+                  <p className="text-sm sm:text-base text-gray-700">
+                    {locale === 'pt'
                       ? 'O símbolo de verificado no post e nos listados chamará a atenção'
                       : 'El símbolo de verificado en el post y en los listados llamará la atención'}
                   </p>
                 </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 min-w-[200px]">
-                  <p className="text-sm text-blue-800 font-medium">
-                    {locale === 'pt' 
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 md:min-w-[200px]">
+                  <p className="text-sm text-blue-800 font-medium break-words">
+                    {locale === 'pt'
                       ? 'Este post tem fotos verificadas por EscortTube!'
                       : 'Este post tiene fotos verificadas por EscortTube!'}
                   </p>
@@ -236,21 +236,21 @@ export default function VerificarFotosPage() {
               </div>
 
               {/* Benefit 2 */}
-              <div className="flex gap-6">
+              <div className="flex flex-col md:flex-row gap-4 md:gap-6">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {locale === 'pt' 
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                    {locale === 'pt'
                       ? '2. Listado de fotos verificadas gratuito.'
                       : '2. Listado de fotos verificadas gratuito.'}
                   </h3>
-                  <p className="text-gray-700">
-                    {locale === 'pt' 
+                  <p className="text-sm sm:text-base text-gray-700">
+                    {locale === 'pt'
                       ? 'Você se promove gratuitamente em nosso diretório verificado.'
                       : 'Te promocionas gratis en nuestro directorio verificado.'}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 min-w-[200px]">
-                  <svg className="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                <div className="flex items-center gap-2 md:min-w-[200px]">
+                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span className="text-sm font-medium text-purple-600">
@@ -261,18 +261,18 @@ export default function VerificarFotosPage() {
 
               {/* Benefit 3 */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {locale === 'pt' 
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                  {locale === 'pt'
                     ? '3. Te aplicaremos una subida gratis'
                     : '3. Te aplicaremos una subida gratis'}
                 </h3>
-                <p className="text-gray-700 mb-2">
-                  {locale === 'pt' 
+                <p className="text-sm sm:text-base text-gray-700 mb-2">
+                  {locale === 'pt'
                     ? 'No momento em que nossa equipe verificar seu post, aplicaremos uma subida gratuita.'
                     : 'En el momento en el que nuestro equipo verifique tu post te aplicaremos una subida gratis.'}
                 </p>
-                <p className="text-gray-700">
-                  {locale === 'pt' 
+                <p className="text-sm sm:text-base text-gray-700">
+                  {locale === 'pt'
                     ? 'Esta subida só se aplicará na primeira vez que verificarmos seu post.'
                     : 'Esta subida sólo se aplicará la primera vez que verifiquemos tu post.'}
                 </p>
@@ -280,13 +280,13 @@ export default function VerificarFotosPage() {
 
               {/* Benefit 4 */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {locale === 'pt' 
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                  {locale === 'pt'
                     ? '4. Servicio gratuito rápido y sencillo'
                     : '4. Servicio gratuito rápido y sencillo'}
                 </h3>
-                <p className="text-gray-700">
-                  {locale === 'pt' 
+                <p className="text-sm sm:text-base text-gray-700">
+                  {locale === 'pt'
                     ? 'Verificaremos seus posts em um prazo de 24 horas e de forma gratuita.'
                     : 'Verificaremos tus posts en un plazo de 24 horas y de forma gratuita.'}
                 </p>
@@ -315,16 +315,16 @@ export default function VerificarFotosPage() {
           </button>
           
           {comoConseguirOpen && (
-            <div className="px-6 pb-6 space-y-6">
+            <div className="px-4 sm:px-6 pb-6 space-y-6">
               {/* Requirement 1 */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {locale === 'pt' 
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                  {locale === 'pt'
                     ? '1. Tienes que tener como mínimo 3 fotos en tu post'
                     : '1. Tienes que tener como mínimo 3 fotos en tu post'}
                 </h3>
-                <p className="text-gray-700">
-                  {locale === 'pt' 
+                <p className="text-sm sm:text-base text-gray-700">
+                  {locale === 'pt'
                     ? 'Si tienes menos fotos edita tu post ahora y añade más fotos únicas. No puede haber fotos repetidas.'
                     : 'Si tienes menos fotos edita tu post ahora y añade más fotos únicas. No puede haber fotos repetidas.'}
                 </p>
@@ -332,13 +332,13 @@ export default function VerificarFotosPage() {
 
               {/* Requirement 2 */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {locale === 'pt' 
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                  {locale === 'pt'
                     ? '2. Sólo puede postearse una persona en todo el post'
                     : '2. Sólo puede postearse una persona en todo el post'}
                 </h3>
-                <p className="text-gray-700">
-                  {locale === 'pt' 
+                <p className="text-sm sm:text-base text-gray-700">
+                  {locale === 'pt'
                     ? 'Si hay más de una persona, o hay fotos donde no haya personas, borra esas fotos antes de solicitar la verificación.'
                     : 'Si hay más de una persona, o hay fotos donde no haya personas, borra esas fotos antes de solicitar la verificación.'}
                 </p>
@@ -346,23 +346,23 @@ export default function VerificarFotosPage() {
 
               {/* Requirement 3 */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {locale === 'pt' 
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                  {locale === 'pt'
                     ? '3. Hazte una foto con un cartel como este'
                     : '3. Hazte una foto con un cartel como este'}
                 </h3>
-                <p className="text-gray-700 mb-2">
-                  {locale === 'pt' 
+                <p className="text-sm sm:text-base text-gray-700 mb-2">
+                  {locale === 'pt'
                     ? `Escribe en él: Escorttube ${getCurrentDate()}`
                     : `Escribe en él: Escorttube ${getCurrentDate()}`}
                 </p>
-                <p className="text-gray-700 mb-4">
-                  {locale === 'pt' 
+                <p className="text-sm sm:text-base text-gray-700 mb-4">
+                  {locale === 'pt'
                     ? 'Tu cara debe ser visible y puedes coger el cartel con las manos, colocarlo en la pared o sobre un mueble.'
                     : 'Tu cara debe ser visible y puedes coger el cartel con las manos, colocarlo en la pared o sobre un mueble.'}
                 </p>
-                <p className="text-gray-600 italic">
-                  {locale === 'pt' 
+                <p className="text-sm sm:text-base text-gray-600 italic">
+                  {locale === 'pt'
                     ? 'Esta foto no se verá en tu post, solo te la pedimos para poder verificar las fotos.'
                     : 'Esta foto no se verá en tu post, solo te la pedimos para poder verificar las fotos.'}
                 </p>
@@ -403,26 +403,26 @@ export default function VerificarFotosPage() {
 
         {/* File Upload Section */}
         <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">
+          <div className="px-4 sm:px-6 py-4 border-b">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
               {locale === 'pt' ? 'Subir foto con cartel' : 'Subir foto con cartel'}
             </h2>
           </div>
-          
-          <div className="p-6">
+
+          <div className="p-4 sm:p-6">
             {!preview ? (
               <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
-                  isDragging 
-                    ? 'border-purple-500 bg-purple-50' 
+                className={`border-2 border-dashed rounded-lg p-8 sm:p-12 text-center transition-colors ${
+                  isDragging
+                    ? 'border-purple-500 bg-purple-50'
                     : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'
                 }`}
               >
                 <svg
-                  className="mx-auto h-12 w-12 text-gray-400 mb-4"
+                  className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mb-4"
                   stroke="currentColor"
                   fill="none"
                   viewBox="0 0 48 48"
@@ -434,19 +434,19 @@ export default function VerificarFotosPage() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <p className="text-gray-600 mb-2">
-                  {locale === 'pt' 
+                <p className="text-sm sm:text-base text-gray-600 mb-2">
+                  {locale === 'pt'
                     ? 'Arraste e solte sua foto aqui ou clique para selecionar'
                     : 'Arrastra y suelta tu foto aquí o haz clic para seleccionar'}
                 </p>
-                <p className="text-sm text-gray-500 mb-4">
-                  {locale === 'pt' 
+                <p className="text-xs sm:text-sm text-gray-500 mb-4">
+                  {locale === 'pt'
                     ? 'PNG, JPG, GIF até 10MB'
                     : 'PNG, JPG, GIF hasta 10MB'}
                 </p>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200"
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 sm:py-3 px-4 sm:px-6 text-sm sm:text-base rounded-lg transition duration-200"
                 >
                   {locale === 'pt' ? 'Selecionar Arquivo' : 'Seleccionar Archivo'}
                 </button>
@@ -470,24 +470,24 @@ export default function VerificarFotosPage() {
                     onClick={removeFile}
                     className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition-colors"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
-                <div className="flex justify-center gap-4">
+                <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
                   <button
                     onClick={removeFile}
-                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200"
                   >
                     {locale === 'pt' ? 'Remover' : 'Remover'}
                   </button>
                   <button
                     onClick={handleUpload}
                     disabled={uploading}
-                    className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {uploading 
+                    {uploading
                       ? (locale === 'pt' ? 'Enviando...' : 'Enviando...')
                       : (locale === 'pt' ? 'Enviar Foto' : 'Enviar Foto')
                     }

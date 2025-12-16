@@ -1633,30 +1633,32 @@ export default function CriarAnuncioPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Criar Anúncio Grátis</h2>
-            <p className="text-gray-600">Complete os passos para criar seu perfil</p>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Criar Anúncio Grátis</h2>
+            <p className="text-sm sm:text-base text-gray-600">Complete os passos para criar seu perfil</p>
           </div>
 
-          {/* Progress Steps - Fixed Layout */}
-          <div className="mb-8">
-            <div className="flex items-center justify-center space-x-2">
+          {/* Progress Steps - Responsive Layout */}
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-center justify-center space-x-1 sm:space-x-2">
               {steps.map((step, index) => (
                 <div key={step.number} className="flex items-center">
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                    currentStep >= step.number ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-600'
-                  }`}>
-                    {step.number}
+                  <div className="flex flex-col sm:flex-row items-center">
+                    <div className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-base ${
+                      currentStep >= step.number ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {step.number}
+                    </div>
+                    <span className={`hidden sm:inline-block ml-2 text-xs font-medium ${
+                      currentStep >= step.number ? 'text-red-600' : 'text-gray-500'
+                    }`}>
+                      {step.title}
+                    </span>
                   </div>
-                  <span className={`ml-2 text-xs font-medium ${
-                    currentStep >= step.number ? 'text-red-600' : 'text-gray-500'
-                  }`}>
-                    {step.title}
-                  </span>
                   {index < steps.length - 1 && (
-                    <div className={`w-8 h-0.5 mx-2 ${
+                    <div className={`w-4 sm:w-8 h-0.5 mx-1 sm:mx-2 ${
                       currentStep > step.number ? 'bg-red-600' : 'bg-gray-200'
                     }`} />
                   )}
@@ -2251,20 +2253,20 @@ export default function CriarAnuncioPage() {
           >
             {renderStepContent()}
 
-            <div className="flex items-center justify-between pt-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-6">
               <button
                 type="button"
                 onClick={prevStep}
                 disabled={currentStep === 1}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-lg transition duration-200 disabled:opacity-50"
+                className="w-full sm:w-auto bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 sm:py-3 px-4 sm:px-6 text-sm sm:text-base rounded-lg transition duration-200 disabled:opacity-50"
               >
                 Anterior
               </button>
 
-              <div className="flex space-x-4">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <Link
                   href="/dashboard"
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-lg transition duration-200"
+                  className="w-full sm:w-auto text-center bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 sm:py-3 px-4 sm:px-6 text-sm sm:text-base rounded-lg transition duration-200"
                 >
                   Cancelar
                 </Link>
@@ -2273,7 +2275,7 @@ export default function CriarAnuncioPage() {
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200"
+                    className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-medium py-2 sm:py-3 px-4 sm:px-6 text-sm sm:text-base rounded-lg transition duration-200"
                   >
                     Próximo
                   </button>
@@ -2292,7 +2294,7 @@ export default function CriarAnuncioPage() {
                         return;
                       }
                     }}
-                    className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200 disabled:opacity-50"
+                    className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-medium py-2 sm:py-3 px-4 sm:px-6 text-sm sm:text-base rounded-lg transition duration-200 disabled:opacity-50"
                   >
                     {loading ? 'Criando...' : 'Criar Anúncio'}
                   </button>
@@ -2305,35 +2307,35 @@ export default function CriarAnuncioPage() {
 
       {/* Authentication Modal */}
       {showAuthModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full">
             <div className="text-center">
-              <div className="text-4xl mb-4">🔐</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
+              <div className="text-3xl sm:text-4xl mb-4">🔐</div>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
                 {t.loginRequired}
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-sm sm:text-base text-gray-600 mb-6">
                 {t.loginRequiredMessage}
               </p>
-              
+
               <div className="space-y-3">
                 <Link
                   href={`/${locale}/login`}
-                  className="block w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200"
+                  className="block w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 sm:py-3 px-4 text-sm sm:text-base rounded-lg transition duration-200"
                 >
                   {t.makeLogin}
                 </Link>
-                
+
                 <Link
                   href={`/${locale}/criar-perfil`}
-                  className="block w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200"
+                  className="block w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 sm:py-3 px-4 text-sm sm:text-base rounded-lg transition duration-200"
                 >
                   {t.createAccount}
                 </Link>
-                
+
                 <button
                   onClick={() => setShowAuthModal(false)}
-                  className="block w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-4 rounded-lg transition duration-200"
+                  className="block w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 sm:py-3 px-4 text-sm sm:text-base rounded-lg transition duration-200"
                 >
                   {t.continueEditing}
                 </button>
