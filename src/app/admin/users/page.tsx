@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import ResponsiveTable, { Column } from '@/components/admin/ResponsiveTable';
 
 interface User {
   id: string;
@@ -131,12 +132,175 @@ export default function AdminUsersPage() {
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.profile?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
+
+  // Define columns for ResponsiveTable
+  const columns: Column<User>[] = [
+    // HIGH PRIORITY
+    {
+      key: 'user',
+      label: 'User',
+      priority: 'high',
+      render: (user) => (
+        <div className="flex items-center">
+          <div className="flex-shrink-0 h-10 w-10">
+            <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+              <span className="text-sm font-medium text-gray-700">
+                {user.email ? user.email.charAt(0).toUpperCase() : '?'}
+              </span>
+            </div>
+          </div>
+          <div className="ml-4">
+            <div className="text-sm font-medium text-gray-900">
+              {user.email || 'No email'}
+            </div>
+            <div className="text-sm text-gray-500">
+              ID: {user.id.substring(0, 8)}...
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'role',
+      label: 'Role',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (user) => {
+        const colors = {
+          ADMIN: 'bg-red-100 text-red-800',
+          ESCORT: 'bg-pink-100 text-pink-800',
+          USER: 'bg-blue-100 text-blue-800',
+          CAM_CREATOR: 'bg-purple-100 text-purple-800'
+        };
+        return (
+          <span className={`px-2 py-1 text-xs font-medium rounded-full ${colors[user.role as keyof typeof colors] || 'bg-gray-100 text-gray-800'}`}>
+            {user.role}
+          </span>
+        );
+      }
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      mobileLabel: '',  // No label on mobile
+      priority: 'high',
+      className: 'whitespace-nowrap text-sm font-medium',
+      render: (user) => (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            href={`/admin/profiles/${user.id}`}
+            className="text-pink-600 hover:text-pink-900"
+          >
+            View
+          </Link>
+          <button
+            onClick={() => handleDeleteUser(user.id)}
+            disabled={deletingUser === user.id}
+            className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {deletingUser === user.id ? 'Deleting...' : 'Delete'}
+          </button>
+        </div>
+      )
+    },
+    // MEDIUM PRIORITY
+    {
+      key: 'profile',
+      label: 'Profile Roles',
+      priority: 'medium',
+      render: (user) => (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-0.5 text-xs rounded ${user.isClient ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-400'}`}>
+              Client
+            </span>
+            <button
+              onClick={() => handleToggleRole(user.id, 'isClient', user.isClient || false)}
+              disabled={togglingRole === `${user.id}-isClient`}
+              className="text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50"
+              title="Toggle Client role"
+            >
+              {user.isClient ? '✓' : '○'}
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-0.5 text-xs rounded ${user.isContentCreator ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-400'}`}>
+              Content Creator
+            </span>
+            <button
+              onClick={() => handleToggleRole(user.id, 'isContentCreator', user.isContentCreator || false)}
+              disabled={togglingRole === `${user.id}-isContentCreator`}
+              className="text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50"
+              title="Toggle Content Creator role"
+            >
+              {user.isContentCreator ? '✓' : '○'}
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-0.5 text-xs rounded ${user.isServiceProvider ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>
+              Service Provider
+            </span>
+            <button
+              onClick={() => handleToggleRole(user.id, 'isServiceProvider', user.isServiceProvider || false)}
+              disabled={togglingRole === `${user.id}-isServiceProvider`}
+              className="text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50"
+              title="Toggle Service Provider role"
+            >
+              {user.isServiceProvider ? '✓' : '○'}
+            </button>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'profileInfo',
+      label: 'Profile',
+      mobileLabel: 'Profile Info',
+      priority: 'medium',
+      className: 'whitespace-nowrap',
+      render: (user) => {
+        if (user.profile) {
+          return (
+            <div className="text-sm text-gray-900">
+              {user.profile.name || 'No name'}
+              {user.profile.city && (
+                <div className="text-xs text-gray-500">{user.profile.city}</div>
+              )}
+            </div>
+          );
+        }
+        return <span className="text-sm text-gray-400">No profile</span>;
+      }
+    },
+    // LOW PRIORITY
+    {
+      key: 'listings',
+      label: 'Listings',
+      priority: 'low',
+      className: 'whitespace-nowrap text-sm text-gray-500',
+      render: (user) => <span>{user._count?.listings || 0} listings</span>
+    },
+    {
+      key: 'created',
+      label: 'Created',
+      priority: 'low',
+      className: 'whitespace-nowrap text-sm text-gray-500',
+      render: (user) => (
+        <div className="flex flex-col">
+          <span>{new Date(user.createdAt).toLocaleDateString()}</span>
+          <span className="text-xs text-gray-400">
+            {new Date(user.createdAt).toLocaleTimeString()}
+          </span>
+        </div>
+      )
+    }
+  ];
 
   if (loading) {
     return (
@@ -207,148 +371,14 @@ export default function AdminUsersPage() {
             Users ({filteredUsers.length})
           </h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Profile
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Listings
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                          <span className="text-sm font-medium text-gray-700">
-                            {user.email ? user.email.charAt(0).toUpperCase() : '?'}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {user.email || 'No email'}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          ID: {user.id.substring(0, 8)}...
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getRoleBadge(user.role)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 text-xs rounded ${user.isClient ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-400'}`}>
-                          Client
-                        </span>
-                        <button
-                          onClick={() => handleToggleRole(user.id, 'isClient', user.isClient || false)}
-                          disabled={togglingRole === `${user.id}-isClient`}
-                          className="text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50"
-                          title="Toggle Client role"
-                        >
-                          {user.isClient ? '✓' : '○'}
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 text-xs rounded ${user.isContentCreator ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-400'}`}>
-                          Content Creator
-                        </span>
-                        <button
-                          onClick={() => handleToggleRole(user.id, 'isContentCreator', user.isContentCreator || false)}
-                          disabled={togglingRole === `${user.id}-isContentCreator`}
-                          className="text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50"
-                          title="Toggle Content Creator role"
-                        >
-                          {user.isContentCreator ? '✓' : '○'}
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 text-xs rounded ${user.isServiceProvider ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>
-                          Service Provider
-                        </span>
-                        <button
-                          onClick={() => handleToggleRole(user.id, 'isServiceProvider', user.isServiceProvider || false)}
-                          disabled={togglingRole === `${user.id}-isServiceProvider`}
-                          className="text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50"
-                          title="Toggle Service Provider role"
-                        >
-                          {user.isServiceProvider ? '✓' : '○'}
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {user.profile ? (
-                      <div className="text-sm text-gray-900">
-                        {user.profile.name || 'No name'}
-                        {user.profile.city && (
-                          <div className="text-xs text-gray-500">{user.profile.city}</div>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-sm text-gray-400">No profile</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user._count?.listings || 0} listings
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex flex-col">
-                      <span>{new Date(user.createdAt).toLocaleDateString()}</span>
-                      <span className="text-xs text-gray-400">
-                        {new Date(user.createdAt).toLocaleTimeString()}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-2">
-                      <Link
-                        href={`/admin/profiles/${user.id}`}
-                        className="text-pink-600 hover:text-pink-900"
-                      >
-                        View
-                      </Link>
-                      <button
-                        onClick={() => handleDeleteUser(user.id)}
-                        disabled={deletingUser === user.id}
-                        className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {deletingUser === user.id ? 'Deleting...' : 'Delete'}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="p-4">
+          <ResponsiveTable
+            data={filteredUsers}
+            columns={columns}
+            keyExtractor={(user) => user.id}
+            emptyMessage="No users found"
+          />
         </div>
-        {filteredUsers.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-500">No users found</div>
-          </div>
-        )}
       </div>
     </div>
   );

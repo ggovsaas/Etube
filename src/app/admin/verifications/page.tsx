@@ -186,13 +186,13 @@ export default function AdminVerificationsPage() {
                 <div className="flex items-start space-x-6">
                   {/* Verification Photo */}
                   <div className="flex-shrink-0">
-                    <div className="relative w-48 h-48 border-2 border-gray-300 rounded-lg overflow-hidden">
+                    <div className="relative w-32 h-32 sm:w-48 sm:h-48 border-2 border-gray-300 rounded-lg overflow-hidden">
                       <Image
                         src={verification.photoUrl}
                         alt="Verification photo"
                         fill
                         className="object-cover"
-                        unoptimized
+                        sizes="(max-width: 640px) 128px, 192px"
                       />
                     </div>
                   </div>

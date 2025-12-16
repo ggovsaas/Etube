@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface MediaItem {
   id: string;
@@ -167,11 +168,18 @@ export default function AdminMediaPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredMedia.map((item) => (
                 <div key={item.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                  <div className="aspect-video bg-gray-100 flex items-center justify-center">
+                  <div className="aspect-video bg-gray-100 flex items-center justify-center relative">
                     {item.type?.toLowerCase().includes('video') || item.type === 'VIDEO' ? (
                       <video src={item.url} className="w-full h-full object-cover" controls />
                     ) : (
-                      <img src={item.url} alt="Media" className="w-full h-full object-cover" />
+                      <Image
+                        src={item.url}
+                        alt="Media"
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        loading="lazy"
+                      />
                     )}
                   </div>
                   <div className="p-4">

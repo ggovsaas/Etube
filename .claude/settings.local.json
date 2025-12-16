@@ -19,7 +19,8 @@
       "Bash(taskkill:*)",
       "Bash(if exist .next rmdir /s /q .next)",
       "Bash(npx tsc:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(node -c:*)"
     ],
     "deny": [],
     "ask": []

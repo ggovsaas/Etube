@@ -129,15 +129,15 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Admin Dashboard</h1>
           <p className="text-sm text-gray-600 mt-1">
             Scope: <span className="font-semibold">{metrics.countryScope}</span>
           </p>
         </div>
-        <div className="flex space-x-3">
-          <button 
+        <div className="flex gap-2">
+          <button
             onClick={handleLogout}
             className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200"
           >
@@ -149,7 +149,7 @@ export default function AdminDashboard() {
       {/* 1. Site Health & Growth */}
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">📈 Site Health & Growth</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <MetricCard
             icon="👥"
             label="Total Users"
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
         {/* User Roles Breakdown */}
         <div className="mt-6 pt-6 border-t border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">User Roles Breakdown</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-blue-600">{metrics.siteHealth.userRolesBreakdown.clients}</p>
               <p className="text-sm text-gray-600">Clients</p>
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
       {metrics.monetization && (
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">💵 Monetization & Sales</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             <MetricCard
               icon="💰"
               label="Revenue (30d)"
@@ -375,7 +375,7 @@ export default function AdminDashboard() {
       {metrics.service && (
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">📞 Service Utilization</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             <MetricCard
               icon="💬"
               label="DirectChat Sessions (Total)"
@@ -432,19 +432,19 @@ function MetricCard({
     gray: 'bg-gray-100 text-gray-600',
   };
 
-  const baseClasses = "p-4 rounded-lg border border-gray-200";
+  const baseClasses = "p-3 sm:p-4 rounded-lg border border-gray-200";
   const clickableClasses = clickable ? "hover:shadow-md transition-shadow cursor-pointer" : "";
 
   return (
     <div className={`${baseClasses} ${clickableClasses}`}>
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3">
           <div className={`p-2 rounded-lg ${colorClasses[color] || colorClasses.blue}`}>
-            <span className="text-xl">{icon}</span>
+            <span className="text-lg sm:text-xl">{icon}</span>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-600">{label}</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+            <p className="text-xs sm:text-sm font-medium text-gray-600">{label}</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{value}</p>
           </div>
         </div>
       </div>

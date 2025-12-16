@@ -134,7 +134,24 @@ export default function AdminReviewsPage() {
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
-          <div className="flex gap-2">
+          {/* Mobile: Dropdown Filter */}
+          <div className="lg:hidden">
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value as any)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            >
+              <option value="all">All Ratings</option>
+              <option value="1">1⭐</option>
+              <option value="2">2⭐⭐</option>
+              <option value="3">3⭐⭐⭐</option>
+              <option value="4">4⭐⭐⭐⭐</option>
+              <option value="5">5⭐⭐⭐⭐⭐</option>
+            </select>
+          </div>
+
+          {/* Desktop: Button Filter */}
+          <div className="hidden lg:flex gap-2">
             <button
               onClick={() => setFilter('all')}
               className={`px-4 py-2 rounded-lg ${filter === 'all' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700'}`}

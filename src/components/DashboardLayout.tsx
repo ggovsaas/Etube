@@ -40,12 +40,14 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   // Persist sidebar state in localStorage to prevent collapse when navigating
+  // Mobile-first: Default to closed on mobile, open on desktop
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('sidebarOpen');
-      return saved !== null ? saved === 'true' : true;
+      const isLargeScreen = window.innerWidth >= 1024; // lg breakpoint
+      return saved !== null ? saved === 'true' : isLargeScreen; // Default: closed on mobile, open on desktop
     }
-    return true;
+    return false; // SSR safe default
   });
 
   // Save sidebar state to localStorage when it changes
@@ -54,6 +56,13 @@ export default function DashboardLayout({
       localStorage.setItem('sidebarOpen', String(isSidebarOpen));
     }
   }, [isSidebarOpen]);
+
+  // Auto-close sidebar on navigation (mobile only)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  }, [pathname]);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isHelpDropdownOpen, setIsHelpDropdownOpen] = useState(false);
   const [user, setUser] = useState(propUser || null);
@@ -428,7 +437,7 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main Content Area */}
-      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : ''}`}>
         {/* Top Bar */}
         <header className="bg-white shadow-sm sticky top-0 z-20">
           <div className="px-6 py-4 flex items-center justify-between">
@@ -458,7 +467,7 @@ export default function DashboardLayout({
                   </svg>
                 </button>
                 {isHelpDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-50">
+                  <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-lg py-2 z-50">
                     <Link
                       href={locale === 'es' ? '/docs' : '/docs'}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -494,7 +503,7 @@ export default function DashboardLayout({
                   </svg>
                 </button>
                 {isProfileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                  <div className="absolute right-0 mt-2 w-48 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-lg py-2 z-50">
                     <Link
                       href={`/${locale}/dashboard/dados-faturacao`}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
