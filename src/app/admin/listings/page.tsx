@@ -125,7 +125,7 @@ export default function AdminListings() {
   if (error) return <div className="p-8 text-red-600">Error: {error}</div>;
 
   return (
-    <div className="p-4 sm:p-8">
+    <div className="p-4 sm:p-8 overflow-x-hidden">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
         <h1 className="text-xl md:text-3xl font-bold text-black">Manage Listings</h1>
         <div className="flex gap-2">
@@ -160,23 +160,25 @@ export default function AdminListings() {
         {filteredListings.map((listing) => (
           <div
             key={listing.id}
-            className="bg-white rounded-lg shadow p-4 sm:p-6"
+            className="bg-white rounded-lg shadow p-4 sm:p-6 overflow-hidden"
           >
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h2 className="text-xl font-bold text-black">{listing.title}</h2>
-                <p className="text-gray-600">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg sm:text-xl font-bold text-black break-words">{listing.title}</h2>
+                <p className="text-sm sm:text-base text-gray-600 mt-1">
                   {listing.city} • Age: {listing.age} • €{listing.price}
                 </p>
-                <p className="text-sm text-gray-500 mt-1">{listing.description?.substring(0, 100)}...</p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-xs sm:text-sm text-gray-500 mt-1 break-words line-clamp-2">
+                  {listing.description || 'No description'}
+                </p>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1 truncate">
                   By: {listing.user?.profile?.name || listing.user?.name || listing.user?.email || 'Unknown'}
                 </p>
               </div>
-              <div className="flex gap-2">
-                <span className={`px-2 py-1 rounded text-sm ${
-                  listing.status === 'APPROVED' ? 'bg-green-100 text-green-800' : 
-                  listing.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : 
+              <div className="flex-shrink-0">
+                <span className={`px-2 py-1 rounded text-xs sm:text-sm whitespace-nowrap ${
+                  listing.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                  listing.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
                   'bg-gray-100 text-gray-800'
                 }`}>
                   {listing.status}
@@ -184,9 +186,9 @@ export default function AdminListings() {
               </div>
             </div>
 
-            <div className="mb-4">
-              <h3 className="font-semibold mb-2 text-black">Services</h3>
-              <p className="text-sm text-gray-600">{listing.services || 'No services listed'}</p>
+            <div className="mb-4 min-w-0">
+              <h3 className="font-semibold mb-2 text-black text-sm">Services</h3>
+              <p className="text-xs sm:text-sm text-gray-600 break-words">{listing.services || 'No services listed'}</p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
