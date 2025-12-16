@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import ResponsiveTable, { Column } from '@/components/admin/ResponsiveTable';
 
 interface PayoutRequest {
   id: string;
@@ -127,6 +128,97 @@ export default function AdminPayoutsPage() {
     }).format(amount);
   };
 
+  // Define columns for ResponsiveTable
+  const columns: Column<PayoutRequest>[] = [
+    // HIGH PRIORITY
+    {
+      key: 'provider',
+      label: 'Provider',
+      priority: 'high',
+      render: (payout) => (
+        <div>
+          <div className="text-sm font-medium text-gray-900">{payout.provider.name || 'N/A'}</div>
+          <div className="text-xs text-gray-500">{payout.provider.email}</div>
+        </div>
+      )
+    },
+    {
+      key: 'amount',
+      label: 'Amount',
+      priority: 'high',
+      className: 'whitespace-nowrap font-semibold',
+      render: (payout) => <span>{formatCurrency(payout.amount)}</span>
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (payout) => (
+        <span
+          className={`px-2 py-1 text-xs font-semibold rounded-full ${
+            payout.status === 'COMPLETED'
+              ? 'bg-green-100 text-green-800'
+              : payout.status === 'REJECTED'
+              ? 'bg-red-100 text-red-800'
+              : payout.status === 'PROCESSING'
+              ? 'bg-yellow-100 text-yellow-800'
+              : 'bg-blue-100 text-blue-800'
+          }`}
+        >
+          {payout.status}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      mobileLabel: '',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (payout) => (
+        <div>
+          {payout.status === 'REQUESTED' && (
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => handleApprove(payout.id)}
+                className="text-green-600 hover:text-green-900 font-semibold text-sm"
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => setRejectingId(payout.id)}
+                className="text-red-600 hover:text-red-900 font-semibold text-sm"
+              >
+                Reject
+              </button>
+            </div>
+          )}
+          {payout.status === 'REJECTED' && payout.rejectionReason && (
+            <p className="text-xs text-red-600">{payout.rejectionReason}</p>
+          )}
+        </div>
+      )
+    },
+    // MEDIUM PRIORITY
+    {
+      key: 'method',
+      label: 'Method',
+      mobileLabel: 'Payout Method',
+      priority: 'medium',
+      className: 'whitespace-nowrap',
+      render: (payout) => <span>{payout.payoutMethod}</span>
+    },
+    {
+      key: 'requested',
+      label: 'Requested',
+      mobileLabel: 'Requested Date',
+      priority: 'medium',
+      className: 'whitespace-nowrap',
+      render: (payout) => <span>{new Date(payout.requestedAt).toLocaleDateString()}</span>
+    }
+  ];
+
   if (loading && payouts.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -183,93 +275,13 @@ export default function AdminPayoutsPage() {
 
       {/* Payouts Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Provider
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Method
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Requested
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {payouts.map((payout) => (
-                <tr key={payout.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{payout.provider.name || 'N/A'}</div>
-                      <div className="text-sm text-gray-500">{payout.provider.email}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                    {formatCurrency(payout.amount)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {payout.payoutMethod}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(payout.requestedAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        payout.status === 'COMPLETED'
-                          ? 'bg-green-100 text-green-800'
-                          : payout.status === 'REJECTED'
-                          ? 'bg-red-100 text-red-800'
-                          : payout.status === 'PROCESSING'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-blue-100 text-blue-800'
-                      }`}
-                    >
-                      {payout.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {payout.status === 'REQUESTED' && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleApprove(payout.id)}
-                          className="text-green-600 hover:text-green-900 font-semibold"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => setRejectingId(payout.id)}
-                          className="text-red-600 hover:text-red-900 font-semibold"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    )}
-                    {payout.status === 'REJECTED' && payout.rejectionReason && (
-                      <p className="text-xs text-red-600">{payout.rejectionReason}</p>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {payouts.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              <p>No payout requests found.</p>
-            </div>
-          )}
+        <div className="p-4">
+          <ResponsiveTable
+            data={payouts}
+            columns={columns}
+            keyExtractor={(payout) => payout.id}
+            emptyMessage="No payout requests found."
+          />
         </div>
       </div>
 

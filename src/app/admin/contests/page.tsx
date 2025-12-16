@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import ResponsiveTable, { Column } from '@/components/admin/ResponsiveTable';
 
 interface Contest {
   id: string;
@@ -86,6 +87,91 @@ export default function AdminContestsPage() {
     return contest.status === statusFilter;
   });
 
+  // Define columns for ResponsiveTable
+  const columns: Column<Contest>[] = [
+    // HIGH PRIORITY
+    {
+      key: 'title',
+      label: 'Title',
+      priority: 'high',
+      render: (contest) => (
+        <div>
+          <div className="text-sm font-medium text-gray-900">{contest.title}</div>
+          <div className="text-xs text-gray-500 line-clamp-1">{contest.prizeDescription}</div>
+        </div>
+      )
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (contest) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+          contest.status === 'OPEN' ? 'bg-green-100 text-green-800' :
+          contest.status === 'CLOSED' ? 'bg-gray-100 text-gray-800' :
+          'bg-blue-100 text-blue-800'
+        }`}>
+          {contest.status}
+        </span>
+      )
+    },
+    {
+      key: 'entries',
+      label: 'Entries',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (contest) => {
+        const entriesCount = contest._count?.entries || 0;
+        const slotsSold = entriesCount;
+        return <span>{slotsSold} / {contest.totalSlots}</span>;
+      }
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      mobileLabel: '',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (contest) => (
+        <button
+          onClick={() => handleDelete(contest.id)}
+          disabled={deletingContest === contest.id}
+          className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+        >
+          {deletingContest === contest.id ? 'Deleting...' : 'Delete'}
+        </button>
+      )
+    },
+    // MEDIUM PRIORITY
+    {
+      key: 'creator',
+      label: 'Creator',
+      priority: 'medium',
+      className: 'whitespace-nowrap',
+      render: (contest) => (
+        <span className="text-sm">{contest.creator?.name || contest.creator?.email || 'Unknown'}</span>
+      )
+    },
+    {
+      key: 'price',
+      label: 'Price',
+      mobileLabel: 'Slot Price',
+      priority: 'medium',
+      className: 'whitespace-nowrap',
+      render: (contest) => <span>€{contest.slotPrice.toFixed(2)}</span>
+    },
+    // LOW PRIORITY
+    {
+      key: 'created',
+      label: 'Created',
+      mobileLabel: 'Created Date',
+      priority: 'low',
+      className: 'whitespace-nowrap',
+      render: (contest) => <span>{new Date(contest.createdAt).toLocaleDateString()}</span>
+    }
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -136,96 +222,15 @@ export default function AdminContestsPage() {
             Contests ({filteredContests.length})
           </h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Title
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Creator
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Slots
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Entries
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredContests.map((contest) => {
-                const entriesCount = contest._count?.entries || 0;
-                const slotsSold = entriesCount;
-                const progress = (slotsSold / contest.totalSlots) * 100;
-                
-                return (
-                  <tr key={contest.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{contest.title}</div>
-                      <div className="text-xs text-gray-500 truncate max-w-xs">{contest.prizeDescription}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {contest.creator?.name || contest.creator?.email || 'Unknown'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        contest.status === 'OPEN' ? 'bg-green-100 text-green-800' :
-                        contest.status === 'CLOSED' ? 'bg-gray-100 text-gray-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {contest.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {slotsSold} / {contest.totalSlots}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      €{contest.slotPrice.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {entriesCount}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(contest.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => handleDelete(contest.id)}
-                        disabled={deletingContest === contest.id}
-                        className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {deletingContest === contest.id ? 'Deleting...' : 'Delete'}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="p-4">
+          <ResponsiveTable
+            data={filteredContests}
+            columns={columns}
+            keyExtractor={(contest) => contest.id}
+            emptyMessage="No contests found"
+          />
         </div>
-        {filteredContests.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-500">No contests found</div>
-          </div>
-        )}
       </div>
     </div>
   );
 }
-
-
-

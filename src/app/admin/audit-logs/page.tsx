@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import ResponsiveTable, { Column } from '@/components/admin/ResponsiveTable';
 
 interface AuditLog {
   id: string;
@@ -58,6 +59,68 @@ export default function AdminAuditLogsPage() {
     if (filter.dateTo && new Date(log.createdAt) > new Date(filter.dateTo)) return false;
     return true;
   });
+
+  // Define columns for ResponsiveTable
+  const columns: Column<AuditLog>[] = [
+    // HIGH PRIORITY
+    {
+      key: 'timestamp',
+      label: 'Timestamp',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (log) => (
+        <div className="text-sm">
+          <div>{new Date(log.createdAt).toLocaleDateString()}</div>
+          <div className="text-xs text-gray-500">{new Date(log.createdAt).toLocaleTimeString()}</div>
+        </div>
+      )
+    },
+    {
+      key: 'user',
+      label: 'User',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (log) => (
+        <span className="text-sm font-medium">{log.userEmail || log.userId.substring(0, 8)}</span>
+      )
+    },
+    {
+      key: 'action',
+      label: 'Action',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (log) => (
+        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+          {log.action}
+        </span>
+      )
+    },
+    // MEDIUM PRIORITY
+    {
+      key: 'resource',
+      label: 'Resource',
+      priority: 'medium',
+      className: 'whitespace-nowrap',
+      render: (log) => (
+        <span className="text-sm">{log.resourceType} ({log.resourceId.substring(0, 8)}...)</span>
+      )
+    },
+    // LOW PRIORITY
+    {
+      key: 'details',
+      label: 'Details',
+      priority: 'low',
+      render: (log) => <span className="text-sm">{log.details}</span>
+    },
+    {
+      key: 'ip',
+      label: 'IP Address',
+      mobileLabel: 'IP',
+      priority: 'low',
+      className: 'whitespace-nowrap',
+      render: (log) => <span className="text-sm text-gray-400">{log.ipAddress || 'N/A'}</span>
+    }
+  ];
 
   if (loading) {
     return (
@@ -150,70 +213,15 @@ export default function AdminAuditLogsPage() {
             Activity Log ({filteredLogs.length})
           </h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Timestamp
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Action
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Resource
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Details
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  IP Address
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredLogs.length > 0 ? (
-                filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(log.createdAt).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {log.userEmail || log.userId.substring(0, 8)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {log.resourceType} ({log.resourceId.substring(0, 8)}...)
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {log.details}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                      {log.ipAddress || 'N/A'}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                    No audit logs found. Audit logging will be implemented to track all admin and user actions.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="p-4">
+          <ResponsiveTable
+            data={filteredLogs}
+            columns={columns}
+            keyExtractor={(log) => log.id}
+            emptyMessage="No audit logs found. Audit logging will be implemented to track all admin and user actions."
+          />
         </div>
       </div>
     </div>
   );
 }
-
-
-

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import ResponsiveTable, { Column } from '@/components/admin/ResponsiveTable';
 
 interface AdminRole {
   id: string;
@@ -127,6 +128,87 @@ export default function AdminRolesPage() {
     }
   };
 
+  // Define columns for ResponsiveTable
+  const columns: Column<AdminRole>[] = [
+    // HIGH PRIORITY
+    {
+      key: 'name',
+      label: 'Role Name',
+      priority: 'high',
+      render: (role) => <span className="text-sm font-medium">{role.name}</span>
+    },
+    {
+      key: 'users',
+      label: 'Users',
+      mobileLabel: 'User Count',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (role) => <span className="text-sm">{role.users?.length || 0} users</span>
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      mobileLabel: '',
+      priority: 'high',
+      className: 'whitespace-nowrap',
+      render: (role) => (
+        <button
+          onClick={() => handleEditRole(role)}
+          className="text-pink-600 hover:text-pink-900 font-semibold text-sm"
+        >
+          Edit
+        </button>
+      )
+    },
+    // MEDIUM PRIORITY
+    {
+      key: 'permissions',
+      label: 'Permissions',
+      priority: 'medium',
+      render: (role) => {
+        const permissionCount = [
+          role.canEditProfiles,
+          role.canResolveContests,
+          role.canAccessPayouts,
+          role.canManageUsers
+        ].filter(Boolean).length;
+
+        return (
+          <div className="flex flex-wrap gap-2">
+            <div className="lg:hidden">
+              <span className="text-sm text-gray-600">{permissionCount} permissions</span>
+            </div>
+            <div className="hidden lg:flex flex-wrap gap-2">
+              {role.canEditProfiles && (
+                <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Edit Profiles</span>
+              )}
+              {role.canResolveContests && (
+                <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">Resolve Contests</span>
+              )}
+              {role.canAccessPayouts && (
+                <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">Access Payouts</span>
+              )}
+              {role.canManageUsers && (
+                <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded">Manage Users</span>
+              )}
+              {!role.canEditProfiles && !role.canResolveContests && !role.canAccessPayouts && !role.canManageUsers && (
+                <span className="text-xs text-gray-400">No permissions</span>
+              )}
+            </div>
+          </div>
+        );
+      }
+    },
+    {
+      key: 'scope',
+      label: 'Country Scope',
+      mobileLabel: 'Scope',
+      priority: 'medium',
+      className: 'whitespace-nowrap',
+      render: (role) => <span className="text-sm">{role.countryScope || 'GLOBAL'}</span>
+    }
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -189,76 +271,14 @@ export default function AdminRolesPage() {
             Admin Roles ({roles.length})
           </h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Permissions
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Country Scope
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Users
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {roles.map((role) => (
-                <tr key={role.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{role.name}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-2">
-                      {role.canEditProfiles && (
-                        <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Edit Profiles</span>
-                      )}
-                      {role.canResolveContests && (
-                        <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">Resolve Contests</span>
-                      )}
-                      {role.canAccessPayouts && (
-                        <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">Access Payouts</span>
-                      )}
-                      {role.canManageUsers && (
-                        <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded">Manage Users</span>
-                      )}
-                      {!role.canEditProfiles && !role.canResolveContests && !role.canAccessPayouts && !role.canManageUsers && (
-                        <span className="text-xs text-gray-400">No permissions</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {role.countryScope || 'GLOBAL'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {role.users?.length || 0} users
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => handleEditRole(role)}
-                      className="text-pink-600 hover:text-pink-900"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="p-4">
+          <ResponsiveTable
+            data={roles}
+            columns={columns}
+            keyExtractor={(role) => role.id}
+            emptyMessage="No roles found. Create your first role to get started."
+          />
         </div>
-        {roles.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-500">No roles found. Create your first role to get started.</div>
-          </div>
-        )}
       </div>
 
       {/* Create/Edit Modal */}
