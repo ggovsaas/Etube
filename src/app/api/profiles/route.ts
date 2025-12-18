@@ -109,11 +109,10 @@ export async function GET(request: NextRequest) {
             isContentCreator: true,
             isServiceProvider: true,
             listings: {
-              where: userIsAdmin ? {} : { 
+              where: userIsAdmin ? {} : {
                 status: 'ACTIVE',
                 isPaused: false, // Filter out paused listings
               },
-              take: 1,
               orderBy: {
                 createdAt: 'desc'
               },
@@ -183,60 +182,74 @@ export async function GET(request: NextRequest) {
       : filteredProfiles.length;
 
     // Transform profiles to match expected structure
+    // IMPORTANT: Create ONE result per listing (not per profile)
     const profilesToTransform = Array.isArray(paginatedProfiles) ? paginatedProfiles : [];
     const transformedProfiles = profilesToTransform
       .filter(profile => profile != null) // Filter out null/undefined profiles first
-      .map(profile => {
-      if (!profile) return null;
-      // Get all gallery images - include IMAGE, image, and null/undefined types
-      // Also check listing.media and listing.images for URL-uploaded media
-      const mediaArray = Array.isArray(profile.media) ? profile.media : [];
-      const listingsArray = Array.isArray(profile.user?.listings) ? profile.user.listings : [];
-      const firstListing = listingsArray[0] || null;
-      const listingMediaArray = firstListing?.media ? firstListing.media : [];
-      const listingImagesArray = firstListing?.images ? firstListing.images : [];
-      
-      // Combine all media sources
-      const allMedia = [
-        ...mediaArray,
-        ...listingMediaArray.map((m: any) => ({ ...m, url: m.url || m })),
-        ...listingImagesArray.map((img: any) => ({ url: img.url || img, type: 'IMAGE' }))
-      ];
-      
-      const galleryImages = allMedia
-        .filter(m => {
-          if (!m || !m.url) return false;
-          const type = (m.type || '').toUpperCase();
-          // Include IMAGE, image, and any media without type (assumed to be images)
-          return type === 'IMAGE' || type === '' || !m.type;
-        })
-        .map(m => m.url)
-        .filter((url, index, self) => self.indexOf(url) === index); // Remove duplicates
-      
-      const firstMedia = allMedia.find(m => m && m.url) || null;
-      
-      return {
-        id: profile.id || '',
-        listingId: firstListing?.id || null, // Include listing ID for navigation
-        name: profile.name || 'Unknown',
-        age: profile.age || 0,
-        city: profile.city || 'Unknown',
-        height: profile.height ? parseInt(String(profile.height)) : 0,
-        weight: profile.weight ? parseInt(String(profile.weight)) : 0,
-        price: firstListing?.price || 0,
-        pricePerHour: firstListing?.price || 0,
-        rating: profile.rating || 0,
-        reviews: profile._count?.reviews || 0,
-        isOnline: profile.user?.isOnline || false,
-        isVerified: profile.isVerified || false,
-        imageUrl: firstMedia?.url || '/placeholder-profile.jpg',
-        description: profile.description || '',
-        gallery: galleryImages.length > 0 ? galleryImages : [firstMedia?.url || '/placeholder-profile.jpg'],
-        voiceNoteUrl: profile.voiceNoteUrl || null,
-        phone: profile.phone || firstListing?.phone || '', // Include phone for search
-        createdAt: profile.createdAt
-      };
-    }).filter(p => p !== null); // Remove any null entries
+      .flatMap(profile => {
+        if (!profile) return [];
+
+        const listingsArray = Array.isArray(profile.user?.listings) ? profile.user.listings : [];
+
+        // If no listings, skip this profile
+        if (listingsArray.length === 0) return [];
+
+        // Create one result for EACH listing
+        return listingsArray.map(listing => {
+          if (!listing) return null;
+
+          // Get media ONLY for this specific listing
+          const listingMediaArray = Array.isArray(listing.media) ? listing.media : [];
+          const listingImagesArray = Array.isArray(listing.images) ? listing.images : [];
+
+          // Get profile media that belongs to this specific listing
+          const profileMediaArray = Array.isArray(profile.media) ? profile.media : [];
+          const profileMediaForListing = profileMediaArray.filter((m: any) =>
+            m.listingId === listing.id
+          );
+
+          // Combine media ONLY from this listing
+          const allMedia = [
+            ...profileMediaForListing,
+            ...listingMediaArray.map((m: any) => ({ ...m, url: m.url || m })),
+            ...listingImagesArray.map((img: any) => ({ url: img.url || img, type: 'IMAGE' }))
+          ];
+
+          const galleryImages = allMedia
+            .filter(m => {
+              if (!m || !m.url) return false;
+              const type = (m.type || '').toUpperCase();
+              return type === 'IMAGE' || type === '' || !m.type;
+            })
+            .map(m => m.url)
+            .filter((url, index, self) => self.indexOf(url) === index); // Remove duplicates
+
+          const firstMedia = allMedia.find(m => m && m.url) || null;
+
+          return {
+            id: listing.id || '', // Use listing.id as unique identifier since we return one result per listing
+            profileId: profile.id || '', // Keep profile.id for reference
+            listingId: listing.id || null, // Include listing ID for navigation
+            name: profile.name || 'Unknown',
+            age: profile.age || 0,
+            city: profile.city || 'Unknown',
+            height: profile.height ? parseInt(String(profile.height)) : 0,
+            weight: profile.weight ? parseInt(String(profile.weight)) : 0,
+            price: listing.price || 0,
+            pricePerHour: listing.price || 0,
+            rating: profile.rating || 0,
+            reviews: profile._count?.reviews || 0,
+            isOnline: profile.user?.isOnline || false,
+            isVerified: profile.isVerified || false,
+            imageUrl: firstMedia?.url || '/placeholder-profile.jpg',
+            description: profile.description || '',
+            gallery: galleryImages.length > 0 ? galleryImages : [firstMedia?.url || '/placeholder-profile.jpg'],
+            voiceNoteUrl: profile.voiceNoteUrl || null,
+            phone: profile.phone || listing.phone || '', // Include phone for search
+            createdAt: profile.createdAt
+          };
+        }).filter(Boolean); // Remove any null entries
+      })
 
     // Always return a valid response, even if empty
     const validProfiles = Array.isArray(transformedProfiles) ? transformedProfiles.filter(p => p != null) : [];

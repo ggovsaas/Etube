@@ -34,6 +34,9 @@ export async function GET(
             profile: {
               include: {
                 media: {
+                  where: {
+                    listingId: id.trim() // Only get media for this specific listing
+                  },
                   orderBy: {
                     createdAt: 'desc'
                   }

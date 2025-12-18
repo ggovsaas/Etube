@@ -21,7 +21,14 @@
       "Bash(npx tsc:*)",
       "Bash(npm run build:*)",
       "Bash(node -c:*)",
-      "Bash(dir /s /b \"C:\\xampp\\htdocs\\Etube\\src\\app\\admin\\listings\\*.tsx\")"
+      "Bash(dir /s /b \"C:\\xampp\\htdocs\\Etube\\src\\app\\admin\\listings\\*.tsx\")",
+      "Bash(cat:*)",
+      "Bash(git log:*)",
+      "Bash(node -e:*)",
+      "Bash(node check-anna.js:*)",
+      "Bash(del:*)",
+      "Bash(node test-api.js:*)",
+      "Bash(node test-listing-images.js:*)"
     ],
     "deny": [],
     "ask": []
