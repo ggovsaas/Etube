@@ -41,8 +41,17 @@ export async function getStoriesByListingContext(
   const { city, gender } = params;
 
   // First, find all userIds whose Profile (Listing) matches the city and gender
+  // CRITICAL FIX: Only include users with at least one ACTIVE listing
   const profileWhere: any = {
-    city: city
+    city: city,
+    user: {
+      listings: {
+        some: {
+          status: 'ACTIVE',
+          isPaused: false
+        }
+      }
+    }
   };
 
   if (gender) {

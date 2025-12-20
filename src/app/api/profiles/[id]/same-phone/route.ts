@@ -17,10 +17,19 @@ export async function GET(
     }
 
     // Find all profiles with the same phone number, excluding the current profile
+    // CRITICAL FIX: Only show profiles with at least one ACTIVE listing
     const profiles = await prisma.profile.findMany({
       where: {
         phoneNumber: currentProfile.phoneNumber,
-        id: { not: params.id }
+        id: { not: params.id },
+        user: {
+          listings: {
+            some: {
+              status: 'ACTIVE',
+              isPaused: false
+            }
+          }
+        }
       },
       include: {
         media: {

@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
         currentPage: 1,
       });
     }
-    
+
     // Only apply basic filters for non-admin users
     if (!userIsAdmin) {
       where.age = {
@@ -83,6 +83,16 @@ export async function GET(request: NextRequest) {
           not: ''
         };
       }
+      // CRITICAL FIX: For non-admin users, ONLY show profiles that have at least one ACTIVE listing
+      // This prevents PENDING listings from appearing in the public frontend
+      where.user = {
+        listings: {
+          some: {
+            status: 'ACTIVE',
+            isPaused: false
+          }
+        }
+      };
     }
 
     // For non-admin users, we need to fetch more profiles to filter, then paginate

@@ -40,6 +40,15 @@ export async function GET(request: Request) {
       }),
       ...(isVerified && { isVerified: isVerified === 'true' }),
       ...(isOnline && { isOnline: isOnline === 'true' }),
+      // CRITICAL FIX: Only show profiles with at least one ACTIVE listing
+      user: {
+        listings: {
+          some: {
+            status: 'ACTIVE',
+            isPaused: false
+          }
+        }
+      }
     };
 
     const [profiles, total] = await Promise.all([
