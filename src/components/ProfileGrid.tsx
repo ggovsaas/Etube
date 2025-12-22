@@ -72,9 +72,10 @@ function ProfileCard({ profile }: { profile: Profile }) {
 
   const currentImage = galleryImages[currentImageIndex] || profile.image;
 
-  return (
+  // Make entire card clickable
+  const cardContent = (
     <div 
-      className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group"
+      className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group cursor-pointer"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -175,15 +176,35 @@ function ProfileCard({ profile }: { profile: Profile }) {
           <div className="text-lg font-bold text-red-600">
             €{profile.price}/hora
           </div>
-          <Link 
-            href={profile.listingId ? `/anuncio/${profile.listingId}` : '#'}
+          <div 
             className={`bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium ${!profile.listingId ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={(e) => !profile.listingId && e.preventDefault()}
           >
             Ver Perfil
-          </Link>
+          </div>
         </div>
       </div>
     </div>
   );
+
+  // Wrap entire card in Link if listingId exists
+  if (profile.listingId) {
+    return (
+      <Link 
+        href={`/anuncio/${profile.listingId}`}
+        className="block"
+        onClick={(e) => {
+          // Allow favorite button clicks to work
+          const target = e.target as HTMLElement;
+          if (target.closest('.favorite-button') || target.closest('button')) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
+      >
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
 }

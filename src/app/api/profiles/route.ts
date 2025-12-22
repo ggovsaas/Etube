@@ -236,15 +236,23 @@ export async function GET(request: NextRequest) {
 
           const firstMedia = allMedia.find(m => m && m.url) || null;
 
+          // Read from listing first, fallback to profile for legacy data
+          const listingName = listing.name || profile.name || 'Unknown';
+          const listingAge = listing.age || profile.age || 0;
+          const listingCity = listing.city || profile.city || 'Unknown';
+          const listingHeight = listing.height ? parseInt(String(listing.height)) : (profile.height ? parseInt(String(profile.height)) : 0);
+          const listingWeight = listing.weight ? parseInt(String(listing.weight)) : (profile.weight ? parseInt(String(profile.weight)) : 0);
+          const listingDescription = listing.description || profile.description || '';
+
           return {
             id: listing.id || '', // Use listing.id as unique identifier since we return one result per listing
             profileId: profile.id || '', // Keep profile.id for reference
             listingId: listing.id || null, // Include listing ID for navigation
-            name: profile.name || 'Unknown',
-            age: profile.age || 0,
-            city: profile.city || 'Unknown',
-            height: profile.height ? parseInt(String(profile.height)) : 0,
-            weight: profile.weight ? parseInt(String(profile.weight)) : 0,
+            name: listingName,
+            age: listingAge,
+            city: listingCity,
+            height: listingHeight,
+            weight: listingWeight,
             price: listing.price || 0,
             pricePerHour: listing.price || 0,
             rating: profile.rating || 0,
@@ -252,11 +260,11 @@ export async function GET(request: NextRequest) {
             isOnline: profile.user?.isOnline || false,
             isVerified: profile.isVerified || false,
             imageUrl: firstMedia?.url || '/placeholder-profile.jpg',
-            description: profile.description || '',
+            description: listingDescription,
             gallery: galleryImages.length > 0 ? galleryImages : [firstMedia?.url || '/placeholder-profile.jpg'],
-            voiceNoteUrl: profile.voiceNoteUrl || null,
-            phone: profile.phone || listing.phone || '', // Include phone for search
-            createdAt: profile.createdAt
+            voiceNoteUrl: listing.voiceNoteUrl || profile.voiceNoteUrl || null,
+            phone: listing.phone || profile.phone || '', // Include phone for search
+            createdAt: listing.createdAt || profile.createdAt
           };
         }).filter(Boolean); // Remove any null entries
       })

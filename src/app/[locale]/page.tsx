@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import LocaleLink from '@/components/LocaleLink';
 import { useLocale } from '@/hooks/useLocale';
 import { getCities } from '@/lib/i18n';
@@ -188,7 +189,7 @@ export default function Home() {
               (Array.isArray(topProfiles) ? topProfiles : []).map((profile, index) => {
                 if (!profile) return null;
                 return (
-                <LocaleLink href={profile.listingId ? `/anuncio/${profile.listingId}` : '#'} key={profile.id} onClick={(e) => !profile.listingId && e.preventDefault()}>
+                <Link href={profile.listingId ? `/anuncio/${profile.listingId}` : '#'} key={profile.id} onClick={(e) => !profile.listingId && e.preventDefault()}>
                   <div className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                     <div className="aspect-w-3 aspect-h-4">
                       <img 
@@ -220,7 +221,7 @@ export default function Home() {
                       {profile.name}
                     </div>
                   </div>
-                </LocaleLink>
+                </Link>
                 );
               }).filter(Boolean)
             )}
