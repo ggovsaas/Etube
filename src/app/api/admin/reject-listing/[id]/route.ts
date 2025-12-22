@@ -1,0 +1,43 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { verifyAdminSession } from '@/lib/adminCheck';
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    
+    // Get token from cookies
+
+    const { isAdmin, error } = await verifyAdminSession();
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: error || 'Admin access required' },
+        { status: error === 'Authentication required' ? 401 : 403 }
+      );
+    }
+
+    // Update listing status to INACTIVE (rejected)
+    const updatedListing = await prisma.listing.update({
+      where: { id },
+      data: {
+        status: 'INACTIVE'
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      listing: updatedListing
+    });
+
+  } catch (error) {
+    console.error('Error rejecting listing:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+} 

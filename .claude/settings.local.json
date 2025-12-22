@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(timeout 15 bash:*)",
+      "Bash(node test-register.js:*)",
+      "Bash(curl:*)",
+      "Bash(node test-mailgun.js:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npm run dev:*)",
+      "Bash(python3:*)",
+      "Bash(git diff:*)",
+      "Bash(grep:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(if exist .next rmdir /s /q .next)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(node -c:*)",
+      "Bash(dir /s /b \"C:\\xampp\\htdocs\\Etube\\src\\app\\admin\\listings\\*.tsx\")",
+      "Bash(cat:*)",
+      "Bash(git log:*)",
+      "Bash(node -e:*)",
+      "Bash(node check-anna.js:*)",
+      "Bash(del:*)",
+      "Bash(node test-api.js:*)",
+      "Bash(node test-listing-images.js:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

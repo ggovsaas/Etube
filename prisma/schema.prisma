@@ -1,0 +1,747 @@
+generator client {
+  provider        = "prisma-client-js"
+  // Optimize for serverless environments
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  // Use Prisma relation mode for serverless databases (Neon, PlanetScale)
+  // This emulates foreign keys in Prisma instead of relying on database foreign keys
+  relationMode = "prisma"
+  // Enable connection pooling extension (improves Neon connection stability)
+  // Note: Ensure your DATABASE_URL includes pgbouncer=true for Neon pooling
+}
+
+model User {
+  id                          String                @id @default(cuid())
+  name                        String?
+  email                       String                @unique
+  emailVerified               DateTime? // Auth.js uses DateTime? for emailVerified
+  image                       String? // Profile image URL for Auth.js
+  password                    String? // Optional for OAuth users
+  role                        Role                  @default(USER)
+  isPro                       Boolean               @default(false)
+  proUntil                    DateTime?
+  credits                     Int                   @default(0)
+  verificationToken           String? // Legacy verification token (can be removed later)
+  verificationExpiry          DateTime? // Legacy verification expiry (can be removed later)
+  resetToken                  String? // Password reset token
+  resetExpiry                 DateTime? // Password reset token expiry
+  // Multi-role architecture flags
+  isClient                    Boolean               @default(true) // All registered users are clients by default
+  isContentCreator            Boolean               @default(false) // Activated when user creates content
+  isServiceProvider           Boolean               @default(false) // Activated when first listing is verified
+  // Story channel toggles - control where stories appear
+  storiesEnabledInProfiles    Boolean               @default(true) // Show stories in /profiles (for escorts)
+  storiesEnabledInCreatorFeed Boolean               @default(true) // Show stories in creator feed
+  // Unified availability status
+  isOnline                    Boolean               @default(false) // UNIFIED STATUS for Paid Chat/Webcam/Green Dot availability
+  // Profile visibility (for creators)
+  isProfileHidden             Boolean               @default(false) // Hides the single Creator profile from all public feeds/searches
+  // Payment tokenization for one-click purchases
+  paymentToken                String? // Stores the Customer ID or Token from the payment processor (e.g., CCBill, Segpay)
+  paymentTokenProvider        String? // Which payment processor issued this token (e.g., 'ccbill', 'segpay')
+  paymentTokenExpiresAt       DateTime? // Token expiration date (if applicable)
+  createdAt                   DateTime              @default(now())
+  updatedAt                   DateTime              @updatedAt
+  // Auth.js relations
+  accounts                    Account[]
+  sessions                    Session[]
+  // Existing app relations
+  creditTransactions          CreditTransaction[]
+  favorites                   Favorite[]
+  listings                    Listing[]
+  profile                     Profile?
+  // Financial relations
+  providerTransactions        Transaction[]         @relation("ProviderTransactions")
+  clientTransactions          Transaction[]         @relation("ClientTransactions")
+  payoutRequests              PayoutRequest[]       @relation("ProviderPayouts")
+  questions                   Question[]
+  reviews                     Review[]
+  subscriptions               Subscription[]
+  // Creator features
+  wishlistItems               WishlistItem[]
+  stories                     Story[]
+  // Forum relations
+  forumThreads                ForumThread[]
+  forumPosts                  ForumPost[]
+  // Contest relations
+  contests                    Contest[]             @relation("ContestCreator")
+  contestEntries              ContestEntry[]        @relation("ContestParticipant")
+  // Admin relations
+  adminRoleId                 String?
+  adminRole                   AdminRole?            @relation("UserAdminRole", fields: [adminRoleId], references: [id], onDelete: SetNull)
+  // Verification relations
+  verificationRequests        VerificationRequest[]
+  // Blog relations
+  blogPosts                   BlogPost[]            @relation("BlogPostAuthor")
+  // Content feed relations
+  contentItems                ContentItem[]
+  ListingBoost                ListingBoost[]
+}
+
+model Profile {
+  id                    String                @id @default(cuid())
+  userId                String                @unique
+  name                  String
+  age                   Int
+  city                  String
+  neighborhood          String?
+  description           String?
+  bio                   String?
+  location              String?
+  phone                 String?
+  whatsappEnabled       Boolean               @default(false)
+  telegramEnabled       Boolean               @default(false)
+  onlyfans              String?
+  privacy               String?
+  instagram             String?
+  twitter               String?
+  tiktok                String?
+  snapchat              String?
+  telegramChannel       String?
+  whatsappBusiness      String?
+  manyvids              String?
+  chaturbate            String?
+  myfreecams            String?
+  livejasmin            String?
+  linkHubUrl            String?
+  gender                String?
+  preference            String?
+  weight                String?
+  height                String?
+  ethnicity             String?
+  eyeColor              String?
+  shoeSize              String?
+  tattoos               String?
+  piercings             String?
+  smoker                String?
+  languages             String?
+  bodyType              String?
+  hairColor             String?
+  breastSize            String?
+  breastType            String?
+  personalityTags       String[]
+  isVerified            Boolean               @default(false)
+  isOnline              Boolean               @default(false)
+  rating                Float                 @default(0)
+  profilePhoto          String?
+  voiceNoteUrl          String?
+  // Contact visibility settings (for creators)
+  publicPhoneVisibility Boolean               @default(false) // Show phone on public profile
+  whatsappVisibility    Boolean               @default(false) // Show WhatsApp on public profile
+  paidChatRate          Float? // Price per message for paid chat
+  tippingEnabled        Boolean               @default(true) // Enable tipping
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  hair                  String?
+  media                 Media[]
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews               Review[]
+  verificationRequests  VerificationRequest[]
+}
+
+model VerificationRequest {
+  id              String             @id @default(cuid())
+  userId          String
+  profileId       String?
+  photoUrl        String // URL to the verification photo
+  status          VerificationStatus @default(PENDING)
+  reviewedBy      String? // Admin user ID who reviewed it
+  reviewedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile         Profile?           @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Listing {
+  id              String         @id @default(cuid())
+  title           String
+  description     String
+  price           Float?
+  location        String
+  city            String
+  age             Int
+  phone           String
+  services        String?
+  minDuration     String?
+  advanceNotice   String?
+  acceptsCard     Boolean        @default(false)
+  regularDiscount String?
+  status          ListingStatus  @default(ACTIVE)
+  isPremium       Boolean        @default(false)
+  isPaused        Boolean        @default(false) // Temporarily hides this single listing from search
+  expiresAt       DateTime       @default(dbgenerated("(now() + '7 days'::interval)"))
+  autoRenew       Boolean        @default(false)
+  userId          String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  images          Image[]
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media           Media[]
+  transactions    Transaction[]
+  boosts          ListingBoost[]
+
+  // Listing-specific information (not shared across listings)
+  name            String?
+  neighborhood    String?
+  gender          String?
+  preference      String?
+  weight          String?
+  height          String?
+  ethnicity       String?
+  eyeColor        String?
+  shoeSize        String?
+  tattoos         String?
+  piercings       String?
+  smoker          String?
+  languages       String? // JSON array
+  bodyType        String?
+  hairColor       String?
+  breastSize      String?
+  breastType      String?
+  personalityTags String[] // Native array
+
+  // Social media links (listing-specific)
+  onlyfans         String?
+  privacy          String?
+  instagram        String?
+  twitter          String?
+  tiktok           String?
+  snapchat         String?
+  telegramChannel  String?
+  whatsappBusiness String?
+  manyvids         String?
+  chaturbate       String?
+  myfreecams       String?
+  livejasmin       String?
+  linkHubUrl       String?
+
+  // Contact preferences
+  whatsappEnabled Boolean @default(false)
+  telegramEnabled Boolean @default(false)
+
+  // Voice note (listing-specific)
+  voiceNoteUrl String?
+}
+
+model Image {
+  id        String   @id @default(cuid())
+  url       String
+  listingId String
+  createdAt DateTime @default(now())
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  rating     Int
+  comment    String?
+  authorName String?
+  profileId  String
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Media {
+  id        String    @id @default(cuid())
+  url       String
+  type      MediaType
+  profileId String?
+  listingId String?
+  createdAt DateTime  @default(now())
+  listing   Listing?  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  profile   Profile?  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  userId             String
+  type               SubscriptionType
+  status             SubscriptionStatus @default(ACTIVE)
+  stripeId           String?
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CreditTransaction {
+  id          String                @id @default(cuid())
+  userId      String
+  type        CreditTransactionType
+  amount      Int
+  description String
+  stripeId    String?
+  createdAt   DateTime              @default(now())
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  USER
+  ESCORT
+  ADMIN
+  CAM_CREATOR
+}
+
+enum MediaType {
+  PHOTO
+  VIDEO
+  IMAGE
+}
+
+enum ListingStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  FINISHED
+  EXPIRED
+}
+
+enum SubscriptionType {
+  PRO_1_MONTH
+  PRO_3_MONTHS
+  PRO_6_MONTHS
+  PRO_MAX // Higher tier for webcam viewing, more paid chat credits
+  PREMIUM_CREATOR_VIEW // Premium creator subscription tier
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  UNPAID
+}
+
+enum CreditTransactionType {
+  PURCHASE
+  USAGE
+  REFUND
+  BONUS
+}
+
+// Auth.js/NextAuth.js models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Story {
+  id          String       @id @default(cuid())
+  mediaUrl    String
+  storyOrder  Int          @default(0)
+  userId      String // Links to Creator/User, not Profile
+  createdAt   DateTime     @default(now())
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Link to ContentItem for unified feed (one-to-one, optional)
+  contentItem ContentItem?
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model WishlistItem {
+  id          String   @id @default(cuid())
+  productName String
+  productUrl  String // WooCommerce product URL
+  price       Float?
+  isFulfilled Boolean  @default(false)
+  userId      String // Links to Creator/User
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isFulfilled])
+}
+
+// Forum Models
+model ForumCategory {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  slug        String        @unique
+  order       Int           @default(0)
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  threads     ForumThread[]
+
+  @@index([slug])
+  @@index([order])
+}
+
+model ForumThread {
+  id          String        @id @default(cuid())
+  title       String
+  content     String // Markdown/String content
+  views       Int           @default(0)
+  isSticky    Boolean       @default(false)
+  isLocked    Boolean       @default(false)
+  isSponsored Boolean       @default(false) // For monetization
+  categoryId  String
+  authorId    String // Links to User (Creator/Client)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  lastPostAt  DateTime      @default(now())
+  category    ForumCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  posts       ForumPost[]
+  contests    Contest[] // Contests announced in this thread
+
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([isSticky])
+  @@index([isSponsored])
+  @@index([lastPostAt])
+}
+
+model ForumPost {
+  id        String      @id @default(cuid())
+  content   String // Markdown/String content
+  threadId  String
+  authorId  String // Links to User (Creator/Client)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  thread    ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author    User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+// Monetization: Product Placement Pricing
+model ProductPlacementPricing {
+  id            String   @id @default(cuid())
+  placementType String // 'homepage', 'profile_search', 'forum_category', 'forum_sticky'
+  listingId     String? // Optional: link to specific Listing
+  threadId      String? // Optional: link to specific ForumThread (for sponsored posts)
+  price         Float // Price per time period
+  currency      String   @default("EUR")
+  periodType    String // 'day', 'week', 'month'
+  periodValue   Int // e.g., 7 for 7 days
+  startDate     DateTime
+  endDate       DateTime
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([placementType])
+  @@index([isActive])
+  @@index([startDate, endDate])
+}
+
+// Contest/Raffle System
+enum ContestStatus {
+  OPEN
+  CLOSED
+  RESOLVED
+}
+
+model Contest {
+  id               String        @id @default(cuid())
+  title            String
+  prizeDescription String        @db.Text
+  totalSlots       Int
+  slotPrice        Float // Price per slot in EUR
+  status           ContestStatus @default(OPEN)
+  creatorId        String // Links to User (Creator/Owner)
+  threadId         String? // Optional: link to ForumThread where contest is announced
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  resolvedAt       DateTime?
+  winnerId         String? // Winner's ContestEntry ID (set when resolved)
+
+  creator User           @relation("ContestCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  thread  ForumThread?   @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  entries ContestEntry[]
+
+  @@index([creatorId])
+  @@index([status])
+  @@index([threadId])
+  @@index([createdAt])
+}
+
+model ContestEntry {
+  id              String   @id @default(cuid())
+  contestId       String
+  participantId   String // Links to User (Client/Participant)
+  isWinner        Boolean  @default(false)
+  entryFeePaid    Float // Amount paid for this entry
+  stripeSessionId String? // Stripe checkout session ID
+  enteredAt       DateTime @default(now())
+
+  contest     Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  participant User    @relation("ContestParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@unique([contestId, participantId]) // Prevent duplicate entries from same user
+  @@index([contestId])
+  @@index([participantId])
+  @@index([isWinner])
+  @@index([enteredAt])
+}
+
+model AdminRole {
+  id                 String   @id @default(cuid())
+  name               String   @unique // e.g., 'SUPER_ADMIN', 'MODERATOR', 'GERMANY_ADMIN'
+  canEditProfiles    Boolean  @default(false)
+  canResolveContests Boolean  @default(false)
+  canAccessPayouts   Boolean  @default(false)
+  canManageUsers     Boolean  @default(false)
+  countryScope       String? // e.g., 'Germany', 'Brazil', or null for 'GLOBAL'
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  users              User[]   @relation("UserAdminRole")
+
+  @@index([name])
+  @@index([countryScope])
+}
+
+model BlogPost {
+  id              String         @id @default(cuid())
+  title           String
+  slug            String         @unique
+  content         String // Rich text/Markdown content
+  authorId        String
+  author          User           @relation("BlogPostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  featureImageUrl String?
+  excerpt         String?
+  metaDescription String?
+  isPublished     Boolean        @default(false)
+  publishedAt     DateTime?
+  priceCredits    Int? // Price in credits for premium blog posts (null = free)
+  isPremium       Boolean        @default(false) // Premium blog post requires payment
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  boosts          ListingBoost[]
+
+  @@index([slug])
+  @@index([authorId])
+  @@index([isPublished])
+  @@index([publishedAt])
+  @@index([isPremium])
+}
+
+// Unified Content Feed Model (Photo Posts, Video Posts, Stories)
+model ContentItem {
+  id            String      @id @default(cuid())
+  type          ContentType
+  mediaUrl      String // URL to photo/video
+  thumbnailUrl  String? // Optional thumbnail for videos
+  caption       String? // Optional caption/description
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Engagement metrics
+  likesCount    Int         @default(0)
+  viewsCount    Int         @default(0)
+  commentsCount Int         @default(0)
+  // For STORY type - link to existing Story model (one-to-one, optional)
+  storyId       String?     @unique
+  story         Story?      @relation(fields: [storyId], references: [id], onDelete: SetNull)
+  // Privacy settings
+  isPublic      Boolean     @default(true)
+  // Pricing for premium content (VOD videos, premium blog posts)
+  priceCredits  Int? // Price in credits (null = free)
+  isPremium     Boolean     @default(false) // Premium content requires payment
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([isPublic])
+  @@index([isPremium])
+}
+
+enum ContentType {
+  PHOTO_POST
+  VIDEO_POST
+  STORY
+}
+
+// Financial Models: Transactions and Payouts
+enum TransactionType {
+  TIP
+  GIFT
+  CHAT
+  CALL
+  CONTEST_WINNING
+  VOD_UNLOCK // VOD Video Unlock
+  BLOG_ACCESS // Premium Blog Post Access
+  CONTEST_ENTRY // Contest Entry Fee
+  FORUM_ACCESS // Premium Forum Access
+  BOOST_PURCHASE // Visibility Boost Purchase
+}
+
+enum PayoutStatus {
+  REQUESTED
+  PROCESSING
+  COMPLETED
+  REJECTED
+}
+
+model Transaction {
+  id              String          @id @default(cuid())
+  type            TransactionType
+  amountCredits   Int // Credits deducted from client
+  amountCash      Float // Provider's cash equivalent after platform fees
+  platformFee     Float // Platform's fee percentage
+  providerId      String // Creator/Escort who receives payment
+  clientId        String // Client who initiated transaction
+  listingId       String? // Optional: link to listing if applicable
+  payoutRequestId String? // Link to payout request when processed
+  payoutRequest   PayoutRequest?  @relation(fields: [payoutRequestId], references: [id], onDelete: SetNull)
+  provider        User            @relation("ProviderTransactions", fields: [providerId], references: [id], onDelete: Cascade)
+  client          User            @relation("ClientTransactions", fields: [clientId], references: [id], onDelete: Cascade)
+  listing         Listing?        @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  createdAt       DateTime        @default(now())
+
+  @@index([providerId])
+  @@index([clientId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([payoutRequestId])
+}
+
+model PayoutRequest {
+  id              String        @id @default(cuid())
+  providerId      String
+  amount          Float // Total amount requested
+  payoutMethod    String // e.g., "Bank Transfer", "PayPal", "Crypto"
+  payoutDetails   String?       @db.Text // Encrypted payment details
+  status          PayoutStatus  @default(REQUESTED)
+  requestedAt     DateTime      @default(now())
+  processedAt     DateTime?
+  processedBy     String? // Admin user ID who processed it
+  rejectionReason String?       @db.Text
+  provider        User          @relation("ProviderPayouts", fields: [providerId], references: [id], onDelete: Cascade)
+  transactions    Transaction[]
+
+  @@index([providerId])
+  @@index([status])
+  @@index([requestedAt])
+}
+
+// Boost Types for Visibility Products
+enum BoostType {
+  FEATURE_LISTING // Feature Listing Spot (Front Page)
+  CATEGORY_BOOST // Category Boost (Top of Category)
+  MAIN_CATEGORY_BOOST // Main Category Boost (Sticky Top Position)
+  BLOG_POST_PIN // Blog Post Pin (Top of Blog Feed)
+  STORY_HIGHLIGHT // Story Highlight Slot (Featured Story Bar)
+}
+
+// Listing Boost Model - Tracks all visibility products purchased by providers
+model ListingBoost {
+  id           String    @id @default(cuid())
+  type         BoostType
+  listingId    String? // Optional: link to specific Listing
+  userId       String? // Optional: link to User (for user-level boosts like Story Highlight)
+  blogPostId   String? // Optional: link to BlogPost (for Blog Post Pin)
+  priceCredits Int // Price paid in credits
+  startDate    DateTime  @default(now())
+  endDate      DateTime // When the boost expires
+  isActive     Boolean   @default(true)
+  category     String? // For category boosts: which category
+  paymentId    String? // Payment processor transaction ID
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  listing      Listing?  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user         User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blogPost     BlogPost? @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@index([userId])
+  @@index([type])
+  @@index([isActive])
+  @@index([startDate, endDate])
+  @@index([endDate])
+}
+
+// Credit Package Configuration
+model CreditPackage {
+  id              String   @id @default(cuid())
+  name            String // e.g., "Starter", "Standard", "Pro Pack", "VIP Bulk"
+  credits         Int // Number of credits in package
+  priceUSD        Float // Price in USD
+  costPerCredit   Float // Calculated: priceUSD / credits
+  discountPercent Float? // Discount percentage vs anchor price
+  isActive        Boolean  @default(true)
+  displayOrder    Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([name])
+  @@index([isActive])
+}
